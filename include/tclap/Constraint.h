@@ -38,20 +38,25 @@ namespace TCLAP {
 /**
  * The interface that defines the interaction between the Arg and Constraint.
  */
-template<class T>
+template<class T, typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
 class Constraint
 {
-
 	public:
+		using CharType = T_Char;
+		using CharTraitsType = T_CharTraits;
+		using AllocatorType = T_Alloc;
+		using StringType = std::basic_string<T_Char, T_CharTraits, T_Alloc>;
+		using StringVectorType = std::vector<StringType, typename std::allocator_traits<AllocatorType>::template rebind_alloc<StringType>>;
+
 		/**
 		 * Returns a description of the Constraint.
 		 */
-		virtual std::string description() const =0;
+		virtual StringType description() const =0;
 
 		/**
 		 * Returns the short ID for the Constraint.
 		 */
-		virtual std::string shortID() const =0;
+		virtual StringType shortID() const =0;
 
 		/**
 		 * The method used to verify that the value parsed from the command
@@ -67,7 +72,7 @@ class Constraint
 		 */
 		virtual ~Constraint() { ; }
 
-		static std::string shortID(Constraint<T> *constraint) {
+		static StringType shortID(Constraint *constraint) {
 		  if (!constraint)
 		    throw std::logic_error("Cannot create a ValueArg with a NULL constraint");
 		  return constraint->shortID();

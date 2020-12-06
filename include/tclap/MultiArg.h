@@ -33,35 +33,96 @@
 #include <tclap/Constraint.h>
 
 namespace TCLAP {
+
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+class Constraint;
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+class MultiArg;
+
 /**
  * An argument that allows multiple values of type T to be specified.  Very
  * similar to a ValueArg, except a vector of values will be returned
  * instead of just one.
  */
-template<class T>
-class MultiArg : public Arg
+template<class T, typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
+class MultiArg : public Arg<T_Char, T_CharTraits, T_Alloc>
 {
 public:
-	typedef std::vector<T> container_type;	
-	typedef typename container_type::iterator iterator;
-	typedef typename container_type::const_iterator const_iterator;
+	using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharType;
+	using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
+	using typename Arg<T_Char, T_CharTraits, T_Alloc>::AllocatorType;
+	using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringType;
+	using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
+	using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgType;
+	using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgListType;
+	using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgVectorType;
+	using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgListIteratorType;
+	using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgVectorIteratorType;
+	using typename Arg<T_Char, T_CharTraits, T_Alloc>::CmdLineInterfaceType;
+	using ConstraintType = Constraint<T, T_Char, T_CharTraits, T_Alloc>;
+	using container_type = std::vector<T, typename std::allocator_traits<AllocatorType>::template rebind_alloc<T>>;
+	using iterator = typename container_type::iterator;
+	using const_iterator = typename container_type::const_iterator;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::addToList;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::beginIgnoring;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::ignoreRest;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::delimiter;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::blankChar;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::flagStartChar;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::flagStartString;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::nameStartString;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::ignoreNameString;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::setDelimiter;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::processArg;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::operator==;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::getFlag;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::getName;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::getDescription;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::isRequired;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::forceRequired;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::xorSet;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::isValueRequired;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::isSet;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::isIgnoreable;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::argMatches;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::toString;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::shortID;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::longID;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::trimFlag;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_hasBlanks;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::setRequireLabel;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::allowMore;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::acceptsMultipleValues;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::reset;
 
 protected:
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_flag;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_name;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_description;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_required;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_requireLabel;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_valueRequired;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_alreadySet;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_visitor;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_ignoreable;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_xorSet;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_acceptsMultipleValues;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_checkWithVisitor;
 
 	/**
 	 * The list of values parsed from the CmdLine.
 	 */
-	std::vector<T> _values;
+	container_type _values;
 
 	/**
 	 * The description of type T to be used in the usage.
 	 */
-	std::string _typeDesc;
+	StringType _typeDesc;
 
 	/**
 	 * A list of constraint on this Arg. 
 	 */
-	Constraint<T>* _constraint;
+	ConstraintType* _constraint;
 
 	/**
 	 * Extracts the value from the string.
@@ -69,7 +130,7 @@ protected:
 	 * is thrown.
 	 * \param val - The string to be read.
 	 */
-	void _extractValue( const std::string& val );
+	void _extractValue( const StringType& val );
 
 	/**
 	 * Used by XorHandler to decide whether to keep parsing for this arg.
@@ -95,11 +156,11 @@ public:
 	 * \param v - An optional visitor.  You probably should not
 	 * use this unless you have a very good reason.
 	 */
-	MultiArg( const std::string& flag,
-                  const std::string& name,
-                  const std::string& desc,
+	MultiArg( const StringType& flag,
+                  const StringType& name,
+                  const StringType& desc,
                   bool req,
-                  const std::string& typeDesc,
+                  const StringType& typeDesc,
                   Visitor* v = NULL);
 
 	/**
@@ -120,12 +181,12 @@ public:
 	 * \param v - An optional visitor.  You probably should not
 	 * use this unless you have a very good reason.
 	 */
-	MultiArg( const std::string& flag, 
-                  const std::string& name,
-                  const std::string& desc,
+	MultiArg( const StringType& flag, 
+                  const StringType& name,
+                  const StringType& desc,
                   bool req,
-                  const std::string& typeDesc,
-                  CmdLineInterface& parser,
+                  const StringType& typeDesc,
+                  CmdLineInterfaceType& parser,
                   Visitor* v = NULL );
 
 	/**
@@ -143,11 +204,11 @@ public:
 	 * \param v - An optional visitor.  You probably should not
 	 * use this unless you have a very good reason.
 	 */
-	MultiArg( const std::string& flag,
-                  const std::string& name,
-                  const std::string& desc,
+	MultiArg( const StringType& flag,
+                  const StringType& name,
+                  const StringType& desc,
                   bool req,
-                  Constraint<T>* constraint,
+                  ConstraintType* constraint,
                   Visitor* v = NULL );
 		  
 	/**
@@ -166,12 +227,12 @@ public:
 	 * \param v - An optional visitor.  You probably should not
 	 * use this unless you have a very good reason.
 	 */
-	MultiArg( const std::string& flag, 
-                  const std::string& name,
-                  const std::string& desc,
+	MultiArg( const StringType& flag, 
+                  const StringType& name,
+                  const StringType& desc,
                   bool req,
-                  Constraint<T>* constraint,
-                  CmdLineInterface& parser,
+                  ConstraintType* constraint,
+                  CmdLineInterfaceType& parser,
                   Visitor* v = NULL );
 		  
 	/**
@@ -182,13 +243,13 @@ public:
 	 * \param i - Pointer the the current argument in the list.
 	 * \param args - Mutable list of strings. Passed from main().
 	 */
-	virtual bool processArg(int* i, std::vector<std::string>& args); 
+	virtual bool processArg(int* i, StringVectorType& args); 
 
 	/**
 	 * Returns a vector of type T containing the values parsed from
 	 * the command line.
 	 */
-	const std::vector<T>& getValue() const { return _values; }
+	const container_type& getValue() const { return _values; }
 
 	/**
 	 * Returns an iterator over the values parsed from the command
@@ -206,13 +267,13 @@ public:
 	 * Returns the a short id string.  Used in the usage. 
 	 * \param val - value to be used.
 	 */
-	virtual std::string shortID(const std::string& val="val") const;
+	virtual StringType shortID(const StringType& val="val") const;
 
 	/**
 	 * Returns the a long id string.  Used in the usage. 
 	 * \param val - value to be used.
 	 */
-	virtual std::string longID(const std::string& val="val") const;
+	virtual StringType longID(const StringType& val="val") const;
 
 	/**
 	 * Once we've matched the first value, then the arg is no longer
@@ -228,20 +289,20 @@ private:
 	/**
 	 * Prevent accidental copying
 	 */
-	MultiArg<T>(const MultiArg<T>& rhs);
-	MultiArg<T>& operator=(const MultiArg<T>& rhs);
+	MultiArg(const MultiArg& rhs);
+	MultiArg& operator=(const MultiArg& rhs);
 
 };
 
-template<class T>
-MultiArg<T>::MultiArg(const std::string& flag, 
-                      const std::string& name,
-                      const std::string& desc,
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+MultiArg<T, T_Char, T_CharTraits, T_Alloc>::MultiArg(const StringType& flag,
+                      const StringType& name,
+                      const StringType& desc,
                       bool req,
-                      const std::string& typeDesc,
+                      const StringType& typeDesc,
                       Visitor* v) :
    Arg( flag, name, desc, req, true, v ),
-  _values(std::vector<T>()),
+  _values(container_type()),
   _typeDesc( typeDesc ),
   _constraint( NULL ),
   _allowMore(false)
@@ -249,16 +310,16 @@ MultiArg<T>::MultiArg(const std::string& flag,
 	_acceptsMultipleValues = true;
 }
 
-template<class T>
-MultiArg<T>::MultiArg(const std::string& flag, 
-                      const std::string& name,
-                      const std::string& desc,
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+MultiArg<T, T_Char, T_CharTraits, T_Alloc>::MultiArg(const StringType& flag,
+                      const StringType& name,
+                      const StringType& desc,
                       bool req,
-                      const std::string& typeDesc,
-                      CmdLineInterface& parser,
+                      const StringType& typeDesc,
+                      CmdLineInterfaceType& parser,
                       Visitor* v)
 : Arg( flag, name, desc, req, true, v ),
-  _values(std::vector<T>()),
+  _values(container_type()),
   _typeDesc( typeDesc ),
   _constraint( NULL ),
   _allowMore(false)
@@ -270,33 +331,33 @@ MultiArg<T>::MultiArg(const std::string& flag,
 /**
  *
  */
-template<class T>
-MultiArg<T>::MultiArg(const std::string& flag, 
-                      const std::string& name,
-                      const std::string& desc,
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+MultiArg<T, T_Char, T_CharTraits, T_Alloc>::MultiArg(const StringType& flag,
+                      const StringType& name,
+                      const StringType& desc,
                       bool req,
-                      Constraint<T>* constraint,
+                      ConstraintType* constraint,
                       Visitor* v)
 : Arg( flag, name, desc, req, true, v ),
-  _values(std::vector<T>()),
-  _typeDesc( Constraint<T>::shortID(constraint) ),
+  _values(container_type()),
+  _typeDesc( ConstraintType::shortID(constraint) ),
   _constraint( constraint ),
   _allowMore(false)
 { 
 	_acceptsMultipleValues = true;
 }
 
-template<class T>
-MultiArg<T>::MultiArg(const std::string& flag, 
-                      const std::string& name,
-                      const std::string& desc,
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+MultiArg<T, T_Char, T_CharTraits, T_Alloc>::MultiArg(const StringType& flag,
+                      const StringType& name,
+                      const StringType& desc,
                       bool req,
-                      Constraint<T>* constraint,
-                      CmdLineInterface& parser,
+                      ConstraintType* constraint,
+                      CmdLineInterfaceType& parser,
                       Visitor* v)
 : Arg( flag, name, desc, req, true, v ),
-  _values(std::vector<T>()),
-  _typeDesc( Constraint<T>::shortID(constraint) ),
+  _values(container_type()),
+  _typeDesc( ConstraintType::shortID(constraint) ),
   _constraint( constraint ),
   _allowMore(false)
 { 
@@ -304,8 +365,8 @@ MultiArg<T>::MultiArg(const std::string& flag,
 	_acceptsMultipleValues = true;
 }
 
-template<class T>
-bool MultiArg<T>::processArg(int *i, std::vector<std::string>& args) 
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+bool MultiArg<T, T_Char, T_CharTraits, T_Alloc>::processArg(int *i, StringVectorType& args)
 {
  	if ( _ignoreable && Arg::ignoreRest() )
 		return false;
@@ -313,8 +374,8 @@ bool MultiArg<T>::processArg(int *i, std::vector<std::string>& args)
 	if ( _hasBlanks( args[*i] ) )
 		return false;
 
-	std::string flag = args[*i];
-	std::string value = "";
+	StringType flag = args[*i];
+	StringType value = "";
 
    	trimFlag( flag, value );
 
@@ -358,8 +419,8 @@ bool MultiArg<T>::processArg(int *i, std::vector<std::string>& args)
 /**
  *
  */
-template<class T>
-std::string MultiArg<T>::shortID(const std::string& val) const
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+auto MultiArg<T, T_Char, T_CharTraits, T_Alloc>::shortID(const StringType& val) const -> StringType
 {
 	static_cast<void>(val); // Ignore input, don't warn
 	return Arg::shortID(_typeDesc) + " ...";
@@ -368,8 +429,8 @@ std::string MultiArg<T>::shortID(const std::string& val) const
 /**
  *
  */
-template<class T>
-std::string MultiArg<T>::longID(const std::string& val) const
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+auto MultiArg<T, T_Char, T_CharTraits, T_Alloc>::longID(const StringType& val) const -> StringType
 {
 	static_cast<void>(val); // Ignore input, don't warn
 	return Arg::longID(_typeDesc) + "  (accepted multiple times)";
@@ -379,8 +440,8 @@ std::string MultiArg<T>::longID(const std::string& val) const
  * Once we've matched the first value, then the arg is no longer
  * required.
  */
-template<class T>
-bool MultiArg<T>::isRequired() const
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+bool MultiArg<T, T_Char, T_CharTraits, T_Alloc>::isRequired() const
 {
 	if ( _required )
 	{
@@ -394,8 +455,8 @@ bool MultiArg<T>::isRequired() const
 
 }
 
-template<class T>
-void MultiArg<T>::_extractValue( const std::string& val ) 
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+void MultiArg<T, T_Char, T_CharTraits, T_Alloc>::_extractValue( const StringType& val )
 {
     try {
 	T tmp;
@@ -412,17 +473,17 @@ void MultiArg<T>::_extractValue( const std::string& val )
 					  _constraint->description(), 
 					  toString() ) );
 }
-		
-template<class T>
-bool MultiArg<T>::allowMore()
+
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+bool MultiArg<T, T_Char, T_CharTraits, T_Alloc>::allowMore()
 {
 	bool am = _allowMore;
 	_allowMore = true;
 	return am;
 }
 
-template<class T>
-void MultiArg<T>::reset()
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+void MultiArg<T, T_Char, T_CharTraits, T_Alloc>::reset()
 {
 	Arg::reset();
 	_values.clear();

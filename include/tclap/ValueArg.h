@@ -34,6 +34,11 @@
 
 namespace TCLAP {
 
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+class Constraint;
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+class ValueArg;
+
 /**
  * The basic labeled argument that parses a value.
  * This is a template class, which means the type T defines the type
@@ -42,10 +47,67 @@ namespace TCLAP {
  * an unflagged ValueArg, it is unwise and would cause significant problems.
  * Instead use an UnlabeledValueArg.
  */
-template<class T>
-class ValueArg : public Arg 
+template<class T, typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
+class ValueArg : public Arg<T_Char, T_CharTraits, T_Alloc>
 {
+public:
+    using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharType;
+    using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
+    using typename Arg<T_Char, T_CharTraits, T_Alloc>::AllocatorType;
+    using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringType;
+    using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
+    using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgType;
+    using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgListType;
+    using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgVectorType;
+    using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgListIteratorType;
+    using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgVectorIteratorType;
+    using typename Arg<T_Char, T_CharTraits, T_Alloc>::CmdLineInterfaceType;
+    using ConstraintType = Constraint<T, T_Char, T_CharTraits, T_Alloc>;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::addToList;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::beginIgnoring;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::ignoreRest;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::delimiter;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::blankChar;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::flagStartChar;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::flagStartString;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::nameStartString;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::ignoreNameString;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::setDelimiter;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::processArg;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::operator==;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::getFlag;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::getName;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::getDescription;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::isRequired;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::forceRequired;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::xorSet;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::isValueRequired;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::isSet;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::isIgnoreable;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::argMatches;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::toString;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::shortID;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::longID;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::trimFlag;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::_hasBlanks;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::setRequireLabel;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::allowMore;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::acceptsMultipleValues;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::reset;
+
 protected:
+    using Arg<T_Char, T_CharTraits, T_Alloc>::_flag;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::_name;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::_description;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::_required;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::_requireLabel;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::_valueRequired;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::_alreadySet;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::_visitor;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::_ignoreable;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::_xorSet;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::_acceptsMultipleValues;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::_checkWithVisitor;
 
   /**
    * The value parsed from the command line.
@@ -67,12 +129,12 @@ protected:
    * consistent support for human readable names, we are left to our
    * own devices.
    */
-  std::string _typeDesc;
+  StringType _typeDesc;
 
   /**
    * A Constraint this Arg must conform to. 
    */
-  Constraint<T>* _constraint;
+  ConstraintType* _constraint;
 
   /**
    * Extracts the value from the string.
@@ -80,7 +142,7 @@ protected:
    * is thrown.
    * \param val - value to be parsed. 
    */
-  void _extractValue( const std::string& val );
+  void _extractValue( const StringType& val );
 
 public:
 
@@ -107,12 +169,12 @@ public:
    * \param v - An optional visitor.  You probably should not
    * use this unless you have a very good reason.
    */
-  ValueArg( const std::string& flag, 
-            const std::string& name, 
-            const std::string& desc, 
+  ValueArg( const StringType& flag, 
+            const StringType& name, 
+            const StringType& desc, 
             bool req, 
             T value,
-            const std::string& typeDesc,
+            const StringType& typeDesc,
             Visitor* v = NULL);
                                  
                                  
@@ -140,13 +202,13 @@ public:
    * \param v - An optional visitor.  You probably should not
    * use this unless you have a very good reason.
    */
-  ValueArg( const std::string& flag, 
-            const std::string& name, 
-            const std::string& desc, 
+  ValueArg( const StringType& flag, 
+            const StringType& name, 
+            const StringType& desc, 
             bool req, 
             T value,
-            const std::string& typeDesc,
-            CmdLineInterface& parser,
+            const StringType& typeDesc,
+            CmdLineInterfaceType& parser,
             Visitor* v = NULL );
  
   /**
@@ -171,13 +233,13 @@ public:
    * \param v - An optional visitor.  You probably should not
    * use this unless you have a very good reason.
    */
-  ValueArg( const std::string& flag, 
-            const std::string& name, 
-            const std::string& desc, 
+  ValueArg( const StringType& flag, 
+            const StringType& name, 
+            const StringType& desc, 
             bool req, 
             T value,
-            Constraint<T>* constraint,
-            CmdLineInterface& parser,
+            ConstraintType* constraint,
+            CmdLineInterfaceType& parser,
             Visitor* v = NULL );
           
   /**
@@ -201,12 +263,12 @@ public:
    * \param v - An optional visitor.  You probably should not
    * use this unless you have a very good reason.
    */
-  ValueArg( const std::string& flag, 
-            const std::string& name, 
-            const std::string& desc, 
+  ValueArg( const StringType& flag, 
+            const StringType& name, 
+            const StringType& desc, 
             bool req, 
             T value,
-            Constraint<T>* constraint,
+            ConstraintType* constraint,
             Visitor* v = NULL );
 
   /**
@@ -218,7 +280,7 @@ public:
    * \param args - Mutable list of strings. Passed 
    * in from main().
    */
-  virtual bool processArg(int* i, std::vector<std::string>& args); 
+  virtual bool processArg(int* i, StringVectorType& args); 
 
   /**
    * Returns the value of the argument.
@@ -239,13 +301,13 @@ public:
    * Specialization of shortID.
    * \param val - value to be used.
    */
-  virtual std::string shortID(const std::string& val = "val") const;
+  virtual StringType shortID(const StringType& val = "val") const;
 
   /**
    * Specialization of longID.
    * \param val - value to be used.
    */
-  virtual std::string longID(const std::string& val = "val") const;
+  virtual StringType longID(const StringType& val = "val") const;
         
   virtual void reset() ;
 
@@ -253,21 +315,21 @@ private:
   /**
    * Prevent accidental copying
    */
-  ValueArg<T>(const ValueArg<T>& rhs);
-  ValueArg<T>& operator=(const ValueArg<T>& rhs);
+  ValueArg(const ValueArg& rhs);
+  ValueArg& operator=(const ValueArg& rhs);
 };
 
 
 /**
  * Constructor implementation.
  */
-template<class T>
-ValueArg<T>::ValueArg(const std::string& flag, 
-                      const std::string& name, 
-                      const std::string& desc, 
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+ValueArg<T, T_Char, T_CharTraits, T_Alloc>::ValueArg(const StringType& flag,
+                      const StringType& name, 
+                      const StringType& desc, 
                       bool req, 
                       T val,
-                      const std::string& typeDesc,
+                      const StringType& typeDesc,
                       Visitor* v)
   : Arg(flag, name, desc, req, true, v),
     _value( val ),
@@ -276,14 +338,14 @@ ValueArg<T>::ValueArg(const std::string& flag,
     _constraint( NULL )
 { }
 
-template<class T>
-ValueArg<T>::ValueArg(const std::string& flag, 
-                      const std::string& name, 
-                      const std::string& desc, 
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+ValueArg<T, T_Char, T_CharTraits, T_Alloc>::ValueArg(const StringType& flag,
+                      const StringType& name, 
+                      const StringType& desc, 
                       bool req, 
                       T val,
-                      const std::string& typeDesc,
-                      CmdLineInterface& parser,
+                      const StringType& typeDesc,
+                      CmdLineInterfaceType& parser,
                       Visitor* v)
   : Arg(flag, name, desc, req, true, v),
     _value( val ),
@@ -294,34 +356,34 @@ ValueArg<T>::ValueArg(const std::string& flag,
   parser.add( this );
 }
 
-template<class T>
-ValueArg<T>::ValueArg(const std::string& flag, 
-                      const std::string& name, 
-                      const std::string& desc, 
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+ValueArg<T, T_Char, T_CharTraits, T_Alloc>::ValueArg(const StringType& flag,
+                      const StringType& name, 
+                      const StringType& desc, 
                       bool req, 
                       T val,
-                      Constraint<T>* constraint,
+                      ConstraintType* constraint,
                       Visitor* v)
   : Arg(flag, name, desc, req, true, v),
     _value( val ),
     _default( val ),
-    _typeDesc( Constraint<T>::shortID(constraint) ),
+    _typeDesc( ConstraintType::shortID(constraint) ),
     _constraint( constraint )
 { }
 
-template<class T>
-ValueArg<T>::ValueArg(const std::string& flag, 
-                      const std::string& name, 
-                      const std::string& desc, 
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+ValueArg<T, T_Char, T_CharTraits, T_Alloc>::ValueArg(const StringType& flag,
+                      const StringType& name, 
+                      const StringType& desc, 
                       bool req, 
                       T val,
-                      Constraint<T>* constraint,
-                      CmdLineInterface& parser,
+                      ConstraintType* constraint,
+                      CmdLineInterfaceType& parser,
                       Visitor* v)
   : Arg(flag, name, desc, req, true, v),
     _value( val ),
     _default( val ),
-    _typeDesc( Constraint<T>::shortID(constraint) ),  // TODO(macbishop): Will crash
+    _typeDesc( ConstraintType::shortID(constraint) ),  // TODO(macbishop): Will crash
     // if constraint is NULL
     _constraint( constraint )
 { 
@@ -331,8 +393,8 @@ ValueArg<T>::ValueArg(const std::string& flag,
 /**
  * Implementation of processArg().
  */
-template<class T>
-bool ValueArg<T>::processArg(int *i, std::vector<std::string>& args)
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+bool ValueArg<T, T_Char, T_CharTraits, T_Alloc>::processArg(int *i, StringVectorType& args)
 {
   if ( _ignoreable && Arg::ignoreRest() )
     return false;
@@ -340,9 +402,9 @@ bool ValueArg<T>::processArg(int *i, std::vector<std::string>& args)
   if ( _hasBlanks( args[*i] ) )
     return false;
 
-  std::string flag = args[*i];
+  StringType flag = args[*i];
 
-  std::string value = "";
+  StringType value = "";
   trimFlag( flag, value );
 
   if ( argMatches( flag ) )
@@ -384,8 +446,8 @@ bool ValueArg<T>::processArg(int *i, std::vector<std::string>& args)
 /**
  * Implementation of shortID.
  */
-template<class T>
-std::string ValueArg<T>::shortID(const std::string& val) const
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+auto ValueArg<T, T_Char, T_CharTraits, T_Alloc>::shortID(const StringType& val) const -> StringType
 {
   static_cast<void>(val); // Ignore input, don't warn
   return Arg::shortID( _typeDesc ); 
@@ -394,15 +456,15 @@ std::string ValueArg<T>::shortID(const std::string& val) const
 /**
  * Implementation of longID.
  */
-template<class T>
-std::string ValueArg<T>::longID(const std::string& val) const
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+auto ValueArg<T, T_Char, T_CharTraits, T_Alloc>::longID(const StringType& val) const -> StringType
 {
   static_cast<void>(val); // Ignore input, don't warn
   return Arg::longID( _typeDesc ); 
 }
 
-template<class T>
-void ValueArg<T>::_extractValue( const std::string& val ) 
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+void ValueArg<T, T_Char, T_CharTraits, T_Alloc>::_extractValue( const StringType& val )
 {
   try {
     ExtractValue(_value, val, typename ArgTraits<T>::ValueCategory());
@@ -418,8 +480,8 @@ void ValueArg<T>::_extractValue( const std::string& val )
                                     toString() ) );
 }
 
-template<class T>
-void ValueArg<T>::reset()
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+void ValueArg<T, T_Char, T_CharTraits, T_Alloc>::reset()
 {
   Arg::reset();
   _value = _default;

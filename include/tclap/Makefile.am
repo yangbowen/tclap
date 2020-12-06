@@ -25,5 +25,4 @@ libtclapinclude_HEADERS = \
 			 VersionVisitor.h \
 			 Visitor.h \
 			 XorHandler.h \
-			 ZshCompletionOutput.h \
-			 sstream.h
+			 ZshCompletionOutput.h

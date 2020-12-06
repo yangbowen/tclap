@@ -30,28 +30,39 @@
 #include <config.h>
 #endif
 
+#include <utility>
 #include <string>
 #include <vector>
+#include <sstream>
 #include <tclap/Constraint.h>
-#include <tclap/sstream.h>
 
 namespace TCLAP {
+
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+class ValuesConstraint;
 
 /**
  * A Constraint that constrains the Arg to only those values specified
  * in the constraint.
  */
-template<class T>
-class ValuesConstraint : public Constraint<T>
+template<class T, typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
+class ValuesConstraint : public Constraint<T, T_Char, T_CharTraits, T_Alloc>
 {
-
 	public:
+		using typename Constraint<T, T_Char, T_CharTraits, T_Alloc>::CharType;
+		using typename Constraint<T, T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
+		using typename Constraint<T, T_Char, T_CharTraits, T_Alloc>::AllocatorType;
+		using typename Constraint<T, T_Char, T_CharTraits, T_Alloc>::StringType;
+		using typename Constraint<T, T_Char, T_CharTraits, T_Alloc>::StringVectorType;
+		using container_type = std::vector<T, typename std::allocator_traits<AllocatorType>::template rebind_alloc<T>>;
+		using iterator = typename container_type::iterator;
+		using const_iterator = typename container_type::const_iterator;
 
 		/**
 		 * Constructor. 
 		 * \param allowed - vector of allowed values. 
 		 */
-		ValuesConstraint(std::vector<T>const& allowed);
+		ValuesConstraint(const container_type& allowed);
 
 		/**
 		 * Virtual destructor.
@@ -61,12 +72,12 @@ class ValuesConstraint : public Constraint<T>
 		/**
 		 * Returns a description of the Constraint. 
 		 */
-		virtual std::string description() const;
+		virtual StringType description() const;
 
 		/**
 		 * Returns the short ID for the Constraint.
 		 */
-		virtual std::string shortID() const;
+		virtual StringType shortID() const;
 
 		/**
 		 * The method used to verify that the value parsed from the command
@@ -80,26 +91,26 @@ class ValuesConstraint : public Constraint<T>
 		/**
 		 * The list of valid values. 
 		 */
-		std::vector<T> _allowed;
+		container_type _allowed;
 
 		/**
 		 * The string used to describe the allowed values of this constraint.
 		 */
-		std::string _typeDesc;
+		StringType _typeDesc;
 
 };
 
-template<class T>
-ValuesConstraint<T>::ValuesConstraint(std::vector<T> const& allowed)
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+ValuesConstraint<T, T_Char, T_CharTraits, T_Alloc>::ValuesConstraint(const container_type& allowed)
 : _allowed(allowed),
   _typeDesc("")
 { 
     for ( unsigned int i = 0; i < _allowed.size(); i++ )
     {
-        std::ostringstream os;
+        std::basic_ostringstream<T_Char, T_CharTraits, T_Alloc> os;
         os << _allowed[i];
 
-        std::string temp( os.str() ); 
+        StringType temp( os.str() ); 
 
         if ( i > 0 )
 			_typeDesc += "|";
@@ -107,8 +118,8 @@ ValuesConstraint<T>::ValuesConstraint(std::vector<T> const& allowed)
     }
 }
 
-template<class T>
-bool ValuesConstraint<T>::check( const T& val ) const
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+bool ValuesConstraint<T, T_Char, T_CharTraits, T_Alloc>::check( const T& val ) const
 {
 	if ( std::find(_allowed.begin(),_allowed.end(),val) == _allowed.end() )
 		return false;
@@ -116,14 +127,14 @@ bool ValuesConstraint<T>::check( const T& val ) const
 		return true;
 }
 
-template<class T>
-std::string ValuesConstraint<T>::shortID() const
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+auto ValuesConstraint<T, T_Char, T_CharTraits, T_Alloc>::shortID() const -> StringType
 {
     return _typeDesc;	
 }
 
-template<class T>
-std::string ValuesConstraint<T>::description() const
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+auto ValuesConstraint<T, T_Char, T_CharTraits, T_Alloc>::description() const -> StringType
 {
     return _typeDesc;	
 }

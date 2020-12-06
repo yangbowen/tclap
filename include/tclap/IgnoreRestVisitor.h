@@ -30,13 +30,24 @@
 
 namespace TCLAP {
 
+class Visitor;
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+class Arg;
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+class IgnoreRestVisitor;
+
 /**
  * A Visitor that tells the CmdLine to begin ignoring arguments after
  * this one is parsed.
  */
-class IgnoreRestVisitor: public Visitor
+template<class T, typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
+class IgnoreRestVisitor : public Visitor
 {
 	public:
+		using CharType = T_Char;
+		using CharTraitsType = T_CharTraits;
+		using AllocatorType = T_Alloc;
+		using ArgType = Arg<T_Char, T_CharTraits, T_Alloc>;
 
 		/**
 		 * Constructor.
@@ -46,7 +57,7 @@ class IgnoreRestVisitor: public Visitor
 		/**
 		 * Sets Arg::_ignoreRest.
 		 */
-		void visit() { Arg::beginIgnoring();  }
+		void visit() { ArgType::beginIgnoring();  }
 };
 
 }

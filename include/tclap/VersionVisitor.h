@@ -30,12 +30,25 @@
 
 namespace TCLAP {
 
+class Visitor;
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+class CmdLineInterface;
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+class CmdLineOutput;
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+class VersionVisitor;
+
 /**
  * A Visitor that will call the version method of the given CmdLineOutput
  * for the specified CmdLine object and then exit.
  */
-class VersionVisitor: public Visitor
+template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
+class VersionVisitor : public Visitor
 {
+	public:
+		using CmdLineInterfaceType = CmdLineInterface<T_Char, T_CharTraits, T_Alloc>;
+		using CmdLineOutputType = CmdLineOutput<T_Char, T_CharTraits, T_Alloc>;
+
 	private:
 		/**
 		 * Prevent accidental copying
@@ -48,12 +61,12 @@ class VersionVisitor: public Visitor
 		/**
 		 * The CmdLine of interest.
 		 */
-		CmdLineInterface* _cmd;
+		CmdLineInterfaceType* _cmd;
 
 		/**
 		 * The output object. 
 		 */
-		CmdLineOutput** _out;
+		CmdLineOutputType** _out;
 
 	public:
 
@@ -62,7 +75,7 @@ class VersionVisitor: public Visitor
 		 * \param cmd - The CmdLine the output is generated for. 
 		 * \param out - The type of output. 
 		 */
-		VersionVisitor( CmdLineInterface* cmd, CmdLineOutput** out ) 
+		VersionVisitor( CmdLineInterfaceType* cmd, CmdLineOutputType** out ) 
 				: Visitor(), _cmd( cmd ), _out( out ) { }
 
 		/**

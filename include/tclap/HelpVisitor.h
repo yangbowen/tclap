@@ -30,12 +30,25 @@
 
 namespace TCLAP {
 
+class Visitor;
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+class CmdLineInterface;
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+class CmdLineOutput;
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+class HelpVisitor;
+
 /**
  * A Visitor object that calls the usage method of the given CmdLineOutput
  * object for the specified CmdLine object.
  */
-class HelpVisitor: public Visitor
+template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
+class HelpVisitor : public Visitor
 {
+	public:
+		using CmdLineInterfaceType = CmdLineInterface<T_Char, T_CharTraits, T_Alloc>;
+		using CmdLineOutputType = CmdLineOutput<T_Char, T_CharTraits, T_Alloc>;
+
 	private:
 		/**
 		 * Prevent accidental copying.
@@ -48,12 +61,12 @@ class HelpVisitor: public Visitor
 		/**
 		 * The CmdLine the output will be generated for. 
 		 */
-		CmdLineInterface* _cmd;
+		CmdLineInterfaceType* _cmd;
 
 		/**
 		 * The output object. 
 		 */
-		CmdLineOutput** _out;
+		CmdLineOutputType** _out;
 
 	public:
 
@@ -62,7 +75,7 @@ class HelpVisitor: public Visitor
 		 * \param cmd - The CmdLine the output will be generated for.
 		 * \param out - The type of output. 
 		 */
-		HelpVisitor(CmdLineInterface* cmd, CmdLineOutput** out) 
+		HelpVisitor(CmdLineInterfaceType* cmd, CmdLineOutputType** out) 
 				: Visitor(), _cmd( cmd ), _out( out ) { }
 
 		/**

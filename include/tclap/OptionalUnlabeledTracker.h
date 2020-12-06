@@ -29,13 +29,19 @@
 #include <string>
 
 namespace TCLAP {
-
+	
+template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
 class OptionalUnlabeledTracker
 {
 
 	public:
+		using CharType = T_Char;
+		using CharTraitsType = T_CharTraits;
+		using AllocatorType = T_Alloc;
+		using StringType = std::basic_string<T_Char, T_CharTraits, T_Alloc>;
+		using OptionalUnlabeledTrackerType = OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>;
 
-		static void check( bool req, const std::string& argName );
+		static void check( bool req, const StringType& argName );
 
 		static void gotOptional() { alreadyOptionalRef() = true; }
 
@@ -47,7 +53,8 @@ class OptionalUnlabeledTracker
 };
 
 
-inline void OptionalUnlabeledTracker::check( bool req, const std::string& argName )
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check( bool req, const StringType& argName )
 {
     if ( OptionalUnlabeledTracker::alreadyOptional() )
         throw( SpecificationException(

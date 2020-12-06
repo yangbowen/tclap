@@ -36,28 +36,87 @@
 
 namespace TCLAP {
 
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+class UnlabeledValueArg;
+
 /**
  * The basic unlabeled argument that parses a value.
  * This is a template class, which means the type T defines the type
  * that a given object will attempt to parse when an UnlabeledValueArg
  * is reached in the list of args that the CmdLine iterates over.
  */
-template<class T>
-class UnlabeledValueArg : public ValueArg<T>
+template<class T, typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
+class UnlabeledValueArg : public ValueArg<T, T_Char, T_CharTraits, T_Alloc>
 {
-
-	// If compiler has two stage name lookup (as gcc >= 3.4 does)
-	// this is required to prevent undef. symbols
-	using ValueArg<T>::_ignoreable;
-	using ValueArg<T>::_hasBlanks;
-	using ValueArg<T>::_extractValue;
-	using ValueArg<T>::_typeDesc;
-	using ValueArg<T>::_name;
-	using ValueArg<T>::_description;
-	using ValueArg<T>::_alreadySet;
-	using ValueArg<T>::toString;
-
 	public:
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::AllocatorType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgListType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgVectorType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgListIteratorType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgVectorIteratorType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CmdLineInterfaceType;
+		using typename ValueArg<T_Char, T_CharTraits, T_Alloc>::ConstraintType;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::addToList;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::beginIgnoring;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::ignoreRest;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::delimiter;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::blankChar;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::flagStartChar;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::flagStartString;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::nameStartString;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::ignoreNameString;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::setDelimiter;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::processArg;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::operator==;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::getFlag;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::getName;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::getDescription;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::isRequired;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::forceRequired;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::xorSet;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::isValueRequired;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::isSet;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::isIgnoreable;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::argMatches;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::toString;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::shortID;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::longID;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::trimFlag;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_hasBlanks;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::setRequireLabel;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::allowMore;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::acceptsMultipleValues;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::reset;
+		using ValueArg<T_Char, T_CharTraits, T_Alloc>::processArg;
+		using ValueArg<T_Char, T_CharTraits, T_Alloc>::getValue;
+		using ValueArg<T_Char, T_CharTraits, T_Alloc>::operator const T&;
+		using ValueArg<T_Char, T_CharTraits, T_Alloc>::shortID;
+		using ValueArg<T_Char, T_CharTraits, T_Alloc>::longID;
+		using ValueArg<T_Char, T_CharTraits, T_Alloc>::reset;
+
+	protected:
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_flag;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_name;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_description;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_required;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_requireLabel;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_valueRequired;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_alreadySet;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_visitor;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_ignoreable;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_xorSet;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_acceptsMultipleValues;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_checkWithVisitor;
+		using ValueArg<T_Char, T_CharTraits, T_Alloc>::_value;
+		using ValueArg<T_Char, T_CharTraits, T_Alloc>::_default;
+		using ValueArg<T_Char, T_CharTraits, T_Alloc>::_typeDesc;
+		using ValueArg<T_Char, T_CharTraits, T_Alloc>::_constraint;
+		using ValueArg<T_Char, T_CharTraits, T_Alloc>::_extractValue;
 
 		/**
 		 * UnlabeledValueArg constructor.
@@ -80,11 +139,11 @@ class UnlabeledValueArg : public ValueArg<T>
 		 * \param v - Optional Visitor.  You should leave this blank unless
 		 * you have a very good reason.
 		 */
-		UnlabeledValueArg( const std::string& name, 
-			               const std::string& desc, 
+		UnlabeledValueArg( const StringType& name, 
+			               const StringType& desc, 
 						   bool req,
 				           T value,
-				           const std::string& typeDesc,
+				           const StringType& typeDesc,
 						   bool ignoreable = false,
 				           Visitor* v = NULL); 
 
@@ -110,12 +169,12 @@ class UnlabeledValueArg : public ValueArg<T>
 		 * \param v - Optional Visitor.  You should leave this blank unless
 		 * you have a very good reason.
 		 */
-		UnlabeledValueArg( const std::string& name, 
-			               const std::string& desc, 
+		UnlabeledValueArg( const StringType& name, 
+			               const StringType& desc, 
 						   bool req,
 				           T value,
-				           const std::string& typeDesc,
-						   CmdLineInterface& parser,
+				           const StringType& typeDesc,
+						   CmdLineInterfaceType& parser,
 						   bool ignoreable = false,
 				           Visitor* v = NULL ); 					
 						
@@ -138,11 +197,11 @@ class UnlabeledValueArg : public ValueArg<T>
 		 * \param v - Optional Visitor.  You should leave this blank unless
 		 * you have a very good reason.
 		 */
-		UnlabeledValueArg( const std::string& name, 
-			               const std::string& desc, 
+		UnlabeledValueArg( const StringType& name, 
+			               const StringType& desc, 
 						   bool req,
 				           T value,
-				           Constraint<T>* constraint,
+				           ConstraintType* constraint,
 						   bool ignoreable = false,
 				           Visitor* v = NULL ); 
 
@@ -167,12 +226,12 @@ class UnlabeledValueArg : public ValueArg<T>
 		 * \param v - Optional Visitor.  You should leave this blank unless
 		 * you have a very good reason.
 		 */
-		UnlabeledValueArg( const std::string& name, 
-			               const std::string& desc, 
+		UnlabeledValueArg( const StringType& name, 
+			               const StringType& desc, 
 						   bool req,
 				           T value,
-				           Constraint<T>* constraint,
-						   CmdLineInterface& parser,
+				           ConstraintType* constraint,
+						   CmdLineInterfaceType& parser,
 						   bool ignoreable = false,
 				           Visitor* v = NULL);
 						
@@ -184,43 +243,43 @@ class UnlabeledValueArg : public ValueArg<T>
 		 * \param i - Pointer the the current argument in the list.
 		 * \param args - Mutable list of strings. 
 		 */
-		virtual bool processArg(int* i, std::vector<std::string>& args); 
+		virtual bool processArg(int* i, StringVectorType& args); 
 
 		/**
 		 * Overrides shortID for specific behavior.
 		 */
-		virtual std::string shortID(const std::string& val="val") const;
+		virtual StringType shortID(const StringType& val="val") const;
 
 		/**
 		 * Overrides longID for specific behavior.
 		 */
-		virtual std::string longID(const std::string& val="val") const;
+		virtual StringType longID(const StringType& val="val") const;
 
 		/**
 		 * Overrides operator== for specific behavior.
 		 */
-		virtual bool operator==(const Arg& a ) const;
+		virtual bool operator==(const ArgType& a ) const;
 
 		/**
 		 * Instead of pushing to the front of list, push to the back.
 		 * \param argList - The list to add this to.
 		 */
-		virtual void addToList( std::list<Arg*>& argList ) const;
+		virtual void addToList( ArgListType& argList ) const;
 
 };
 
 /**
  * Constructor implementation.
  */
-template<class T>
-UnlabeledValueArg<T>::UnlabeledValueArg(const std::string& name, 
-					                    const std::string& desc, 
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledValueArg(const StringType& name,
+					                    const StringType& desc, 
 										bool req,
 					                    T val,
-					                    const std::string& typeDesc,
+					                    const StringType& typeDesc,
 					                    bool ignoreable,
 					                    Visitor* v)
-: ValueArg<T>("", name, desc, req, val, typeDesc, v)
+: ValueArg("", name, desc, req, val, typeDesc, v)
 { 
 	_ignoreable = ignoreable;
 
@@ -228,16 +287,16 @@ UnlabeledValueArg<T>::UnlabeledValueArg(const std::string& name,
 
 }
 
-template<class T>
-UnlabeledValueArg<T>::UnlabeledValueArg(const std::string& name, 
-					                    const std::string& desc, 
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledValueArg(const StringType& name,
+					                    const StringType& desc, 
 										bool req,
 					                    T val,
-					                    const std::string& typeDesc,
-					                    CmdLineInterface& parser,
+					                    const StringType& typeDesc,
+					                    CmdLineInterfaceType& parser,
 					                    bool ignoreable,
 					                    Visitor* v)
-: ValueArg<T>("", name, desc, req, val, typeDesc, v)
+: ValueArg("", name, desc, req, val, typeDesc, v)
 { 
 	_ignoreable = ignoreable;
 	OptionalUnlabeledTracker::check(req, toString());
@@ -247,30 +306,30 @@ UnlabeledValueArg<T>::UnlabeledValueArg(const std::string& name,
 /**
  * Constructor implementation.
  */
-template<class T>
-UnlabeledValueArg<T>::UnlabeledValueArg(const std::string& name, 
-                                        const std::string& desc, 
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledValueArg(const StringType& name,
+                                        const StringType& desc, 
 										bool req,
                                         T val,
-                                        Constraint<T>* constraint,
+                                        ConstraintType* constraint,
                                         bool ignoreable,
                                         Visitor* v)
-: ValueArg<T>("", name, desc, req, val, constraint, v)
+: ValueArg("", name, desc, req, val, constraint, v)
 { 
 	_ignoreable = ignoreable;
 	OptionalUnlabeledTracker::check(req, toString());
 }
 
-template<class T>
-UnlabeledValueArg<T>::UnlabeledValueArg(const std::string& name, 
-					                    const std::string& desc, 
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledValueArg(const StringType& name,
+					                    const StringType& desc, 
 										bool req,
 					                    T val,
-					                    Constraint<T>* constraint,
-					                    CmdLineInterface& parser,
+					                    ConstraintType* constraint,
+					                    CmdLineInterfaceType& parser,
 					                    bool ignoreable,
 					                    Visitor* v)
-: ValueArg<T>("", name, desc, req, val, constraint,  v)
+: ValueArg("", name, desc, req, val, constraint,  v)
 { 
 	_ignoreable = ignoreable;
 	OptionalUnlabeledTracker::check(req, toString());
@@ -280,8 +339,8 @@ UnlabeledValueArg<T>::UnlabeledValueArg(const std::string& name,
 /**
  * Implementation of processArg().
  */
-template<class T>
-bool UnlabeledValueArg<T>::processArg(int *i, std::vector<std::string>& args) 
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+bool UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::processArg(int *i, StringVectorType& args)
 {
 	
 	if ( _alreadySet )
@@ -300,32 +359,32 @@ bool UnlabeledValueArg<T>::processArg(int *i, std::vector<std::string>& args)
 /**
  * Overriding shortID for specific output.
  */
-template<class T>
-std::string UnlabeledValueArg<T>::shortID(const std::string& val) const
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+auto UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::shortID(const StringType& val) const -> StringType
 {
 	static_cast<void>(val); // Ignore input, don't warn
-	return std::string("<") + _typeDesc + ">";
+	return StringType("<") + _typeDesc + ">";
 }
 
 /**
  * Overriding longID for specific output.
  */
-template<class T>
-std::string UnlabeledValueArg<T>::longID(const std::string& val) const
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+auto UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::longID(const StringType& val) const -> StringType
 {
 	static_cast<void>(val); // Ignore input, don't warn
 
 	// Ideally we would like to be able to use RTTI to return the name
 	// of the type required for this argument.  However, g++ at least, 
 	// doesn't appear to return terribly useful "names" of the types.  
-	return std::string("<") + _typeDesc + ">";
+	return StringType("<") + _typeDesc + ">";
 }
 
 /**
  * Overriding operator== for specific behavior.
  */
-template<class T>
-bool UnlabeledValueArg<T>::operator==(const Arg& a ) const
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+bool UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::operator==(const ArgType& a ) const
 {
 	if ( _name == a.getName() || _description == a.getDescription() )
 		return true;
@@ -333,10 +392,10 @@ bool UnlabeledValueArg<T>::operator==(const Arg& a ) const
 		return false;
 }
 
-template<class T>
-void UnlabeledValueArg<T>::addToList( std::list<Arg*>& argList ) const
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+void UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::addToList( ArgListType& argList ) const
 {
-	argList.push_back( const_cast<Arg*>(static_cast<const Arg* const>(this)) );
+	argList.push_back( const_cast<ArgType*>(static_cast<const ArgType* const>(this)) );
 }
 
 }

@@ -35,16 +35,37 @@
 
 namespace TCLAP {
 
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+class Arg;
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 class CmdLineInterface;
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+class CmdLineOutput;
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+class XorHandler;
 class ArgException;
 
 /**
  * The interface that any output object must implement.
  */
+template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
 class CmdLineOutput 
 {
-
 	public:
+		using CharType = T_Char;
+		using CharTraitsType = T_CharTraits;
+		using AllocatorType = T_Alloc;
+		using StringType = std::basic_string<T_Char, T_CharTraits, T_Alloc>;
+		using StringVectorType = std::vector<StringType, typename std::allocator_traits<AllocatorType>::template rebind_alloc<StringType>>;
+		using ArgType = Arg<T_Char, T_CharTraits, T_Alloc>;
+		using ArgListType = std::list<ArgType*, typename std::allocator_traits<AllocatorType>::template rebind_alloc<ArgType*>>;
+		using ArgVectorType = std::vector<ArgType*, typename std::allocator_traits<AllocatorType>::template rebind_alloc<ArgType*>>;
+		using ArgVectorVectorType = std::vector<ArgVectorType, typename std::allocator_traits<AllocatorType>::template rebind_alloc<ArgVectorType>>;
+		using ArgListIteratorType = typename ArgListType::const_iterator;
+		using ArgVectorIteratorType = typename ArgVectorType::const_iterator;
+		using CmdLineInterfaceType = CmdLineInterface<T_Char, T_CharTraits, T_Alloc>;
+		using CmdLineOutputType = CmdLineOutput<T_Char, T_CharTraits, T_Alloc>;
+		using XorHandlerType = XorHandler<T_Char, T_CharTraits, T_Alloc>;
 
 		/**
 		 * Virtual destructor.
@@ -55,20 +76,20 @@ class CmdLineOutput
 		 * Generates some sort of output for the USAGE. 
 		 * \param c - The CmdLine object the output is generated for. 
 		 */
-		virtual void usage(CmdLineInterface& c)=0;
+		virtual void usage(CmdLineInterfaceType& c)=0;
 
 		/**
 		 * Generates some sort of output for the version. 
 		 * \param c - The CmdLine object the output is generated for. 
 		 */
-		virtual void version(CmdLineInterface& c)=0;
+		virtual void version(CmdLineInterfaceType& c)=0;
 
 		/**
 		 * Generates some sort of output for a failure. 
 		 * \param c - The CmdLine object the output is generated for. 
 		 * \param e - The ArgException that caused the failure. 
 		 */
-		virtual void failure( CmdLineInterface& c, 
+		virtual void failure( CmdLineInterfaceType& c,
 						      ArgException& e )=0;
 
 };

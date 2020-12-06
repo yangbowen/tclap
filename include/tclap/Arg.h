@@ -33,11 +33,10 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <sstream>
 #include <iostream>
 #include <iomanip>
 #include <cstdio>
-
-#include <tclap/sstream.h>
 
 #include <tclap/ArgException.h>
 #include <tclap/Visitor.h>
@@ -47,13 +46,34 @@
 
 namespace TCLAP {
 
+class Visitor;
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+class Arg;
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+class CmdLineInterface;
+
 /**
  * A virtual base class that defines the essential data for all arguments.
  * This class, or one of its existing children, must be subclassed to do
  * anything.
  */
+template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
 class Arg
 {
+	public:
+
+		using CharType = T_Char;
+		using CharTraitsType = T_CharTraits;
+		using AllocatorType = T_Alloc;
+		using StringType = std::basic_string<T_Char, T_CharTraits, T_Alloc>;
+		using StringVectorType = std::vector<StringType, typename std::allocator_traits<AllocatorType>::template rebind_alloc<StringType>>;
+		using ArgType = Arg<T_Char, T_CharTraits, T_Alloc>;
+		using ArgListType = std::list<ArgType*, typename std::allocator_traits<AllocatorType>::template rebind_alloc<ArgType*>>;
+		using ArgVectorType = std::vector<ArgType*, typename std::allocator_traits<AllocatorType>::template rebind_alloc<ArgType*>>;
+		using ArgListIteratorType = typename ArgListType::const_iterator;
+		using ArgVectorIteratorType = typename ArgVectorType::const_iterator;
+		using CmdLineInterfaceType = CmdLineInterface<T_Char, T_CharTraits, T_Alloc>;
+
 	private:
 		/**
 		 * Prevent accidental copying.
@@ -74,7 +94,7 @@ class Arg
 		 * The delimiter that separates an argument flag/name from the
 		 * value.
 		 */
-		static char& delimiterRef() { static char delim = ' '; return delim; }
+		static CharType& delimiterRef() { static CharType delim = ' '; return delim; }
 
 	protected:
 
@@ -86,7 +106,7 @@ class Arg
 		 * override appropriate functions to get correct handling. Note
 		 * that the _flag does NOT include the dash as part of the flag.
 		 */
-		std::string _flag;
+		StringType _flag;
 
 		/**
 		 * A single word namd identifying the argument.
@@ -95,12 +115,12 @@ class Arg
 		 * _name does NOT include the two dashes as part of the _name. The
 		 * _name cannot be blank.
 		 */
-		std::string _name;
+		StringType _name;
 
 		/**
 		 * Description of the argument.
 		 */
-		std::string _description;
+		StringType _description;
 
 		/**
 		 * Indicating whether the argument is required.
@@ -111,7 +131,7 @@ class Arg
 		 * Label to be used in usage description.  Normally set to
 		 * "required", but can be changed when necessary.
 		 */
-		std::string _requireLabel;
+		StringType _requireLabel;
 
 		/**
 		 * Indicates whether a value is required for the argument.
@@ -166,9 +186,9 @@ class Arg
 		 * \param valreq - Whether the a value is required for the argument.
 		 * \param v - The visitor checked by the argument. Defaults to NULL.
 		 */
- 		Arg( const std::string& flag,
-			 const std::string& name,
-			 const std::string& desc,
+ 		Arg( const StringType& flag,
+			 const StringType& name,
+			 const StringType& desc,
 			 bool req,
 			 bool valreq,
 			 Visitor* v = NULL );
@@ -183,7 +203,7 @@ class Arg
 		 * Adds this to the specified list of Args.
 		 * \param argList - The list to add this to.
 		 */
-		virtual void addToList( std::list<Arg*>& argList ) const;
+		virtual void addToList( ArgListType& argList ) const;
 
 		/**
 		 * Begin ignoring arguments since the "--" argument was specified.
@@ -199,13 +219,13 @@ class Arg
 		 * The delimiter that separates an argument flag/name from the
 		 * value.
 		 */
-		static char delimiter() { return delimiterRef(); }
+		static CharType delimiter() { return delimiterRef(); }
 
 		/**
 		 * The char used as a place holder when SwitchArgs are combined.
 		 * Currently set to the bell char (ASCII 7).
 		 */
-		static char blankChar() { return (char)7; }
+		static CharType blankChar() { return (CharType)7; }
 
 		/**
 		 * The char that indicates the beginning of a flag.  Defaults to '-', but
@@ -214,7 +234,7 @@ class Arg
 #ifndef TCLAP_FLAGSTARTCHAR
 #define TCLAP_FLAGSTARTCHAR '-'
 #endif
-		static char flagStartChar() { return TCLAP_FLAGSTARTCHAR; }
+		static CharType flagStartChar() { return TCLAP_FLAGSTARTCHAR; }
 
 		/**
 		 * The sting that indicates the beginning of a flag.  Defaults to "-", but
@@ -224,7 +244,7 @@ class Arg
 #ifndef TCLAP_FLAGSTARTSTRING
 #define TCLAP_FLAGSTARTSTRING "-"
 #endif
-		static const std::string flagStartString() { return TCLAP_FLAGSTARTSTRING; }
+		static const StringType flagStartString() { return TCLAP_FLAGSTARTSTRING; }
 
 		/**
 		 * The sting that indicates the beginning of a name.  Defaults to "--", but
@@ -233,18 +253,18 @@ class Arg
 #ifndef TCLAP_NAMESTARTSTRING
 #define TCLAP_NAMESTARTSTRING "--"
 #endif
-		static const std::string nameStartString() { return TCLAP_NAMESTARTSTRING; }
+		static const StringType nameStartString() { return TCLAP_NAMESTARTSTRING; }
 
 		/**
 		 * The name used to identify the ignore rest argument.
 		 */
-		static const std::string ignoreNameString() { return "ignore_rest"; }
+		static const StringType ignoreNameString() { return "ignore_rest"; }
 
 		/**
 		 * Sets the delimiter for all arguments.
 		 * \param c - The character that delimits flags/names from values.
 		 */
-		static void setDelimiter( char c ) { delimiterRef() = c; }
+		static void setDelimiter( CharType c ) { delimiterRef() = c; }
 
 		/**
 		 * Pure virtual method meant to handle the parsing and value assignment
@@ -253,7 +273,7 @@ class Arg
 		 * \param args - Mutable list of strings. What is
 		 * passed in from main.
 		 */
-		virtual bool processArg(int *i, std::vector<std::string>& args) = 0;
+		virtual bool processArg(int *i, StringVectorType& args) = 0;
 
 		/**
 		 * Operator ==.
@@ -265,17 +285,17 @@ class Arg
 		/**
 		 * Returns the argument flag.
 		 */
-		const std::string& getFlag() const;
+		const StringType& getFlag() const;
 
 		/**
 		 * Returns the argument name.
 		 */
-		const std::string& getName() const;
+		const StringType& getName() const;
 
 		/**
 		 * Returns the argument description.
 		 */
-		std::string getDescription() const;
+		StringType getDescription() const;
 
 		/**
 		 * Indicates whether the argument is required.
@@ -318,25 +338,25 @@ class Arg
 		 * \param s - The string to be compared to the flag/name to determine
 		 * whether the arg matches.
 		 */
-		virtual bool argMatches( const std::string& s ) const;
+		virtual bool argMatches( const StringType& s ) const;
 
 		/**
 		 * Returns a simple string representation of the argument.
 		 * Primarily for debugging.
 		 */
-		virtual std::string toString() const;
+		virtual StringType toString() const;
 
 		/**
 		 * Returns a short ID for the usage.
 		 * \param valueId - The value used in the id.
 		 */
-		virtual std::string shortID( const std::string& valueId = "val" ) const;
+		virtual StringType shortID( const StringType& valueId = "val" ) const;
 
 		/**
 		 * Returns a long ID for the usage.
 		 * \param valueId - The value used in the id.
 		 */
-		virtual std::string longID( const std::string& valueId = "val" ) const;
+		virtual StringType longID( const StringType& valueId = "val" ) const;
 
 		/**
 		 * Trims a value off of the flag.
@@ -345,7 +365,7 @@ class Arg
 		 * \param value - Where the value trimmed from the string will
 		 * be stored.
 		 */
-		virtual void trimFlag( std::string& flag, std::string& value ) const;
+		virtual void trimFlag( StringType& flag, StringType& value ) const;
 
 		/**
 		 * Checks whether a given string has blank chars, indicating that
@@ -353,14 +373,14 @@ class Arg
 		 * false.
 		 * \param s - string to be checked.
 		 */
-		bool _hasBlanks( const std::string& s ) const;
+		bool _hasBlanks( const StringType& s ) const;
 
 		/**
 		 * Sets the requireLabel. Used by XorHandler.  You shouldn't ever
 		 * use this.
 		 * \param s - Set the requireLabel to this value.
 		 */
-		void setRequireLabel( const std::string& s );
+		void setRequireLabel( const StringType& s );
 
 		/**
 		 * Used for MultiArgs and XorHandler to determine whether args
@@ -384,17 +404,20 @@ class Arg
 /**
  * Typedef of an Arg list iterator.
  */
-typedef std::list<Arg*>::const_iterator ArgListIterator;
+template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
+using ArgListIterator = typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgListIteratorType;
 
 /**
  * Typedef of an Arg vector iterator.
  */
-typedef std::vector<Arg*>::const_iterator ArgVectorIterator;
+template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
+using ArgVectorIterator = typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgVectorIteratorType;
 
 /**
  * Typedef of a Visitor list iterator.
  */
-typedef std::list<Visitor*>::const_iterator VisitorListIterator;
+template<typename T_Alloc = std::allocator<Visitor*>>
+using VisitorListIterator = typename std::list<Visitor*, T_Alloc>::const_iterator;
 
 /*
  * Extract a value of type T from it's string representation contained
@@ -402,11 +425,11 @@ typedef std::list<Visitor*>::const_iterator VisitorListIterator;
  * specialization of ExtractValue depending on the value traits of T.
  * ValueLike traits use operator>> to assign the value from strVal.
  */
-template<typename T> void
-ExtractValue(T &destVal, const std::string& strVal, ValueLike vl)
+template<typename T, typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>> void
+ExtractValue(T &destVal, const std::basic_string<T_Char, T_CharTraits, T_Alloc>& strVal, ValueLike vl)
 {
     static_cast<void>(vl); // Avoid warning about unused vl
-    istringstream is(strVal.c_str());
+	std::basic_istringstream<T_Char, T_CharTraits, T_Alloc> is(strVal.c_str());
 
     int valuesRead = 0;
     while ( is.good() ) {
@@ -439,8 +462,8 @@ ExtractValue(T &destVal, const std::string& strVal, ValueLike vl)
  * specialization of ExtractValue depending on the value traits of T.
  * StringLike uses assignment (operator=) to assign from strVal.
  */
-template<typename T> void
-ExtractValue(T &destVal, const std::string& strVal, StringLike sl)
+template<typename T, typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>> void
+ExtractValue(T &destVal, const std::basic_string<T_Char, T_CharTraits, T_Alloc>& strVal, StringLike sl)
 {
     static_cast<void>(sl); // Avoid warning about unused sl
     SetString(destVal, strVal);
@@ -450,9 +473,10 @@ ExtractValue(T &destVal, const std::string& strVal, StringLike sl)
 //BEGIN Arg.cpp
 //////////////////////////////////////////////////////////////////////
 
-inline Arg::Arg(const std::string& flag,
-         const std::string& name,
-         const std::string& desc,
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline Arg<T_Char, T_CharTraits, T_Alloc>::Arg(const StringType& flag,
+         const StringType& name,
+         const StringType& desc,
          bool req,
          bool valreq,
          Visitor* v) :
@@ -483,7 +507,7 @@ inline Arg::Arg(const std::string& flag,
 
 	if ( ( _name.substr( 0, Arg::flagStartString().length() ) == Arg::flagStartString() ) ||
 		 ( _name.substr( 0, Arg::nameStartString().length() ) == Arg::nameStartString() ) ||
-		 ( _name.find( " ", 0 ) != std::string::npos ) )
+		 ( _name.find( " ", 0 ) != StringType::npos ) )
 		throw(SpecificationException("Argument name begin with either '" +
 							Arg::flagStartString() + "' or '" +
 							Arg::nameStartString() + "' or space.",
@@ -491,11 +515,13 @@ inline Arg::Arg(const std::string& flag,
 
 }
 
-inline Arg::~Arg() { }
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline Arg<T_Char, T_CharTraits, T_Alloc>::~Arg() { }
 
-inline std::string Arg::shortID( const std::string& valueId ) const
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline auto Arg<T_Char, T_CharTraits, T_Alloc>::shortID( const StringType& valueId ) const -> StringType
 {
-	std::string id = "";
+	StringType id = "";
 
 	if ( _flag != "" )
 		id = Arg::flagStartString() + _flag;
@@ -503,7 +529,7 @@ inline std::string Arg::shortID( const std::string& valueId ) const
 		id = Arg::nameStartString() + _name;
 
 	if ( _valueRequired )
-		id += std::string( 1, Arg::delimiter() ) + "<" + valueId  + ">";
+		id += StringType( 1, Arg::delimiter() ) + "<" + valueId  + ">";
 
 	if ( !_required )
 		id = "[" + id + "]";
@@ -511,16 +537,17 @@ inline std::string Arg::shortID( const std::string& valueId ) const
 	return id;
 }
 
-inline std::string Arg::longID( const std::string& valueId ) const
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline auto Arg<T_Char, T_CharTraits, T_Alloc>::longID( const StringType& valueId ) const -> StringType
 {
-	std::string id = "";
+	StringType id = "";
 
 	if ( _flag != "" )
 	{
 		id += Arg::flagStartString() + _flag;
 
 		if ( _valueRequired )
-			id += std::string( 1, Arg::delimiter() ) + "<" + valueId + ">";
+			id += StringType( 1, Arg::delimiter() ) + "<" + valueId + ">";
 
 		id += ",  ";
 	}
@@ -528,13 +555,14 @@ inline std::string Arg::longID( const std::string& valueId ) const
 	id += Arg::nameStartString() + _name;
 
 	if ( _valueRequired )
-		id += std::string( 1, Arg::delimiter() ) + "<" + valueId + ">";
+		id += StringType( 1, Arg::delimiter() ) + "<" + valueId + ">";
 
 	return id;
 
 }
 
-inline bool Arg::operator==(const Arg& a) const
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline bool Arg<T_Char, T_CharTraits, T_Alloc>::operator==(const ArgType& a) const
 {
 	if ( ( _flag != "" && _flag == a._flag ) || _name == a._name)
 		return true;
@@ -542,9 +570,10 @@ inline bool Arg::operator==(const Arg& a) const
 		return false;
 }
 
-inline std::string Arg::getDescription() const
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline auto Arg<T_Char, T_CharTraits, T_Alloc>::getDescription() const -> StringType
 {
-	std::string desc = "";
+	StringType desc = "";
 	if ( _required )
 		desc = "(" + _requireLabel + ")  ";
 
@@ -555,15 +584,20 @@ inline std::string Arg::getDescription() const
 	return desc;
 }
 
-inline const std::string& Arg::getFlag() const { return _flag; }
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline auto Arg<T_Char, T_CharTraits, T_Alloc>::getFlag() const -> const StringType& { return _flag; }
 
-inline const std::string& Arg::getName() const { return _name; }
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline auto Arg<T_Char, T_CharTraits, T_Alloc>::getName() const -> const StringType& { return _name; }
 
-inline bool Arg::isRequired() const { return _required; }
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline bool Arg<T_Char, T_CharTraits, T_Alloc>::isRequired() const { return _required; }
 
-inline bool Arg::isValueRequired() const { return _valueRequired; }
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline bool Arg<T_Char, T_CharTraits, T_Alloc>::isValueRequired() const { return _valueRequired; }
 
-inline bool Arg::isSet() const
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline bool Arg<T_Char, T_CharTraits, T_Alloc>::isSet() const
 {
 	if ( _alreadySet && !_xorSet )
 		return true;
@@ -571,14 +605,17 @@ inline bool Arg::isSet() const
 		return false;
 }
 
-inline bool Arg::isIgnoreable() const { return _ignoreable; }
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline bool Arg<T_Char, T_CharTraits, T_Alloc>::isIgnoreable() const { return _ignoreable; }
 
-inline void Arg::setRequireLabel( const std::string& s)
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void Arg<T_Char, T_CharTraits, T_Alloc>::setRequireLabel( const StringType& s)
 {
 	_requireLabel = s;
 }
 
-inline bool Arg::argMatches( const std::string& argFlag ) const
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline bool Arg<T_Char, T_CharTraits, T_Alloc>::argMatches( const StringType& argFlag ) const
 {
 	if ( ( argFlag == Arg::flagStartString() + _flag && _flag != "" ) ||
 	       argFlag == Arg::nameStartString() + _name )
@@ -587,9 +624,10 @@ inline bool Arg::argMatches( const std::string& argFlag ) const
 		return false;
 }
 
-inline std::string Arg::toString() const
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline auto Arg<T_Char, T_CharTraits, T_Alloc>::toString() const -> StringType
 {
-	std::string s = "";
+	StringType s = "";
 
 	if ( _flag != "" )
 		s += Arg::flagStartString() + _flag + " ";
@@ -599,7 +637,8 @@ inline std::string Arg::toString() const
 	return s;
 }
 
-inline void Arg::_checkWithVisitor() const
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void Arg<T_Char, T_CharTraits, T_Alloc>::_checkWithVisitor() const
 {
 	if ( _visitor != NULL )
 		_visitor->visit();
@@ -608,7 +647,8 @@ inline void Arg::_checkWithVisitor() const
 /**
  * Implementation of trimFlag.
  */
-inline void Arg::trimFlag(std::string& flag, std::string& value) const
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void Arg<T_Char, T_CharTraits, T_Alloc>::trimFlag(StringType& flag, StringType& value) const
 {
 	int stop = 0;
 	for ( int i = 0; static_cast<unsigned int>(i) < flag.length(); i++ )
@@ -629,7 +669,8 @@ inline void Arg::trimFlag(std::string& flag, std::string& value) const
 /**
  * Implementation of _hasBlanks.
  */
-inline bool Arg::_hasBlanks( const std::string& s ) const
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline bool Arg<T_Char, T_CharTraits, T_Alloc>::_hasBlanks( const StringType& s ) const
 {
 	for ( int i = 1; static_cast<unsigned int>(i) < s.length(); i++ )
 		if ( s[i] == Arg::blankChar() )
@@ -638,12 +679,14 @@ inline bool Arg::_hasBlanks( const std::string& s ) const
 	return false;
 }
 
-inline void Arg::forceRequired()
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void Arg<T_Char, T_CharTraits, T_Alloc>::forceRequired()
 {
 	_required = true;
 }
 
-inline void Arg::xorSet()
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void Arg<T_Char, T_CharTraits, T_Alloc>::xorSet()
 {
 	_alreadySet = true;
 	_xorSet = true;
@@ -652,22 +695,26 @@ inline void Arg::xorSet()
 /**
  * Overridden by Args that need to added to the end of the list.
  */
-inline void Arg::addToList( std::list<Arg*>& argList ) const
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void Arg<T_Char, T_CharTraits, T_Alloc>::addToList( ArgListType& argList ) const
 {
-	argList.push_front( const_cast<Arg*>(this) );
+	argList.push_front( const_cast<ArgType*>(this) );
 }
 
-inline bool Arg::allowMore()
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline bool Arg<T_Char, T_CharTraits, T_Alloc>::allowMore()
 {
 	return false;
 }
 
-inline bool Arg::acceptsMultipleValues()
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline bool Arg<T_Char, T_CharTraits, T_Alloc>::acceptsMultipleValues()
 {
 	return _acceptsMultipleValues;
 }
 
-inline void Arg::reset()
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void Arg<T_Char, T_CharTraits, T_Alloc>::reset()
 {
 	_xorSet = false;
 	_alreadySet = false;

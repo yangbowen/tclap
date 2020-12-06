@@ -30,6 +30,7 @@
 #include <tclap/UnlabeledMultiArg.h>
 
 #include <tclap/XorHandler.h>
+#include <tclap/Visitor.h>
 #include <tclap/HelpVisitor.h>
 #include <tclap/VersionVisitor.h>
 #include <tclap/IgnoreRestVisitor.h>
@@ -67,30 +68,47 @@ template<typename C> void ClearContainer(C &c)
  * The base class that manages the command line definition and passes
  * along the parsing to the appropriate Arg classes.
  */
-class CmdLine : public CmdLineInterface
+template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
+class CmdLine : public CmdLineInterface<T_Char, T_CharTraits, T_Alloc>
 {
+	public:
+		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::CharType;
+		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
+		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::AllocatorType;
+		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::StringType;
+		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
+		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::ArgType;
+		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::ArgListType;
+		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::ArgVectorType;
+		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::ArgListIteratorType;
+		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::ArgVectorIteratorType;
+		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::CmdLineInterfaceType;
+		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::CmdLineOutputType;
+		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::XorHandlerType;
+		using VisitorListType = std::list<Visitor*, typename std::allocator_traits<AllocatorType>::template rebind_alloc<Visitor*>>;
+
 	protected:
 
 		/**
 		 * The list of arguments that will be tested against the
 		 * command line.
 		 */
-		std::list<Arg*> _argList;
+		ArgListType _argList;
 
 		/**
 		 * The name of the program.  Set to argv[0].
 		 */
-		std::string _progName;
+		StringType _progName;
 
 		/**
 		 * A message used to describe the program.  Used in the usage output.
 		 */
-		std::string _message;
+		StringType _message;
 
 		/**
 		 * The version to be displayed with the --version switch.
 		 */
-		std::string _version;
+		StringType _version;
 
 		/**
 		 * The number of arguments that are required to be present on
@@ -103,31 +121,31 @@ class CmdLine : public CmdLineInterface
 		 * The character that is used to separate the argument flag/name
 		 * from the value.  Defaults to ' ' (space).
 		 */
-		char _delimiter;
+		CharType _delimiter;
 
 		/**
 		 * The handler that manages xoring lists of args.
 		 */
-		XorHandler _xorHandler;
+		XorHandlerType _xorHandler;
 
 		/**
 		 * A list of Args to be explicitly deleted when the destructor
 		 * is called.  At the moment, this only includes the three default
 		 * Args.
 		 */
-		std::list<Arg*> _argDeleteOnExitList;
+		ArgListType _argDeleteOnExitList;
 
 		/**
 		 * A list of Visitors to be explicitly deleted when the destructor
 		 * is called.  At the moment, these are the Visitors created for the
 		 * default Args.
 		 */
-		std::list<Visitor*> _visitorDeleteOnExitList;
+		VisitorListType _visitorDeleteOnExitList;
 
 		/**
 		 * Object that handles all output for the CmdLine.
 		 */
-		CmdLineOutput* _output;
+		CmdLineOutputType* _output;
 
 		/**
 		 * Should CmdLine handle parsing exceptions internally?
@@ -141,16 +159,16 @@ class CmdLine : public CmdLineInterface
 
 		/**
 		 * Checks whether a name/flag string matches entirely matches
-		 * the Arg::blankChar.  Used when multiple switches are combined
+		 * the ArgType::blankChar.  Used when multiple switches are combined
 		 * into a single argument.
 		 * \param s - The message to be used in the usage.
 		 */
-		bool _emptyCombined(const std::string& s);
+		bool _emptyCombined(const StringType& s);
 
 		/**
 		 * Perform a delete ptr; operation on ptr when this object is deleted.
 		 */
-		void deleteOnExit(Arg* ptr);
+		void deleteOnExit(ArgType* ptr);
 
 		/**
 		 * Perform a delete ptr; operation on ptr when this object is deleted.
@@ -202,9 +220,9 @@ private:
 		 * \param helpAndVersion - Whether or not to create the Help and
 		 * Version switches. Defaults to true.
 		 */
-		CmdLine(const std::string& message,
-				const char delimiter = ' ',
-				const std::string& version = "none",
+		CmdLine(const StringType& message,
+				const CharType delimiter = ' ',
+				const StringType& version = "none",
 				bool helpAndVersion = true);
 
 		/**
@@ -216,13 +234,13 @@ private:
 		 * Adds an argument to the list of arguments to be parsed.
 		 * \param a - Argument to be added.
 		 */
-		void add( Arg& a );
+		void add( ArgType& a );
 
 		/**
 		 * An alternative add.  Functionally identical.
 		 * \param a - Argument to be added.
 		 */
-		void add( Arg* a );
+		void add( ArgType* a );
 
 		/**
 		 * Add two Args that will be xor'd.  If this method is used, add does
@@ -230,68 +248,68 @@ private:
 		 * \param a - Argument to be added and xor'd.
 		 * \param b - Argument to be added and xor'd.
 		 */
-		void xorAdd( Arg& a, Arg& b );
+		void xorAdd( ArgType& a, ArgType& b );
 
 		/**
 		 * Add a list of Args that will be xor'd.  If this method is used,
 		 * add does not need to be called.
 		 * \param xors - List of Args to be added and xor'd.
 		 */
-		void xorAdd( const std::vector<Arg*>& xors );
+		void xorAdd( const ArgVectorType& xors );
 
 		/**
 		 * Parses the command line.
 		 * \param argc - Number of arguments.
 		 * \param argv - Array of arguments.
 		 */
-		void parse(int argc, const char * const * argv);
+		void parse(int argc, const CharType * const * argv);
 
 		/**
 		 * Parses the command line.
 		 * \param args - A vector of strings representing the args.
 		 * args[0] is still the program name.
 		 */
-		void parse(std::vector<std::string>& args);
+		void parse(StringVectorType& args);
 
 		/**
 		 *
 		 */
-		CmdLineOutput* getOutput();
+		CmdLineOutputType* getOutput();
 
 		/**
 		 *
 		 */
-		void setOutput(CmdLineOutput* co);
+		void setOutput(CmdLineOutputType* co);
 
 		/**
 		 *
 		 */
-		std::string& getVersion();
+		StringType& getVersion();
 
 		/**
 		 *
 		 */
-		std::string& getProgramName();
+		StringType& getProgramName();
 
 		/**
 		 *
 		 */
-		std::list<Arg*>& getArgList();
+		ArgListType& getArgList();
 
 		/**
 		 *
 		 */
-		XorHandler& getXorHandler();
+		XorHandlerType& getXorHandler();
 
 		/**
 		 *
 		 */
-		char getDelimiter();
+		CharType getDelimiter();
 
 		/**
 		 *
 		 */
-		std::string& getMessage();
+		StringType& getMessage();
 
 		/**
 		 *
@@ -332,20 +350,21 @@ private:
 //Begin CmdLine.cpp
 ///////////////////////////////////////////////////////////////////////////////
 
-inline CmdLine::CmdLine(const std::string& m,
-                        char delim,
-                        const std::string& v,
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline CmdLine<T_Char, T_CharTraits, T_Alloc>::CmdLine(const StringType& m,
+                        CharType delim,
+                        const StringType& v,
                         bool help )
     :
-  _argList(std::list<Arg*>()),
+  _argList(ArgListType()),
   _progName("not_set_yet"),
   _message(m),
   _version(v),
   _numRequired(0),
   _delimiter(delim),
-  _xorHandler(XorHandler()),
-  _argDeleteOnExitList(std::list<Arg*>()),
-  _visitorDeleteOnExitList(std::list<Visitor*>()),
+  _xorHandler(XorHandlerType()),
+  _argDeleteOnExitList(ArgListType()),
+  _visitorDeleteOnExitList(VisitorListType()),
   _output(0),
   _handleExceptions(true),
   _userSetOutput(false),
@@ -355,7 +374,8 @@ inline CmdLine::CmdLine(const std::string& m,
 	_constructor();
 }
 
-inline CmdLine::~CmdLine()
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline CmdLine<T_Char, T_CharTraits, T_Alloc>::~CmdLine()
 {
 	ClearContainer(_argDeleteOnExitList);
 	ClearContainer(_visitorDeleteOnExitList);
@@ -366,26 +386,27 @@ inline CmdLine::~CmdLine()
 	}
 }
 
-inline void CmdLine::_constructor()
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::_constructor()
 {
-	_output = new StdOutput;
+	_output = new StdOutput<T_Char, T_CharTraits, T_Alloc>;
 
-	Arg::setDelimiter( _delimiter );
+	ArgType::setDelimiter( _delimiter );
 
 	Visitor* v;
 
 	if ( _helpAndVersion )
 	{
-		v = new HelpVisitor( this, &_output );
-		SwitchArg* help = new SwitchArg("h","help",
+		v = new HelpVisitor<T_Char, T_CharTraits, T_Alloc>( this, &_output );
+		SwitchArg* help = new SwitchArg<T_Char, T_CharTraits, T_Alloc>("h","help",
 		                      "Displays usage information and exits.",
 		                      false, v);
 		add( help );
 		deleteOnExit(help);
 		deleteOnExit(v);
 
-		v = new VersionVisitor( this, &_output );
-		SwitchArg* vers = new SwitchArg("","version",
+		v = new VersionVisitor<T_Char, T_CharTraits, T_Alloc>( this, &_output );
+		SwitchArg* vers = new SwitchArg<T_Char, T_CharTraits, T_Alloc>("","version",
 		                      "Displays version information and exits.",
 		                      false, v);
 		add( vers );
@@ -393,9 +414,9 @@ inline void CmdLine::_constructor()
 		deleteOnExit(v);
 	}
 
-	v = new IgnoreRestVisitor();
-	SwitchArg* ignore  = new SwitchArg(Arg::flagStartString(),
-	          Arg::ignoreNameString(),
+	v = new IgnoreRestVisitor<T_Char, T_CharTraits, T_Alloc>();
+	SwitchArg<T_Char, T_CharTraits, T_Alloc>* ignore  = new SwitchArg<T_Char, T_CharTraits, T_Alloc>(ArgType::flagStartString(),
+	          ArgType::ignoreNameString(),
 	          "Ignores the rest of the labeled arguments following this flag.",
 	          false, v);
 	add( ignore );
@@ -403,7 +424,8 @@ inline void CmdLine::_constructor()
 	deleteOnExit(v);
 }
 
-inline void CmdLine::xorAdd( const std::vector<Arg*>& ors )
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::xorAdd( const ArgVectorType& ors )
 {
 	_xorHandler.add( ors );
 
@@ -415,22 +437,25 @@ inline void CmdLine::xorAdd( const std::vector<Arg*>& ors )
 	}
 }
 
-inline void CmdLine::xorAdd( Arg& a, Arg& b )
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::xorAdd( ArgType& a, ArgType& b )
 {
-	std::vector<Arg*> ors;
+	ArgVectorType ors;
 	ors.push_back( &a );
 	ors.push_back( &b );
 	xorAdd( ors );
 }
 
-inline void CmdLine::add( Arg& a )
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::add( ArgType& a )
 {
 	add( &a );
 }
 
-inline void CmdLine::add( Arg* a )
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::add( ArgType* a )
 {
-	for( ArgListIterator it = _argList.begin(); it != _argList.end(); it++ )
+	for( ArgListIteratorType it = _argList.begin(); it != _argList.end(); it++ )
 		if ( *a == *(*it) )
 			throw( SpecificationException(
 			        "Argument with same flag/name already exists!",
@@ -443,18 +468,20 @@ inline void CmdLine::add( Arg* a )
 }
 
 
-inline void CmdLine::parse(int argc, const char * const * argv)
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::parse(int argc, const CharType * const * argv)
 {
 		// this step is necessary so that we have easy access to
 		// mutable strings.
-		std::vector<std::string> args;
+		StringVectorType args;
 		for (int i = 0; i < argc; i++)
 			args.push_back(argv[i]);
 
 		parse(args);
 }
 
-inline void CmdLine::parse(std::vector<std::string>& args)
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::parse(StringVectorType& args)
 {
 	bool shouldExit = false;
 	int estat = 0;
@@ -483,7 +510,7 @@ inline void CmdLine::parse(std::vector<std::string>& args)
 			if ( !matched && _emptyCombined( args[i] ) )
 				matched = true;
 
-			if ( !matched && !Arg::ignoreRest() && !_ignoreUnmatched)
+			if ( !matched && !ArgType::ignoreRest() && !_ignoreUnmatched)
 				throw(CmdLineParseException("Couldn't find match "
 				                            "for argument",
 				                            args[i]));
@@ -521,23 +548,25 @@ inline void CmdLine::parse(std::vector<std::string>& args)
 		exit(estat);
 }
 
-inline bool CmdLine::_emptyCombined(const std::string& s)
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline bool CmdLine<T_Char, T_CharTraits, T_Alloc>::_emptyCombined(const StringType& s)
 {
-	if ( s.length() > 0 && s[0] != Arg::flagStartChar() )
+	if ( s.length() > 0 && s[0] != ArgType::flagStartChar() )
 		return false;
 
 	for ( int i = 1; static_cast<unsigned int>(i) < s.length(); i++ )
-		if ( s[i] != Arg::blankChar() )
+		if ( s[i] != ArgType::blankChar() )
 			return false;
 
 	return true;
 }
 
-inline void CmdLine::missingArgsException()
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::missingArgsException()
 {
 		int count = 0;
 
-		std::string missingArgList;
+		StringType missingArgList;
 		for (ArgListIterator it = _argList.begin(); it != _argList.end(); it++)
 		{
 			if ( (*it)->isRequired() && !(*it)->isSet() )
@@ -549,7 +578,7 @@ inline void CmdLine::missingArgsException()
 		}
 		missingArgList = missingArgList.substr(0,missingArgList.length()-2);
 
-		std::string msg;
+		StringType msg;
 		if ( count > 1 )
 			msg = "Required arguments missing: ";
 		else
@@ -560,22 +589,26 @@ inline void CmdLine::missingArgsException()
 		throw(CmdLineParseException(msg));
 }
 
-inline void CmdLine::deleteOnExit(Arg* ptr)
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::deleteOnExit(ArgType* ptr)
 {
 	_argDeleteOnExitList.push_back(ptr);
 }
 
-inline void CmdLine::deleteOnExit(Visitor* ptr)
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::deleteOnExit(Visitor* ptr)
 {
 	_visitorDeleteOnExitList.push_back(ptr);
 }
 
-inline CmdLineOutput* CmdLine::getOutput()
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline auto CmdLine<T_Char, T_CharTraits, T_Alloc>::getOutput() -> CmdLineOutputType*
 {
 	return _output;
 }
 
-inline void CmdLine::setOutput(CmdLineOutput* co)
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::setOutput(CmdLineOutputType* co)
 {
 	if ( !_userSetOutput )
 		delete _output;
@@ -583,52 +616,62 @@ inline void CmdLine::setOutput(CmdLineOutput* co)
 	_output = co;
 }
 
-inline std::string& CmdLine::getVersion()
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline auto CmdLine<T_Char, T_CharTraits, T_Alloc>::getVersion() -> StringType&
 {
 	return _version;
 }
 
-inline std::string& CmdLine::getProgramName()
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline auto CmdLine<T_Char, T_CharTraits, T_Alloc>::getProgramName() -> StringType&
 {
 	return _progName;
 }
 
-inline std::list<Arg*>& CmdLine::getArgList()
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline auto CmdLine<T_Char, T_CharTraits, T_Alloc>::getArgList() -> ArgListType&
 {
 	return _argList;
 }
 
-inline XorHandler& CmdLine::getXorHandler()
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline auto CmdLine<T_Char, T_CharTraits, T_Alloc>::getXorHandler() -> XorHandlerType&
 {
 	return _xorHandler;
 }
 
-inline char CmdLine::getDelimiter()
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline auto CmdLine<T_Char, T_CharTraits, T_Alloc>::getDelimiter() -> CharType
 {
 	return _delimiter;
 }
 
-inline std::string& CmdLine::getMessage()
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline auto CmdLine<T_Char, T_CharTraits, T_Alloc>::getMessage() -> StringType&
 {
 	return _message;
 }
 
-inline bool CmdLine::hasHelpAndVersion()
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline bool CmdLine<T_Char, T_CharTraits, T_Alloc>::hasHelpAndVersion()
 {
 	return _helpAndVersion;
 }
 
-inline void CmdLine::setExceptionHandling(const bool state)
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::setExceptionHandling(const bool state)
 {
 	_handleExceptions = state;
 }
 
-inline bool CmdLine::getExceptionHandling() const
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline bool CmdLine<T_Char, T_CharTraits, T_Alloc>::getExceptionHandling() const
 {
 	return _handleExceptions;
 }
 
-inline void CmdLine::reset()
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::reset()
 {
 	for( ArgListIterator it = _argList.begin(); it != _argList.end(); it++ )
 		(*it)->reset();
@@ -636,7 +679,8 @@ inline void CmdLine::reset()
 	_progName.clear();
 }
 
-inline void CmdLine::ignoreUnmatched(const bool ignore)
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::ignoreUnmatched(const bool ignore)
 {
 	_ignoreUnmatched = ignore;
 }

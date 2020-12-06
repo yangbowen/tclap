@@ -34,27 +34,88 @@
 
 namespace TCLAP {
 
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+class UnlabeledMultiArg;
+
 /**
  * Just like a MultiArg, except that the arguments are unlabeled.  Basically,
  * this Arg will slurp up everything that hasn't been matched to another 
  * Arg.
  */
-template<class T>
-class UnlabeledMultiArg : public MultiArg<T>
+template<class T, typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
+class UnlabeledMultiArg : public MultiArg<T, T_Char, T_CharTraits, T_Alloc>
 {
-
-	// If compiler has two stage name lookup (as gcc >= 3.4 does)
-	// this is required to prevent undef. symbols
-	using MultiArg<T>::_ignoreable;
-	using MultiArg<T>::_hasBlanks;
-	using MultiArg<T>::_extractValue;
-	using MultiArg<T>::_typeDesc;
-	using MultiArg<T>::_name;
-	using MultiArg<T>::_description;
-	using MultiArg<T>::_alreadySet;
-	using MultiArg<T>::toString;
-
 	public:
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::AllocatorType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgListType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgVectorType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgListIteratorType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgVectorIteratorType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CmdLineInterfaceType;
+		using typename MultiArg<T_Char, T_CharTraits, T_Alloc>::ConstraintType;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::addToList;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::beginIgnoring;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::ignoreRest;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::delimiter;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::blankChar;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::flagStartChar;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::flagStartString;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::nameStartString;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::ignoreNameString;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::setDelimiter;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::processArg;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::operator==;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::getFlag;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::getName;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::getDescription;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::isRequired;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::forceRequired;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::xorSet;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::isValueRequired;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::isSet;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::isIgnoreable;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::argMatches;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::toString;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::shortID;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::longID;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::trimFlag;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_hasBlanks;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::setRequireLabel;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::allowMore;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::acceptsMultipleValues;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::reset;
+		using MultiArg<T_Char, T_CharTraits, T_Alloc>::processArg;
+		using MultiArg<T_Char, T_CharTraits, T_Alloc>::getValue;
+		using MultiArg<T_Char, T_CharTraits, T_Alloc>::begin;
+		using MultiArg<T_Char, T_CharTraits, T_Alloc>::end;
+		using MultiArg<T_Char, T_CharTraits, T_Alloc>::shortID;
+		using MultiArg<T_Char, T_CharTraits, T_Alloc>::longID;
+		using MultiArg<T_Char, T_CharTraits, T_Alloc>::isRequired;
+		using MultiArg<T_Char, T_CharTraits, T_Alloc>::allowMore;
+		using MultiArg<T_Char, T_CharTraits, T_Alloc>::reset;
+
+	protected:
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_flag;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_name;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_description;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_required;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_requireLabel;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_valueRequired;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_alreadySet;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_visitor;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_ignoreable;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_xorSet;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_acceptsMultipleValues;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_checkWithVisitor;
+		using MultiArg<T_Char, T_CharTraits, T_Alloc>::_values;
+		using MultiArg<T_Char, T_CharTraits, T_Alloc>::_typeDesc;
+		using MultiArg<T_Char, T_CharTraits, T_Alloc>::_constraint;
+		using MultiArg<T_Char, T_CharTraits, T_Alloc>::_extractValue;
 		
 		/**
 		 * Constructor.  
@@ -73,10 +134,10 @@ class UnlabeledMultiArg : public MultiArg<T>
 		 * \param v - An optional visitor.  You probably should not
 		 * use this unless you have a very good reason.
 		 */
-		UnlabeledMultiArg( const std::string& name,
-				           const std::string& desc,
+		UnlabeledMultiArg( const StringType& name,
+				           const StringType& desc,
 						   bool req,
-				           const std::string& typeDesc,
+				           const StringType& typeDesc,
 						   bool ignoreable = false,
 				           Visitor* v = NULL );
 		/**
@@ -97,11 +158,11 @@ class UnlabeledMultiArg : public MultiArg<T>
 		 * \param v - An optional visitor.  You probably should not
 		 * use this unless you have a very good reason.
 		 */
-		UnlabeledMultiArg( const std::string& name,
-				           const std::string& desc,
+		UnlabeledMultiArg( const StringType& name,
+				           const StringType& desc,
 						   bool req,
-				           const std::string& typeDesc,
-						   CmdLineInterface& parser,
+				           const StringType& typeDesc,
+						   CmdLineInterfaceType& parser,
 						   bool ignoreable = false,
 				           Visitor* v = NULL );
 						 
@@ -120,10 +181,10 @@ class UnlabeledMultiArg : public MultiArg<T>
 		 * \param v - An optional visitor.  You probably should not
 		 * use this unless you have a very good reason.
 		 */
-		UnlabeledMultiArg( const std::string& name,
-						   const std::string& desc,
+		UnlabeledMultiArg( const StringType& name,
+						   const StringType& desc,
 						   bool req,
-						   Constraint<T>* constraint,
+						   ConstraintType* constraint,
 						   bool ignoreable = false,
 						   Visitor* v = NULL );
 
@@ -143,11 +204,11 @@ class UnlabeledMultiArg : public MultiArg<T>
 		 * \param v - An optional visitor.  You probably should not
 		 * use this unless you have a very good reason.
 		 */
-		UnlabeledMultiArg( const std::string& name, 
-						   const std::string& desc, 
+		UnlabeledMultiArg( const StringType& name, 
+						   const StringType& desc, 
 						   bool req,
-						   Constraint<T>* constraint,
-						   CmdLineInterface& parser,
+						   ConstraintType* constraint,
+						   CmdLineInterfaceType& parser,
 						   bool ignoreable = false,
 						   Visitor* v = NULL );
 						 
@@ -159,84 +220,55 @@ class UnlabeledMultiArg : public MultiArg<T>
 		 * \param i - Pointer the the current argument in the list.
 		 * \param args - Mutable list of strings. Passed from main().
 		 */
-		virtual bool processArg(int* i, std::vector<std::string>& args); 
+		virtual bool processArg(int* i, StringVectorType& args); 
 
 		/**
 		 * Returns the a short id string.  Used in the usage.
 		 * \param val - value to be used.
 		 */
-		virtual std::string shortID(const std::string& val="val") const;
+		virtual StringType shortID(const StringType& val="val") const;
 
 		/**
 		 * Returns the a long id string.  Used in the usage.
 		 * \param val - value to be used.
 		 */
-		virtual std::string longID(const std::string& val="val") const;
+		virtual StringType longID(const StringType& val="val") const;
 
 		/**
 		 * Operator ==.
 		 * \param a - The Arg to be compared to this.
 		 */
-		virtual bool operator==(const Arg& a) const;
+		virtual bool operator==(const ArgType& a) const;
 
 		/**
 		 * Pushes this to back of list rather than front.
 		 * \param argList - The list this should be added to.
 		 */
-		virtual void addToList( std::list<Arg*>& argList ) const;
+		virtual void addToList( ArgListType& argList ) const;
 };
 
-template<class T>
-UnlabeledMultiArg<T>::UnlabeledMultiArg(const std::string& name, 
-				                        const std::string& desc, 
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledMultiArg(const StringType& name,
+				                        const StringType& desc, 
 										bool req,
-					                    const std::string& typeDesc,
+					                    const StringType& typeDesc,
 										bool ignoreable,
 					                    Visitor* v)
-: MultiArg<T>("", name, desc,  req, typeDesc, v)
+: MultiArg("", name, desc,  req, typeDesc, v)
 { 
 	_ignoreable = ignoreable;
 	OptionalUnlabeledTracker::check(true, toString());
 }
 
-template<class T>
-UnlabeledMultiArg<T>::UnlabeledMultiArg(const std::string& name, 
-				                        const std::string& desc, 
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledMultiArg(const StringType& name,
+				                        const StringType& desc, 
 										bool req,
-					                    const std::string& typeDesc,
-										CmdLineInterface& parser,
+					                    const StringType& typeDesc,
+										CmdLineInterfaceType& parser,
 										bool ignoreable,
 					                    Visitor* v)
-: MultiArg<T>("", name, desc,  req, typeDesc, v)
-{ 
-	_ignoreable = ignoreable;
-	OptionalUnlabeledTracker::check(true, toString());
-	parser.add( this );
-}
-
-
-template<class T>
-UnlabeledMultiArg<T>::UnlabeledMultiArg(const std::string& name, 
-				                        const std::string& desc, 
-										bool req,
-					                    Constraint<T>* constraint,
-										bool ignoreable,
-					                    Visitor* v)
-: MultiArg<T>("", name, desc,  req, constraint, v)
-{ 
-	_ignoreable = ignoreable;
-	OptionalUnlabeledTracker::check(true, toString());
-}
-
-template<class T>
-UnlabeledMultiArg<T>::UnlabeledMultiArg(const std::string& name, 
-				                        const std::string& desc, 
-										bool req,
-					                    Constraint<T>* constraint,
-										CmdLineInterface& parser,
-										bool ignoreable,
-					                    Visitor* v)
-: MultiArg<T>("", name, desc,  req, constraint, v)
+: MultiArg("", name, desc,  req, typeDesc, v)
 { 
 	_ignoreable = ignoreable;
 	OptionalUnlabeledTracker::check(true, toString());
@@ -244,8 +276,37 @@ UnlabeledMultiArg<T>::UnlabeledMultiArg(const std::string& name,
 }
 
 
-template<class T>
-bool UnlabeledMultiArg<T>::processArg(int *i, std::vector<std::string>& args) 
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledMultiArg(const StringType& name,
+				                        const StringType& desc, 
+										bool req,
+					                    ConstraintType* constraint,
+										bool ignoreable,
+					                    Visitor* v)
+: MultiArg("", name, desc,  req, constraint, v)
+{ 
+	_ignoreable = ignoreable;
+	OptionalUnlabeledTracker::check(true, toString());
+}
+
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledMultiArg(const StringType& name,
+				                        const StringType& desc, 
+										bool req,
+					                    ConstraintType* constraint,
+										CmdLineInterfaceType& parser,
+										bool ignoreable,
+					                    Visitor* v)
+: MultiArg("", name, desc,  req, constraint, v)
+{ 
+	_ignoreable = ignoreable;
+	OptionalUnlabeledTracker::check(true, toString());
+	parser.add( this );
+}
+
+
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+bool UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::processArg(int *i, StringVectorType& args)
 {
 
 	if ( _hasBlanks( args[*i] ) )
@@ -270,22 +331,22 @@ bool UnlabeledMultiArg<T>::processArg(int *i, std::vector<std::string>& args)
 	return true;
 }
 
-template<class T>
-std::string UnlabeledMultiArg<T>::shortID(const std::string& val) const
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+auto UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::shortID(const StringType& val) const -> StringType
 {
 	static_cast<void>(val); // Ignore input, don't warn
-	return std::string("<") + _typeDesc + "> ...";
+	return StringType("<") + _typeDesc + "> ...";
 }
 
-template<class T>
-std::string UnlabeledMultiArg<T>::longID(const std::string& val) const
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+auto UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::longID(const StringType& val) const -> StringType
 {
 	static_cast<void>(val); // Ignore input, don't warn
-	return std::string("<") + _typeDesc + ">  (accepted multiple times)";
+	return StringType("<") + _typeDesc + ">  (accepted multiple times)";
 }
 
-template<class T>
-bool UnlabeledMultiArg<T>::operator==(const Arg& a) const
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+bool UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::operator==(const ArgType& a) const
 {
 	if ( _name == a.getName() || _description == a.getDescription() )
 		return true;
@@ -293,10 +354,10 @@ bool UnlabeledMultiArg<T>::operator==(const Arg& a) const
 		return false;
 }
 
-template<class T>
-void UnlabeledMultiArg<T>::addToList( std::list<Arg*>& argList ) const
+template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+void UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::addToList( ArgListType& argList ) const
 {
-	argList.push_back( const_cast<Arg*>(static_cast<const Arg* const>(this)) );
+	argList.push_back( const_cast<ArgType*>(static_cast<const ArgType* const>(this)) );
 }
 
 }

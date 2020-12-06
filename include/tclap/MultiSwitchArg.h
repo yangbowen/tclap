@@ -35,13 +35,78 @@
 
 namespace TCLAP {
 
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+class MultiSwitchArg;
+
 /**
 * A multiple switch argument.  If the switch is set on the command line, then
 * the getValue method will return the number of times the switch appears.
 */
-class MultiSwitchArg : public SwitchArg
+template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
+class MultiSwitchArg : public SwitchArg<T_Char, T_CharTraits, T_Alloc>
 {
+	public:
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::AllocatorType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgListType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgVectorType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgListIteratorType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgVectorIteratorType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CmdLineInterfaceType;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::addToList;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::beginIgnoring;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::ignoreRest;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::delimiter;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::blankChar;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::flagStartChar;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::flagStartString;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::nameStartString;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::ignoreNameString;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::setDelimiter;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::processArg;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::operator==;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::getFlag;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::getName;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::getDescription;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::isRequired;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::forceRequired;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::xorSet;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::isValueRequired;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::isSet;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::isIgnoreable;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::argMatches;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::toString;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::shortID;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::longID;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::trimFlag;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_hasBlanks;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::setRequireLabel;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::allowMore;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::acceptsMultipleValues;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::reset;
+		using SwitchArg<T_Char, T_CharTraits, T_Alloc>::processArg;
+		using SwitchArg<T_Char, T_CharTraits, T_Alloc>::combinedSwitchesMatch;
+		using SwitchArg<T_Char, T_CharTraits, T_Alloc>::getValue;
+		using SwitchArg<T_Char, T_CharTraits, T_Alloc>::operator bool;
+		using SwitchArg<T_Char, T_CharTraits, T_Alloc>::reset;
+
 	protected:
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_flag;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_name;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_description;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_required;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_requireLabel;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_valueRequired;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_alreadySet;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_visitor;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_ignoreable;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_xorSet;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_acceptsMultipleValues;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_checkWithVisitor;
 
 		/**
 		 * The value of the switch.
@@ -53,8 +118,6 @@ class MultiSwitchArg : public SwitchArg
 		 * reset to their constructed value.
 		 */
 		int _default;
-
-	public:
 
 		/**
 		 * MultiSwitchArg constructor.
@@ -69,9 +132,9 @@ class MultiSwitchArg : public SwitchArg
 		 * \param v - An optional visitor.  You probably should not
 		 * use this unless you have a very good reason.
 		 */
-		MultiSwitchArg(const std::string& flag, 
-				const std::string& name,
-				const std::string& desc,
+		MultiSwitchArg(const StringType& flag, 
+				const StringType& name,
+				const StringType& desc,
 				int init = 0,
 				Visitor* v = NULL);
 
@@ -90,10 +153,10 @@ class MultiSwitchArg : public SwitchArg
 		 * \param v - An optional visitor.  You probably should not
 		 * use this unless you have a very good reason.
 		 */
-		MultiSwitchArg(const std::string& flag, 
-				const std::string& name,
-				const std::string& desc,
-				CmdLineInterface& parser,
+		MultiSwitchArg(const StringType& flag, 
+				const StringType& name,
+				const StringType& desc,
+				CmdLineInterfaceType& parser,
 				int init = 0,
 				Visitor* v = NULL);
 
@@ -106,7 +169,7 @@ class MultiSwitchArg : public SwitchArg
 		 * \param args - Mutable list of strings. Passed
 		 * in from main().
 		 */
-		virtual bool processArg(int* i, std::vector<std::string>& args); 
+		virtual bool processArg(int* i, StringVectorType& args); 
 
 		/**
 		 * Returns int, the number of times the switch has been set.
@@ -116,12 +179,12 @@ class MultiSwitchArg : public SwitchArg
 		/**
 		 * Returns the shortID for this Arg.
 		 */
-		std::string shortID(const std::string& val) const;
+		StringType shortID(const StringType& val) const;
 
 		/**
 		 * Returns the longID for this Arg.
 		 */
-		std::string longID(const std::string& val) const;
+		StringType longID(const StringType& val) const;
 		
 		void reset();
 
@@ -130,9 +193,10 @@ class MultiSwitchArg : public SwitchArg
 //////////////////////////////////////////////////////////////////////
 //BEGIN MultiSwitchArg.cpp
 //////////////////////////////////////////////////////////////////////
-inline MultiSwitchArg::MultiSwitchArg(const std::string& flag,
-					const std::string& name,
-					const std::string& desc,
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline MultiSwitchArg<T_Char, T_CharTraits, T_Alloc>::MultiSwitchArg(const StringType& flag,
+					const StringType& name,
+					const StringType& desc,
 					int init,
 					Visitor* v )
 : SwitchArg(flag, name, desc, false, v),
@@ -140,10 +204,11 @@ _value( init ),
 _default( init )
 { }
 
-inline MultiSwitchArg::MultiSwitchArg(const std::string& flag,
-					const std::string& name, 
-					const std::string& desc, 
-					CmdLineInterface& parser,
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline MultiSwitchArg<T_Char, T_CharTraits, T_Alloc>::MultiSwitchArg(const StringType& flag,
+					const StringType& name, 
+					const StringType& desc, 
+					CmdLineInterfaceType& parser,
 					int init,
 					Visitor* v )
 : SwitchArg(flag, name, desc, false, v),
@@ -153,7 +218,8 @@ _default( init )
 	parser.add( this );
 }
 
-inline bool MultiSwitchArg::processArg(int *i, std::vector<std::string>& args)
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline bool MultiSwitchArg<T_Char, T_CharTraits, T_Alloc>::processArg(int *i, StringVectorType& args)
 {
 	if ( _ignoreable && Arg::ignoreRest() )
 		return false;
@@ -190,20 +256,23 @@ inline bool MultiSwitchArg::processArg(int *i, std::vector<std::string>& args)
 		return false;
 }
 
-inline std::string 
-MultiSwitchArg::shortID(const std::string& val) const
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline auto
+MultiSwitchArg<T_Char, T_CharTraits, T_Alloc>::shortID(const StringType& val) const -> StringType
 {
 	return Arg::shortID(val) + " ...";
 }
 
-inline std::string 
-MultiSwitchArg::longID(const std::string& val) const
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline auto
+MultiSwitchArg<T_Char, T_CharTraits, T_Alloc>::longID(const StringType& val) const -> StringType
 {
 	return Arg::longID(val) + "  (accepted multiple times)";
 }
 
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 inline void
-MultiSwitchArg::reset()
+MultiSwitchArg<T_Char, T_CharTraits, T_Alloc>::reset()
 {
 	MultiSwitchArg::_value = MultiSwitchArg::_default;
 }

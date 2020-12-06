@@ -41,24 +41,39 @@ namespace TCLAP {
  * A class that isolates any output from the CmdLine object so that it
  * may be easily modified.
  */
-class StdOutput : public CmdLineOutput
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+class StdOutput : public CmdLineOutput<T_Char, T_CharTraits, T_Alloc>
 {
-
 	public:
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CharType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::AllocatorType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgListType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgVectorType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgVectorVectorType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgListIteratorType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgVectorIteratorType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CmdLineInterfaceType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CmdLineOutputType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::XorHandlerType;
+		using OstreamType = std::basic_ostream<T_Char, T_CharTraits>;
 
 		/**
 		 * Prints the usage to stdout.  Can be overridden to 
 		 * produce alternative behavior.
 		 * \param c - The CmdLine object the output is generated for. 
 		 */
-		virtual void usage(CmdLineInterface& c);
+		virtual void usage(CmdLineInterfaceType& c);
 
 		/**
 		 * Prints the version to stdout. Can be overridden 
 		 * to produce alternative behavior.
 		 * \param c - The CmdLine object the output is generated for. 
 		 */
-		virtual void version(CmdLineInterface& c);
+		virtual void version(CmdLineInterfaceType& c);
 
 		/**
 		 * Prints (to stderr) an error message, short usage 
@@ -66,7 +81,7 @@ class StdOutput : public CmdLineOutput
 		 * \param c - The CmdLine object the output is generated for. 
 		 * \param e - The ArgException that caused the failure. 
 		 */
-		virtual void failure(CmdLineInterface& c, 
+		virtual void failure(CmdLineInterfaceType& c,
 				     ArgException& e );
 
 	protected:
@@ -76,7 +91,7 @@ class StdOutput : public CmdLineOutput
 		 * \param c - The CmdLine object the output is generated for. 
          * \param os - The stream to write the message to.
          */
-        void _shortUsage( CmdLineInterface& c, std::ostream& os ) const;
+        void _shortUsage(CmdLineInterfaceType& c, OstreamType& os ) const;
 
         /**
 		 * Writes a longer usage message with long and short args, 
@@ -84,7 +99,7 @@ class StdOutput : public CmdLineOutput
 		 * \param c - The CmdLine object the output is generated for. 
 		 * \param os - The stream to write the message to.
 		 */
-		void _longUsage( CmdLineInterface& c, std::ostream& os ) const;
+		void _longUsage(CmdLineInterfaceType& c, OstreamType& os ) const;
 
 		/**
 		 * This function inserts line breaks and indents long strings 
@@ -97,8 +112,8 @@ class StdOutput : public CmdLineOutput
 		 * \param secondLineOffset - The number of spaces to indent the second
 		 * and all subsequent lines in addition to indentSpaces.
 		 */
-		void spacePrint( std::ostream& os, 
-						 const std::string& s, 
+		void spacePrint( OstreamType& os, 
+						 const StringType& s, 
 						 int maxWidth, 
 						 int indentSpaces, 
 						 int secondLineOffset ) const;
@@ -106,16 +121,18 @@ class StdOutput : public CmdLineOutput
 };
 
 
-inline void StdOutput::version(CmdLineInterface& _cmd) 
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void StdOutput<T_Char, T_CharTraits, T_Alloc>::version(CmdLineInterfaceType& _cmd)
 {
-	std::string progName = _cmd.getProgramName();
-	std::string xversion = _cmd.getVersion();
+	StringType progName = _cmd.getProgramName();
+	StringType xversion = _cmd.getVersion();
 
 	std::cout << std::endl << progName << "  version: " 
 			  << xversion << std::endl << std::endl;
 }
 
-inline void StdOutput::usage(CmdLineInterface& _cmd ) 
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void StdOutput<T_Char, T_CharTraits, T_Alloc>::usage(CmdLineInterfaceType& _cmd )
 {
 	std::cout << std::endl << "USAGE: " << std::endl << std::endl; 
 
@@ -129,10 +146,11 @@ inline void StdOutput::usage(CmdLineInterface& _cmd )
 
 }
 
-inline void StdOutput::failure( CmdLineInterface& _cmd,
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void StdOutput<T_Char, T_CharTraits, T_Alloc>::failure( CmdLineInterfaceType& _cmd,
 								ArgException& e ) 
 {
-	std::string progName = _cmd.getProgramName();
+	StringType progName = _cmd.getProgramName();
 
 	std::cerr << "PARSE ERROR: " << e.argId() << std::endl
 		      << "             " << e.error() << std::endl << std::endl;
@@ -154,16 +172,17 @@ inline void StdOutput::failure( CmdLineInterface& _cmd,
 	throw ExitException(1);
 }
 
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 inline void 
-StdOutput::_shortUsage( CmdLineInterface& _cmd, 
-						std::ostream& os ) const
+StdOutput<T_Char, T_CharTraits, T_Alloc>::_shortUsage( CmdLineInterfaceType& _cmd,
+						OstreamType& os ) const
 {
-	std::list<Arg*> argList = _cmd.getArgList();
-	std::string progName = _cmd.getProgramName();
-	XorHandler xorHandler = _cmd.getXorHandler();
-	std::vector< std::vector<Arg*> > xorList = xorHandler.getXorList();
+	ArgListType argList = _cmd.getArgList();
+	StringType progName = _cmd.getProgramName();
+	XorHandlerType xorHandler = _cmd.getXorHandler();
+	ArgVectorVectorType xorList = xorHandler.getXorList();
 
-	std::string s = progName + " ";
+	StringType s = progName + " ";
 
 	// first the xor
 	for ( int i = 0; static_cast<unsigned int>(i) < xorList.size(); i++ )
@@ -189,14 +208,15 @@ StdOutput::_shortUsage( CmdLineInterface& _cmd,
 	spacePrint( os, s, 75, 3, secondLineOffset );
 }
 
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 inline void 
-StdOutput::_longUsage( CmdLineInterface& _cmd, 
-					   std::ostream& os ) const
+StdOutput<T_Char, T_CharTraits, T_Alloc>::_longUsage( CmdLineInterfaceType& _cmd,
+					   OstreamType& os ) const
 {
-	std::list<Arg*> argList = _cmd.getArgList();
-	std::string message = _cmd.getMessage();
-	XorHandler xorHandler = _cmd.getXorHandler();
-	std::vector< std::vector<Arg*> > xorList = xorHandler.getXorList();
+	ArgListType argList = _cmd.getArgList();
+	StringType message = _cmd.getMessage();
+	XorHandlerType xorHandler = _cmd.getXorHandler();
+	ArgVectorVectorType xorList = xorHandler.getXorList();
 
 	// first the xor 
 	for ( int i = 0; static_cast<unsigned int>(i) < xorList.size(); i++ )
@@ -228,8 +248,9 @@ StdOutput::_longUsage( CmdLineInterface& _cmd,
 	spacePrint( os, message, 75, 3, 0 );
 }
 
-inline void StdOutput::spacePrint( std::ostream& os, 
-						           const std::string& s, 
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void StdOutput<T_Char, T_CharTraits, T_Alloc>::spacePrint( OstreamType& os,
+						           const StringType& s, 
 						           int maxWidth, 
 						           int indentSpaces, 
 						           int secondLineOffset ) const

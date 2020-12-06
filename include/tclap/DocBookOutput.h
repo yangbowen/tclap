@@ -41,24 +41,38 @@ namespace TCLAP {
  * A class that generates DocBook output for usage() method for the 
  * given CmdLine and its Args.
  */
-class DocBookOutput : public CmdLineOutput
+template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
+class DocBookOutput : public CmdLineOutput<T_Char, T_CharTraits, T_Alloc>
 {
-
 	public:
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CharType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::AllocatorType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgListType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgVectorType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgVectorVectorType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgListIteratorType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgVectorIteratorType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CmdLineInterfaceType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CmdLineOutputType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::XorHandlerType;
 
 		/**
 		 * Prints the usage to stdout.  Can be overridden to 
 		 * produce alternative behavior.
 		 * \param c - The CmdLine object the output is generated for. 
 		 */
-		virtual void usage(CmdLineInterface& c);
+		virtual void usage(CmdLineInterfaceType& c);
 
 		/**
 		 * Prints the version to stdout. Can be overridden 
 		 * to produce alternative behavior.
 		 * \param c - The CmdLine object the output is generated for. 
 		 */
-		virtual void version(CmdLineInterface& c);
+		virtual void version(CmdLineInterfaceType& c);
 
 		/**
 		 * Prints (to stderr) an error message, short usage 
@@ -66,7 +80,7 @@ class DocBookOutput : public CmdLineOutput
 		 * \param c - The CmdLine object the output is generated for. 
 		 * \param e - The ArgException that caused the failure. 
 		 */
-		virtual void failure(CmdLineInterface& c, 
+		virtual void failure(CmdLineInterfaceType& c,
 						     ArgException& e );
 
 	    DocBookOutput() : theDelimiter('=') {}
@@ -78,30 +92,32 @@ class DocBookOutput : public CmdLineOutput
 		 * \param r - The char to replace. 
 		 * \param x - What to replace r with. 
 		 */
-		void substituteSpecialChars( std::string& s, char r, std::string& x );
-		void removeChar( std::string& s, char r);
-		void basename( std::string& s );
+		void substituteSpecialChars( StringType& s, CharType r, StringType& x );
+		void removeChar( StringType& s, CharType r);
+		void basename( StringType& s );
 
-		void printShortArg(Arg* it);
-		void printLongArg(Arg* it);
+		void printShortArg(ArgType* it);
+		void printLongArg(ArgType* it);
 
-		char theDelimiter;
+		CharType theDelimiter;
 };
 
 
-inline void DocBookOutput::version(CmdLineInterface& _cmd) 
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void DocBookOutput<T_Char, T_CharTraits, T_Alloc>::version(CmdLineInterfaceType& _cmd)
 { 
 	std::cout << _cmd.getVersion() << std::endl;
 }
 
-inline void DocBookOutput::usage(CmdLineInterface& _cmd ) 
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void DocBookOutput<T_Char, T_CharTraits, T_Alloc>::usage(CmdLineInterfaceType& _cmd )
 {
-	std::list<Arg*> argList = _cmd.getArgList();
-	std::string progName = _cmd.getProgramName();
-	std::string xversion = _cmd.getVersion();
+	ArgListType argList = _cmd.getArgList();
+	StringType progName = _cmd.getProgramName();
+	StringType xversion = _cmd.getVersion();
 	theDelimiter = _cmd.getDelimiter();
-	XorHandler xorHandler = _cmd.getXorHandler();
-	const std::vector< std::vector<Arg*> > xorList = xorHandler.getXorList();
+	XorHandlerType xorHandler = _cmd.getXorHandler();
+	const ArgVectorVectorType xorList = xorHandler.getXorList();
 	basename(progName);
 
 	std::cout << "<?xml version='1.0'?>" << std::endl;
@@ -173,7 +189,8 @@ inline void DocBookOutput::usage(CmdLineInterface& _cmd )
 
 }
 
-inline void DocBookOutput::failure( CmdLineInterface& _cmd,
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void DocBookOutput<T_Char, T_CharTraits, T_Alloc>::failure( CmdLineInterfaceType& _cmd,
 				    ArgException& e ) 
 { 
 	static_cast<void>(_cmd); // unused
@@ -181,48 +198,52 @@ inline void DocBookOutput::failure( CmdLineInterface& _cmd,
 	throw ExitException(1);
 }
 
-inline void DocBookOutput::substituteSpecialChars( std::string& s,
-				                                   char r,
-												   std::string& x )
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void DocBookOutput<T_Char, T_CharTraits, T_Alloc>::substituteSpecialChars( StringType& s,
+				                                   CharType r,
+												   StringType& x )
 {
 	size_t p;
-	while ( (p = s.find_first_of(r)) != std::string::npos )
+	while ( (p = s.find_first_of(r)) != StringType::npos )
 	{
 		s.erase(p,1);
 		s.insert(p,x);
 	}
 }
 
-inline void DocBookOutput::removeChar( std::string& s, char r)
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void DocBookOutput<T_Char, T_CharTraits, T_Alloc>::removeChar( StringType& s, CharType r)
 {
 	size_t p;
-	while ( (p = s.find_first_of(r)) != std::string::npos )
+	while ( (p = s.find_first_of(r)) != StringType::npos )
 	{
 		s.erase(p,1);
 	}
 }
 
-inline void DocBookOutput::basename( std::string& s )
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void DocBookOutput<T_Char, T_CharTraits, T_Alloc>::basename( StringType& s )
 {
 	size_t p = s.find_last_of('/');
-	if ( p != std::string::npos )
+	if ( p != StringType::npos )
 	{
 		s.erase(0, p + 1);
 	}
 }
 
-inline void DocBookOutput::printShortArg(Arg* a)
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void DocBookOutput<T_Char, T_CharTraits, T_Alloc>::printShortArg(ArgType* a)
 {
-	std::string lt = "&lt;"; 
-	std::string gt = "&gt;"; 
+	StringType lt = "&lt;"; 
+	StringType gt = "&gt;"; 
 
-	std::string id = a->shortID();
+	StringType id = a->shortID();
 	substituteSpecialChars(id,'<',lt);
 	substituteSpecialChars(id,'>',gt);
 	removeChar(id,'[');
 	removeChar(id,']');
 	
-	std::string choice = "opt";
+	StringType choice = "opt";
 	if ( a->isRequired() )
 		choice = "plain";
 
@@ -238,7 +259,7 @@ inline void DocBookOutput::printShortArg(Arg* a)
 		std::cout << a->nameStartString() << a->getName();
 	if ( a->isValueRequired() )
 	{
-		std::string arg = a->shortID();
+		StringType arg = a->shortID();
 		removeChar(arg,'[');
 		removeChar(arg,']');
 		removeChar(arg,'<');
@@ -252,12 +273,13 @@ inline void DocBookOutput::printShortArg(Arg* a)
 
 }
 
-inline void DocBookOutput::printLongArg(Arg* a)
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void DocBookOutput<T_Char, T_CharTraits, T_Alloc>::printLongArg(ArgType* a)
 {
-	std::string lt = "&lt;"; 
-	std::string gt = "&gt;"; 
+	StringType lt = "&lt;"; 
+	StringType gt = "&gt;"; 
 
-	std::string desc = a->getDescription();
+	StringType desc = a->getDescription();
 	substituteSpecialChars(desc,'<',lt);
 	substituteSpecialChars(desc,'>',gt);
 
@@ -277,7 +299,7 @@ inline void DocBookOutput::printLongArg(Arg* a)
 	std::cout << a->nameStartString() << a->getName();
 	if ( a->isValueRequired() )
 	{
-		std::string arg = a->shortID();
+		StringType arg = a->shortID();
 		removeChar(arg,'[');
 		removeChar(arg,']');
 		removeChar(arg,'<');

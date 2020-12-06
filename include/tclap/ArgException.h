@@ -67,7 +67,7 @@ class ArgException : public std::exception
 		/**
 		 * Returns the argument id.
 		 */
-		std::string argId() const  
+		std::string argId() const
 		{ 
 			if ( _argId == "undefined" )
 				return " ";
@@ -80,7 +80,7 @@ class ArgException : public std::exception
 		 */
 		const char* what() const throw() 
 		{
-			static std::string ex; 
+			static std::string ex;
 			ex = _argId + " -- " + _errorText;
 			return ex.c_str();
 		}
@@ -128,7 +128,7 @@ class ArgParseException : public ArgException
 		 * \param id - The text identifying the argument source 
 		 * of the exception.
 		 */
-		ArgParseException( const std::string& text = "undefined exception", 
+		ArgParseException( const std::string& text = "undefined exception",
 					       const std::string& id = "undefined" )
 			: ArgException( text, 
 			                id, 
@@ -150,7 +150,7 @@ class CmdLineParseException : public ArgException
 		 * \param id - The text identifying the argument source 
 		 * of the exception.
 		 */
-		CmdLineParseException( const std::string& text = "undefined exception", 
+		CmdLineParseException( const std::string& text = "undefined exception",
 					           const std::string& id = "undefined" )
 			: ArgException( text, 
 			                id,

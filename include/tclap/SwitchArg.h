@@ -33,14 +33,74 @@
 
 namespace TCLAP {
 
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+class SwitchArg;
+
 /**
  * A simple switch argument.  If the switch is set on the command line, then
  * the getValue method will return the opposite of the default value for the
  * switch.
  */
-class SwitchArg : public Arg
+template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
+class SwitchArg : public Arg<T_Char, T_CharTraits, T_Alloc>
 {
+public:
+    using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharType;
+    using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
+    using typename Arg<T_Char, T_CharTraits, T_Alloc>::AllocatorType;
+    using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringType;
+    using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
+    using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgType;
+    using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgListType;
+    using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgVectorType;
+    using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgListIteratorType;
+    using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgVectorIteratorType;
+    using typename Arg<T_Char, T_CharTraits, T_Alloc>::CmdLineInterfaceType;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::addToList;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::beginIgnoring;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::ignoreRest;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::delimiter;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::blankChar;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::flagStartChar;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::flagStartString;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::nameStartString;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::ignoreNameString;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::setDelimiter;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::processArg;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::operator==;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::getFlag;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::getName;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::getDescription;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::isRequired;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::forceRequired;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::xorSet;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::isValueRequired;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::isSet;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::isIgnoreable;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::argMatches;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::toString;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::shortID;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::longID;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::trimFlag;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::_hasBlanks;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::setRequireLabel;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::allowMore;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::acceptsMultipleValues;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::reset;
+
 protected:
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_flag;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_name;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_description;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_required;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_requireLabel;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_valueRequired;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_alreadySet;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_visitor;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_ignoreable;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_xorSet;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_acceptsMultipleValues;
+    using Arg<T_Char, T_CharTraits, T_Alloc>::_checkWithVisitor;
 
   /**
    * The value of the switch.
@@ -67,9 +127,9 @@ public:
    * \param v - An optional visitor.  You probably should not
    * use this unless you have a very good reason.
    */
-  SwitchArg(const std::string& flag, 
-	    const std::string& name, 
-	    const std::string& desc,
+  SwitchArg(const StringType& flag, 
+	    const StringType& name, 
+	    const StringType& desc,
 	    bool def = false,
 	    Visitor* v = NULL);
 
@@ -87,10 +147,10 @@ public:
    * \param v - An optional visitor.  You probably should not
    * use this unless you have a very good reason.
    */
-  SwitchArg(const std::string& flag, 
-	    const std::string& name, 
-	    const std::string& desc,
-	    CmdLineInterface& parser,
+  SwitchArg(const StringType& flag, 
+	    const StringType& name, 
+	    const StringType& desc,
+	    CmdLineInterfaceType& parser,
 	    bool def = false,
 	    Visitor* v = NULL);
                                   
@@ -103,13 +163,13 @@ public:
    * \param args - Mutable list of strings. Passed
    * in from main().
    */
-  virtual bool processArg(int* i, std::vector<std::string>& args); 
+  virtual bool processArg(int* i, StringVectorType& args); 
 
   /**
    * Checks a string to see if any of the chars in the string
    * match the flag for this Switch.
    */
-  bool combinedSwitchesMatch(std::string& combined);
+  bool combinedSwitchesMatch(StringType& combined);
 
   /**
    * Returns bool, whether or not the switch has been set.
@@ -130,7 +190,7 @@ private:
    * Checks to see if we've found the last match in
    * a combined string.
    */
-  bool lastCombined(std::string& combined);
+  bool lastCombined(StringType& combined);
 
   /**
    * Does the common processing of processArg.
@@ -141,9 +201,10 @@ private:
 //////////////////////////////////////////////////////////////////////
 //BEGIN SwitchArg.cpp
 //////////////////////////////////////////////////////////////////////
-inline SwitchArg::SwitchArg(const std::string& flag, 
-			    const std::string& name, 
-			    const std::string& desc, 
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline SwitchArg<T_Char, T_CharTraits, T_Alloc>::SwitchArg(const StringType& flag,
+			    const StringType& name, 
+			    const StringType& desc, 
 			    bool default_val,
 			    Visitor* v )
   : Arg(flag, name, desc, false, false, v),
@@ -151,10 +212,11 @@ inline SwitchArg::SwitchArg(const std::string& flag,
     _default( default_val )
 { }
 
-inline SwitchArg::SwitchArg(const std::string& flag, 
-			    const std::string& name, 
-			    const std::string& desc, 
-			    CmdLineInterface& parser,
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline SwitchArg<T_Char, T_CharTraits, T_Alloc>::SwitchArg(const StringType& flag,
+			    const StringType& name, 
+			    const StringType& desc, 
+			    CmdLineInterfaceType& parser,
 			    bool default_val,
 			    Visitor* v )
   : Arg(flag, name, desc, false, false, v),
@@ -164,7 +226,8 @@ inline SwitchArg::SwitchArg(const std::string& flag,
   parser.add( this );
 }
 
-inline bool SwitchArg::lastCombined(std::string& combinedSwitches ) 
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline bool SwitchArg<T_Char, T_CharTraits, T_Alloc>::lastCombined(StringType& combinedSwitches )
 {
   for ( unsigned int i = 1; i < combinedSwitches.length(); i++ )
     if ( combinedSwitches[i] != Arg::blankChar() )
@@ -173,7 +236,8 @@ inline bool SwitchArg::lastCombined(std::string& combinedSwitches )
   return true;
 }
 
-inline bool SwitchArg::combinedSwitchesMatch(std::string& combinedSwitches )
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline bool SwitchArg<T_Char, T_CharTraits, T_Alloc>::combinedSwitchesMatch(StringType& combinedSwitches )
 {
   // make sure this is actually a combined switch
   if ( combinedSwitches.length() > 0 &&
@@ -186,7 +250,7 @@ inline bool SwitchArg::combinedSwitchesMatch(std::string& combinedSwitches )
     return false;
 
   // make sure the delimiter isn't in the string 
-  if ( combinedSwitches.find_first_of(Arg::delimiter()) != std::string::npos)
+  if ( combinedSwitches.find_first_of(Arg::delimiter()) != StringType::npos)
     return false;
 
   // ok, we're not specifying a ValueArg, so we know that we have
@@ -208,7 +272,8 @@ inline bool SwitchArg::combinedSwitchesMatch(std::string& combinedSwitches )
   return false;   
 }
 
-inline void SwitchArg::commonProcessing()
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void SwitchArg<T_Char, T_CharTraits, T_Alloc>::commonProcessing()
 {
   if ( _xorSet )
     throw(CmdLineParseException(
@@ -227,7 +292,8 @@ inline void SwitchArg::commonProcessing()
   _checkWithVisitor();
 }
 
-inline bool SwitchArg::processArg(int *i, std::vector<std::string>& args)
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline bool SwitchArg<T_Char, T_CharTraits, T_Alloc>::processArg(int *i, StringVectorType& args)
 {
   if ( _ignoreable && Arg::ignoreRest() )
     return false;
@@ -259,7 +325,8 @@ inline bool SwitchArg::processArg(int *i, std::vector<std::string>& args)
     return false;
 }
 
-inline void SwitchArg::reset()
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void SwitchArg<T_Char, T_CharTraits, T_Alloc>::reset()
 {
   Arg::reset();
   _value = _default;  

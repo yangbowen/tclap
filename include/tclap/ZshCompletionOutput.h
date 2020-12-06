@@ -38,18 +38,34 @@
 #include <tclap/CmdLineOutput.h>
 #include <tclap/XorHandler.h>
 #include <tclap/Arg.h>
-#include <tclap/sstream.h>
 
 namespace TCLAP {
+	
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+class ZshCompletionOutput;
 
 /**
  * A class that generates a Zsh completion function as output from the usage()
  * method for the given CmdLine and its Args.
  */
-class ZshCompletionOutput : public CmdLineOutput
+template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
+class ZshCompletionOutput : public CmdLineOutput<T_Char, T_CharTraits, T_Alloc>
 {
-
 	public:
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CharType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::AllocatorType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgListType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgVectorType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgVectorVectorType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgListIteratorType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgVectorIteratorType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CmdLineInterfaceType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CmdLineOutputType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::XorHandlerType;
 
 		ZshCompletionOutput();
 
@@ -58,14 +74,14 @@ class ZshCompletionOutput : public CmdLineOutput
 		 * produce alternative behavior.
 		 * \param c - The CmdLine object the output is generated for. 
 		 */
-		virtual void usage(CmdLineInterface& c);
+		virtual void usage(CmdLineInterfaceType& c);
 
 		/**
 		 * Prints the version to stdout. Can be overridden 
 		 * to produce alternative behavior.
 		 * \param c - The CmdLine object the output is generated for. 
 		 */
-		virtual void version(CmdLineInterface& c);
+		virtual void version(CmdLineInterfaceType& c);
 
 		/**
 		 * Prints (to stderr) an error message, short usage 
@@ -73,24 +89,24 @@ class ZshCompletionOutput : public CmdLineOutput
 		 * \param c - The CmdLine object the output is generated for. 
 		 * \param e - The ArgException that caused the failure. 
 		 */
-		virtual void failure(CmdLineInterface& c,
+		virtual void failure(CmdLineInterfaceType& c,
 						     ArgException& e );
 
 	protected:
 
-		void basename( std::string& s );
-		void quoteSpecialChars( std::string& s );
+		void basename( StringType& s );
+		void quoteSpecialChars( StringType& s );
 
-		std::string getMutexList( CmdLineInterface& _cmd, Arg* a );
-		void printOption( Arg* it, std::string mutex );
-		void printArg( Arg* it );
+		StringType getMutexList(CmdLineInterfaceType& _cmd, ArgType* a );
+		void printOption( ArgType* it, StringType mutex );
+		void printArg( ArgType* it );
 
-		std::map<std::string, std::string> common;
-		char theDelimiter;
+		std::map<StringType, StringType> common;
+		CharType theDelimiter;
 };
 
 ZshCompletionOutput::ZshCompletionOutput()
-: common(std::map<std::string, std::string>()),
+: common(std::map<StringType, StringType>()),
   theDelimiter('=')
 {
 	common["host"] = "_hosts";
@@ -104,16 +120,16 @@ ZshCompletionOutput::ZshCompletionOutput()
 	common["url"] = "_urls";
 }
 
-inline void ZshCompletionOutput::version(CmdLineInterface& _cmd)
+inline void ZshCompletionOutput::version(CmdLineInterfaceType& _cmd)
 {
 	std::cout << _cmd.getVersion() << std::endl;
 }
 
-inline void ZshCompletionOutput::usage(CmdLineInterface& _cmd )
+inline void ZshCompletionOutput::usage(CmdLineInterfaceType& _cmd )
 {
-	std::list<Arg*> argList = _cmd.getArgList();
-	std::string progName = _cmd.getProgramName();
-	std::string xversion = _cmd.getVersion();
+	ArgListType argList = _cmd.getArgList();
+	StringType progName = _cmd.getProgramName();
+	StringType xversion = _cmd.getVersion();
 	theDelimiter = _cmd.getDelimiter();
 	basename(progName);
 
@@ -132,42 +148,42 @@ inline void ZshCompletionOutput::usage(CmdLineInterface& _cmd )
 	std::cout << std::endl;
 }
 
-inline void ZshCompletionOutput::failure( CmdLineInterface& _cmd,
+inline void ZshCompletionOutput::failure( CmdLineInterfaceType& _cmd,
 				                ArgException& e )
 {
 	static_cast<void>(_cmd); // unused
 	std::cout << e.what() << std::endl;
 }
 
-inline void ZshCompletionOutput::quoteSpecialChars( std::string& s )
+inline void ZshCompletionOutput::quoteSpecialChars( StringType& s )
 {
 	size_t idx = s.find_last_of(':');
-	while ( idx != std::string::npos )
+	while ( idx != StringType::npos )
 	{
 		s.insert(idx, 1, '\\');
 		idx = s.find_last_of(':', idx);
 	}
 	idx = s.find_last_of('\'');
-	while ( idx != std::string::npos )
+	while ( idx != StringType::npos )
 	{
 		s.insert(idx, "'\\'");
 		if (idx == 0)
-			idx = std::string::npos;
+			idx = StringType::npos;
 		else
 			idx = s.find_last_of('\'', --idx);
 	}
 }
 
-inline void ZshCompletionOutput::basename( std::string& s )
+inline void ZshCompletionOutput::basename( StringType& s )
 {
 	size_t p = s.find_last_of('/');
-	if ( p != std::string::npos )
+	if ( p != StringType::npos )
 	{
 		s.erase(0, p + 1);
 	}
 }
 
-inline void ZshCompletionOutput::printArg(Arg* a)
+inline void ZshCompletionOutput::printArg(ArgType* a)
 {
 	static int count = 1;
 
@@ -181,7 +197,7 @@ inline void ZshCompletionOutput::printArg(Arg* a)
 		std::cout << ':';
 
 	std::cout << a->getName() << ':';
-	std::map<std::string, std::string>::iterator compArg = common.find(a->getName());
+	std::map<StringType, StringType>::iterator compArg = common.find(a->getName());
 	if ( compArg != common.end() )
 	{
 		std::cout << compArg->second;
@@ -193,11 +209,11 @@ inline void ZshCompletionOutput::printArg(Arg* a)
 	std::cout << '\'';
 }
 
-inline void ZshCompletionOutput::printOption(Arg* a, std::string mutex)
+inline void ZshCompletionOutput::printOption(ArgType* a, StringType mutex)
 {
-	std::string flag = a->flagStartChar() + a->getFlag();
-	std::string name = a->nameStartString() + a->getName();
-	std::string desc = a->getDescription();
+	StringType flag = a->flagStartChar() + a->getFlag();
+	StringType name = a->nameStartString() + a->getName();
+	StringType desc = a->getDescription();
 
 	// remove full stop and capitalization from description as
 	// this is the convention for zsh function
@@ -236,11 +252,11 @@ inline void ZshCompletionOutput::printOption(Arg* a, std::string mutex)
 
 	if ( a->isValueRequired() )
 	{
-		std::string arg = a->shortID();
+		StringType arg = a->shortID();
         // Example arg: "[-A <integer>] ..."
         size_t pos = arg.rfind(" ...");
 
-        if (pos != std::string::npos) {
+        if (pos != StringType::npos) {
             arg.erase(pos);
         }
 
@@ -257,20 +273,20 @@ inline void ZshCompletionOutput::printOption(Arg* a, std::string mutex)
 			arg.erase(0, 1);
 		}
 		size_t p = arg.find('|');
-		if ( p != std::string::npos )
+		if ( p != StringType::npos )
 		{
 			do
 			{
 				arg.replace(p, 1, 1, ' ');
 			}
-			while ( (p = arg.find_first_of('|', p)) != std::string::npos );
+			while ( (p = arg.find_first_of('|', p)) != StringType::npos );
 			quoteSpecialChars(arg);
 			std::cout << ": :(" << arg << ')';
 		}
 		else
 		{
 			std::cout << ':' << arg;
-			std::map<std::string, std::string>::iterator compArg = common.find(arg);
+			std::map<StringType, StringType>::iterator compArg = common.find(arg);
 			if ( compArg != common.end() )
 			{
 				std::cout << ':' << compArg->second;
@@ -281,10 +297,10 @@ inline void ZshCompletionOutput::printOption(Arg* a, std::string mutex)
 	std::cout << '\'';
 }
 
-inline std::string ZshCompletionOutput::getMutexList( CmdLineInterface& _cmd, Arg* a)
+inline StringType ZshCompletionOutput::getMutexList( CmdLineInterfaceType& _cmd, ArgType* a)
 {
 	XorHandler xorHandler = _cmd.getXorHandler();
-	std::vector< std::vector<Arg*> > xorList = xorHandler.getXorList();
+	ArgVectorVectorType xorList = xorHandler.getXorList();
 	
 	if (a->getName() == "help" || a->getName() == "version")
 	{
