@@ -33,20 +33,27 @@
 #include <algorithm>
 #include <stdexcept>
 
+#include <tclap/UseAllocatorBase.h>
+
 namespace TCLAP {
 
 /**
  * The interface that defines the interaction between the Arg and Constraint.
  */
 template<class T, typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
-class Constraint
+class Constraint : public UseAllocatorBase<T_Alloc>
 {
 	public:
+		using typename UseAllocatorBase<T_Alloc>::AllocatorType;
+		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
 		using CharType = T_Char;
 		using CharTraitsType = T_CharTraits;
-		using AllocatorType = T_Alloc;
 		using StringType = std::basic_string<T_Char, T_CharTraits, T_Alloc>;
 		using StringVectorType = std::vector<StringType, typename std::allocator_traits<AllocatorType>::template rebind_alloc<StringType>>;
+		using UseAllocatorBase<T_Alloc>::getAlloc;
+		using UseAllocatorBase<T_Alloc>::rebindAlloc;
+
+		explicit Constraint(const AllocatorType& alloc = AllocatorType()) : UseAllocatorBase(alloc) {}
 
 		/**
 		 * Returns a description of the Constraint.

@@ -24,6 +24,7 @@
 #ifndef TCLAP_VERSION_VISITOR_H
 #define TCLAP_VERSION_VISITOR_H
 
+#include <tclap/UseAllocatorBase.h>
 #include <tclap/CmdLineInterface.h>
 #include <tclap/CmdLineOutput.h>
 #include <tclap/Visitor.h>
@@ -43,40 +44,26 @@ class VersionVisitor;
  * for the specified CmdLine object and then exit.
  */
 template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
-class VersionVisitor : public Visitor
+class VersionVisitor : public UseAllocatorBase<T_Alloc>, public Visitor
 {
 	public:
+		using typename UseAllocatorBase<T_Alloc>::AllocatorType;
+		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
 		using CmdLineInterfaceType = CmdLineInterface<T_Char, T_CharTraits, T_Alloc>;
 		using CmdLineOutputType = CmdLineOutput<T_Char, T_CharTraits, T_Alloc>;
+		using UseAllocatorBase<T_Alloc>::getAlloc;
+		using UseAllocatorBase<T_Alloc>::rebindAlloc;
 
-	private:
-		/**
-		 * Prevent accidental copying
-		 */
-		VersionVisitor(const VersionVisitor& rhs);
-		VersionVisitor& operator=(const VersionVisitor& rhs);
-
-	protected:
-
-		/**
-		 * The CmdLine of interest.
-		 */
-		CmdLineInterfaceType* _cmd;
-
-		/**
-		 * The output object. 
-		 */
-		CmdLineOutputType** _out;
-
-	public:
+		VersionVisitor(const VersionVisitor& rhs) = delete;
+		VersionVisitor& operator=(const VersionVisitor& rhs) = delete;
 
 		/**
 		 * Constructor.
 		 * \param cmd - The CmdLine the output is generated for. 
 		 * \param out - The type of output. 
 		 */
-		VersionVisitor( CmdLineInterfaceType* cmd, CmdLineOutputType** out ) 
-				: Visitor(), _cmd( cmd ), _out( out ) { }
+		VersionVisitor( CmdLineInterfaceType* cmd, CmdLineOutputType** out, const AllocatorType& alloc = AllocatorType() ) 
+				: UseAllocatorBase<T_Alloc>(alloc), Visitor(), _cmd( cmd ), _out( out ) { }
 
 		/**
 		 * Calls the version method of the output object using the
@@ -87,6 +74,16 @@ class VersionVisitor : public Visitor
 		    throw ExitException(0); 
 		}
 
+	protected:
+		/**
+		 * The CmdLine of interest.
+		 */
+		CmdLineInterfaceType* _cmd;
+
+		/**
+		 * The output object. 
+		 */
+		CmdLineOutputType** _out;
 };
 
 }

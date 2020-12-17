@@ -25,6 +25,7 @@
 #ifndef TCLAP_IGNORE_REST_VISITOR_H
 #define TCLAP_IGNORE_REST_VISITOR_H
 
+#include <tclap/UseAllocatorBase.h>
 #include <tclap/Visitor.h>
 #include <tclap/Arg.h>
 
@@ -33,26 +34,29 @@ namespace TCLAP {
 class Visitor;
 template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 class Arg;
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 class IgnoreRestVisitor;
 
 /**
  * A Visitor that tells the CmdLine to begin ignoring arguments after
  * this one is parsed.
  */
-template<class T, typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
-class IgnoreRestVisitor : public Visitor
+template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
+class IgnoreRestVisitor : public UseAllocatorBase<T_Alloc>, public Visitor
 {
 	public:
+		using typename UseAllocatorBase<T_Alloc>::AllocatorType;
+		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
 		using CharType = T_Char;
 		using CharTraitsType = T_CharTraits;
-		using AllocatorType = T_Alloc;
 		using ArgType = Arg<T_Char, T_CharTraits, T_Alloc>;
+		using UseAllocatorBase<T_Alloc>::getAlloc;
+		using UseAllocatorBase<T_Alloc>::rebindAlloc;
 
 		/**
 		 * Constructor.
 		 */
-		IgnoreRestVisitor() : Visitor() {}
+		IgnoreRestVisitor(const AllocatorType& alloc = AllocatorType()) : UseAllocatorBase<T_Alloc>(alloc), Visitor() {}
 
 		/**
 		 * Sets Arg::_ignoreRest.

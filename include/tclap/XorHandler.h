@@ -31,6 +31,7 @@
 #include <algorithm>
 #include <iostream>
 
+#include <tclap/UseAllocatorBase.h>
 #include <tclap/Arg.h>
 
 namespace TCLAP {
@@ -44,12 +45,13 @@ class XorHandler;
  * line.  This is used by CmdLine and you shouldn't ever use it.
  */
 template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
-class XorHandler
+class XorHandler : public UseAllocatorBase<T_Alloc>
 {
 	public:
+		using typename UseAllocatorBase<T_Alloc>::AllocatorType;
+		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
 		using CharType = T_Char;
 		using CharTraitsType = T_CharTraits;
-		using AllocatorType = T_Alloc;
 		using StringType = std::basic_string<T_Char, T_CharTraits, T_Alloc>;
 		using StringVectorType = std::vector<StringType, typename std::allocator_traits<AllocatorType>::template rebind_alloc<StringType>>;
 		using OstreamType = std::basic_ostream<T_Char, T_CharTraits>;
@@ -61,20 +63,13 @@ class XorHandler
 		using ArgVectorIteratorType = typename ArgVectorType::const_iterator;
 		using CmdLineInterfaceType = CmdLineInterface<T_Char, T_CharTraits, T_Alloc>;
 		using XorHandlerType = XorHandler<T_Char, T_CharTraits, T_Alloc>;
-
-	protected:
-
-		/**
-		 * The list of of lists of Arg's to be or'd together.
-		 */
-		ArgVectorVectorType _orList;
-
-	public:
+		using UseAllocatorBase<T_Alloc>::getAlloc;
+		using UseAllocatorBase<T_Alloc>::rebindAlloc;
 
 		/**
 		 * Constructor.  Does nothing.
 		 */
-		XorHandler( ) : _orList(ArgVectorVectorType()) {}
+		XorHandler( const AllocatorType& alloc = AllocatorType() ) : UseAllocatorBase<T_Alloc>(alloc), _orList(ArgVectorVectorType()) {}
 
 		/**
 		 * Add a list of Arg*'s that will be xor'd together.
@@ -111,6 +106,11 @@ class XorHandler
 
 		const ArgVectorVectorType& getXorList() const;
 
+	protected:
+		/**
+		 * The list of of lists of Arg's to be or'd together.
+		 */
+		ArgVectorVectorType _orList;
 };
 
 

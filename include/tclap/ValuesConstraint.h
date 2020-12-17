@@ -49,20 +49,23 @@ template<class T, typename T_Char = char, typename T_CharTraits = std::char_trai
 class ValuesConstraint : public Constraint<T, T_Char, T_CharTraits, T_Alloc>
 {
 	public:
+		using typename UseAllocatorBase<T_Alloc>::AllocatorType;
+		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
 		using typename Constraint<T, T_Char, T_CharTraits, T_Alloc>::CharType;
 		using typename Constraint<T, T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
-		using typename Constraint<T, T_Char, T_CharTraits, T_Alloc>::AllocatorType;
 		using typename Constraint<T, T_Char, T_CharTraits, T_Alloc>::StringType;
 		using typename Constraint<T, T_Char, T_CharTraits, T_Alloc>::StringVectorType;
 		using container_type = std::vector<T, typename std::allocator_traits<AllocatorType>::template rebind_alloc<T>>;
 		using iterator = typename container_type::iterator;
 		using const_iterator = typename container_type::const_iterator;
+		using UseAllocatorBase<T_Alloc>::getAlloc;
+		using UseAllocatorBase<T_Alloc>::rebindAlloc;
 
 		/**
 		 * Constructor. 
 		 * \param allowed - vector of allowed values. 
 		 */
-		ValuesConstraint(const container_type& allowed);
+		ValuesConstraint(const container_type& allowed, const AllocatorType& alloc = AllocatorType());
 
 		/**
 		 * Virtual destructor.
@@ -101,9 +104,8 @@ class ValuesConstraint : public Constraint<T, T_Char, T_CharTraits, T_Alloc>
 };
 
 template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-ValuesConstraint<T, T_Char, T_CharTraits, T_Alloc>::ValuesConstraint(const container_type& allowed)
-: _allowed(allowed),
-  _typeDesc("")
+ValuesConstraint<T, T_Char, T_CharTraits, T_Alloc>::ValuesConstraint(const container_type& allowed, const AllocatorType& alloc)
+: Constraint(alloc), _allowed(allowed)
 { 
     for ( unsigned int i = 0; i < _allowed.size(); i++ )
     {

@@ -46,9 +46,10 @@ template<class T, typename T_Char = char, typename T_CharTraits = std::char_trai
 class UnlabeledMultiArg : public MultiArg<T, T_Char, T_CharTraits, T_Alloc>
 {
 	public:
+		using typename UseAllocatorBase<T_Alloc>::AllocatorType;
+		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
-		using typename Arg<T_Char, T_CharTraits, T_Alloc>::AllocatorType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgType;
@@ -57,7 +58,9 @@ class UnlabeledMultiArg : public MultiArg<T, T_Char, T_CharTraits, T_Alloc>
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgListIteratorType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgVectorIteratorType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CmdLineInterfaceType;
-		using typename MultiArg<T_Char, T_CharTraits, T_Alloc>::ConstraintType;
+		using typename MultiArg<T, T_Char, T_CharTraits, T_Alloc>::ConstraintType;
+		using UseAllocatorBase<T_Alloc>::getAlloc;
+		using UseAllocatorBase<T_Alloc>::rebindAlloc;
 		using Arg<T_Char, T_CharTraits, T_Alloc>::addToList;
 		using Arg<T_Char, T_CharTraits, T_Alloc>::beginIgnoring;
 		using Arg<T_Char, T_CharTraits, T_Alloc>::ignoreRest;
@@ -89,34 +92,16 @@ class UnlabeledMultiArg : public MultiArg<T, T_Char, T_CharTraits, T_Alloc>
 		using Arg<T_Char, T_CharTraits, T_Alloc>::allowMore;
 		using Arg<T_Char, T_CharTraits, T_Alloc>::acceptsMultipleValues;
 		using Arg<T_Char, T_CharTraits, T_Alloc>::reset;
-		using MultiArg<T_Char, T_CharTraits, T_Alloc>::processArg;
-		using MultiArg<T_Char, T_CharTraits, T_Alloc>::getValue;
-		using MultiArg<T_Char, T_CharTraits, T_Alloc>::begin;
-		using MultiArg<T_Char, T_CharTraits, T_Alloc>::end;
-		using MultiArg<T_Char, T_CharTraits, T_Alloc>::shortID;
-		using MultiArg<T_Char, T_CharTraits, T_Alloc>::longID;
-		using MultiArg<T_Char, T_CharTraits, T_Alloc>::isRequired;
-		using MultiArg<T_Char, T_CharTraits, T_Alloc>::allowMore;
-		using MultiArg<T_Char, T_CharTraits, T_Alloc>::reset;
+		using MultiArg<T, T_Char, T_CharTraits, T_Alloc>::processArg;
+		using MultiArg<T, T_Char, T_CharTraits, T_Alloc>::getValue;
+		using MultiArg<T, T_Char, T_CharTraits, T_Alloc>::begin;
+		using MultiArg<T, T_Char, T_CharTraits, T_Alloc>::end;
+		using MultiArg<T, T_Char, T_CharTraits, T_Alloc>::shortID;
+		using MultiArg<T, T_Char, T_CharTraits, T_Alloc>::longID;
+		using MultiArg<T, T_Char, T_CharTraits, T_Alloc>::isRequired;
+		using MultiArg<T, T_Char, T_CharTraits, T_Alloc>::allowMore;
+		using MultiArg<T, T_Char, T_CharTraits, T_Alloc>::reset;
 
-	protected:
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_flag;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_name;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_description;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_required;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_requireLabel;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_valueRequired;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_alreadySet;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_visitor;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_ignoreable;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_xorSet;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_acceptsMultipleValues;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_checkWithVisitor;
-		using MultiArg<T_Char, T_CharTraits, T_Alloc>::_values;
-		using MultiArg<T_Char, T_CharTraits, T_Alloc>::_typeDesc;
-		using MultiArg<T_Char, T_CharTraits, T_Alloc>::_constraint;
-		using MultiArg<T_Char, T_CharTraits, T_Alloc>::_extractValue;
-		
 		/**
 		 * Constructor.  
 		 * \param name - The name of the Arg. Note that this is used for
@@ -139,7 +124,8 @@ class UnlabeledMultiArg : public MultiArg<T, T_Char, T_CharTraits, T_Alloc>
 						   bool req,
 				           const StringType& typeDesc,
 						   bool ignoreable = false,
-				           Visitor* v = NULL );
+				           Visitor* v = NULL,
+						   const AllocatorType& alloc = AllocatorType() );
 		/**
 		 * Constructor.  
 		 * \param name - The name of the Arg. Note that this is used for
@@ -164,7 +150,8 @@ class UnlabeledMultiArg : public MultiArg<T, T_Char, T_CharTraits, T_Alloc>
 				           const StringType& typeDesc,
 						   CmdLineInterfaceType& parser,
 						   bool ignoreable = false,
-				           Visitor* v = NULL );
+				           Visitor* v = NULL,
+						   const AllocatorType& alloc = AllocatorType() );
 						 
 		/**
 		 * Constructor.  
@@ -186,7 +173,8 @@ class UnlabeledMultiArg : public MultiArg<T, T_Char, T_CharTraits, T_Alloc>
 						   bool req,
 						   ConstraintType* constraint,
 						   bool ignoreable = false,
-						   Visitor* v = NULL );
+						   Visitor* v = NULL,
+						   const AllocatorType& alloc = AllocatorType() );
 
 		/**
 		 * Constructor.  
@@ -210,7 +198,8 @@ class UnlabeledMultiArg : public MultiArg<T, T_Char, T_CharTraits, T_Alloc>
 						   ConstraintType* constraint,
 						   CmdLineInterfaceType& parser,
 						   bool ignoreable = false,
-						   Visitor* v = NULL );
+						   Visitor* v = NULL,
+						   const AllocatorType& alloc = AllocatorType() );
 						 
 		/**
 		 * Handles the processing of the argument.
@@ -245,6 +234,24 @@ class UnlabeledMultiArg : public MultiArg<T, T_Char, T_CharTraits, T_Alloc>
 		 * \param argList - The list this should be added to.
 		 */
 		virtual void addToList( ArgListType& argList ) const;
+
+	protected:
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_flag;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_name;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_description;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_required;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_requireLabel;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_valueRequired;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_alreadySet;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_visitor;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_ignoreable;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_xorSet;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_acceptsMultipleValues;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_checkWithVisitor;
+		using MultiArg<T, T_Char, T_CharTraits, T_Alloc>::_values;
+		using MultiArg<T, T_Char, T_CharTraits, T_Alloc>::_typeDesc;
+		using MultiArg<T, T_Char, T_CharTraits, T_Alloc>::_constraint;
+		using MultiArg<T, T_Char, T_CharTraits, T_Alloc>::_extractValue;
 };
 
 template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
@@ -253,11 +260,12 @@ UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledMultiArg(const Str
 										bool req,
 					                    const StringType& typeDesc,
 										bool ignoreable,
-					                    Visitor* v)
-: MultiArg("", name, desc,  req, typeDesc, v)
+					                    Visitor* v,
+										const AllocatorType& alloc)
+: MultiArg<T, T_Char, T_CharTraits, T_Alloc>(StringType(), name, desc,  req, typeDesc, v, alloc)
 { 
 	_ignoreable = ignoreable;
-	OptionalUnlabeledTracker::check(true, toString());
+	OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check(true, toString());
 }
 
 template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
@@ -267,11 +275,12 @@ UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledMultiArg(const Str
 					                    const StringType& typeDesc,
 										CmdLineInterfaceType& parser,
 										bool ignoreable,
-					                    Visitor* v)
-: MultiArg("", name, desc,  req, typeDesc, v)
+					                    Visitor* v,
+										const AllocatorType& alloc)
+: MultiArg<T, T_Char, T_CharTraits, T_Alloc>(StringType(), name, desc,  req, typeDesc, v, alloc)
 { 
 	_ignoreable = ignoreable;
-	OptionalUnlabeledTracker::check(true, toString());
+	OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check(true, toString());
 	parser.add( this );
 }
 
@@ -282,11 +291,12 @@ UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledMultiArg(const Str
 										bool req,
 					                    ConstraintType* constraint,
 										bool ignoreable,
-					                    Visitor* v)
-: MultiArg("", name, desc,  req, constraint, v)
+					                    Visitor* v,
+										const AllocatorType& alloc)
+: MultiArg<T, T_Char, T_CharTraits, T_Alloc>(StringType(), name, desc,  req, constraint, v, alloc)
 { 
 	_ignoreable = ignoreable;
-	OptionalUnlabeledTracker::check(true, toString());
+	OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check(true, toString());
 }
 
 template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
@@ -296,11 +306,12 @@ UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledMultiArg(const Str
 					                    ConstraintType* constraint,
 										CmdLineInterfaceType& parser,
 										bool ignoreable,
-					                    Visitor* v)
-: MultiArg("", name, desc,  req, constraint, v)
+					                    Visitor* v,
+										const AllocatorType& alloc)
+: MultiArg<T, T_Char, T_CharTraits, T_Alloc>(StringType(), name, desc,  req, constraint, v, alloc)
 { 
 	_ignoreable = ignoreable;
-	OptionalUnlabeledTracker::check(true, toString());
+	OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check(true, toString());
 	parser.add( this );
 }
 

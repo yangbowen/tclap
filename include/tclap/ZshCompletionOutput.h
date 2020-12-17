@@ -52,9 +52,10 @@ template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char
 class ZshCompletionOutput : public CmdLineOutput<T_Char, T_CharTraits, T_Alloc>
 {
 	public:
+		using typename UseAllocatorBase<T_Alloc>::AllocatorType;
+		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CharType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
-		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::AllocatorType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgType;
@@ -66,8 +67,10 @@ class ZshCompletionOutput : public CmdLineOutput<T_Char, T_CharTraits, T_Alloc>
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CmdLineInterfaceType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CmdLineOutputType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::XorHandlerType;
+		using UseAllocatorBase<T_Alloc>::getAlloc;
+		using UseAllocatorBase<T_Alloc>::rebindAlloc;
 
-		ZshCompletionOutput();
+		explicit ZshCompletionOutput(const AllocatorType& alloc = AllocatorType());
 
 		/**
 		 * Prints the usage to stdout.  Can be overridden to 
@@ -105,8 +108,10 @@ class ZshCompletionOutput : public CmdLineOutput<T_Char, T_CharTraits, T_Alloc>
 		CharType theDelimiter;
 };
 
-ZshCompletionOutput::ZshCompletionOutput()
-: common(std::map<StringType, StringType>()),
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+ZshCompletionOutput<T_Char, T_CharTraits, T_Alloc>::ZshCompletionOutput(const AllocatorType& alloc)
+: CmdLineOutput<T_Char, T_CharTraits, T_Alloc>(alloc),
+  common(std::map<StringType, StringType>()),
   theDelimiter('=')
 {
 	common["host"] = "_hosts";
@@ -120,12 +125,14 @@ ZshCompletionOutput::ZshCompletionOutput()
 	common["url"] = "_urls";
 }
 
-inline void ZshCompletionOutput::version(CmdLineInterfaceType& _cmd)
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void ZshCompletionOutput<T_Char, T_CharTraits, T_Alloc>::version(CmdLineInterfaceType& _cmd)
 {
 	std::cout << _cmd.getVersion() << std::endl;
 }
 
-inline void ZshCompletionOutput::usage(CmdLineInterfaceType& _cmd )
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void ZshCompletionOutput<T_Char, T_CharTraits, T_Alloc>::usage(CmdLineInterfaceType& _cmd )
 {
 	ArgListType argList = _cmd.getArgList();
 	StringType progName = _cmd.getProgramName();
@@ -137,7 +144,7 @@ inline void ZshCompletionOutput::usage(CmdLineInterfaceType& _cmd )
 		"# " << progName << " version " << _cmd.getVersion() << std::endl << std::endl <<
 		"_arguments -s -S";
 
-	for (ArgListIterator it = argList.begin(); it != argList.end(); it++)
+	for (ArgListIteratorType it = argList.begin(); it != argList.end(); it++)
 	{
 		if ( (*it)->shortID().at(0) == '<' )
 			printArg((*it));
@@ -148,14 +155,16 @@ inline void ZshCompletionOutput::usage(CmdLineInterfaceType& _cmd )
 	std::cout << std::endl;
 }
 
-inline void ZshCompletionOutput::failure( CmdLineInterfaceType& _cmd,
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void ZshCompletionOutput<T_Char, T_CharTraits, T_Alloc>::failure( CmdLineInterfaceType& _cmd,
 				                ArgException& e )
 {
 	static_cast<void>(_cmd); // unused
 	std::cout << e.what() << std::endl;
 }
 
-inline void ZshCompletionOutput::quoteSpecialChars( StringType& s )
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void ZshCompletionOutput<T_Char, T_CharTraits, T_Alloc>::quoteSpecialChars( StringType& s )
 {
 	size_t idx = s.find_last_of(':');
 	while ( idx != StringType::npos )
@@ -174,7 +183,8 @@ inline void ZshCompletionOutput::quoteSpecialChars( StringType& s )
 	}
 }
 
-inline void ZshCompletionOutput::basename( StringType& s )
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void ZshCompletionOutput<T_Char, T_CharTraits, T_Alloc>::basename( StringType& s )
 {
 	size_t p = s.find_last_of('/');
 	if ( p != StringType::npos )
@@ -183,7 +193,8 @@ inline void ZshCompletionOutput::basename( StringType& s )
 	}
 }
 
-inline void ZshCompletionOutput::printArg(ArgType* a)
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void ZshCompletionOutput<T_Char, T_CharTraits, T_Alloc>::printArg(ArgType* a)
 {
 	static int count = 1;
 
@@ -209,7 +220,8 @@ inline void ZshCompletionOutput::printArg(ArgType* a)
 	std::cout << '\'';
 }
 
-inline void ZshCompletionOutput::printOption(ArgType* a, StringType mutex)
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline void ZshCompletionOutput<T_Char, T_CharTraits, T_Alloc>::printOption(ArgType* a, StringType mutex)
 {
 	StringType flag = a->flagStartChar() + a->getFlag();
 	StringType name = a->nameStartString() + a->getName();
@@ -297,7 +309,8 @@ inline void ZshCompletionOutput::printOption(ArgType* a, StringType mutex)
 	std::cout << '\'';
 }
 
-inline StringType ZshCompletionOutput::getMutexList( CmdLineInterfaceType& _cmd, ArgType* a)
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+inline auto ZshCompletionOutput<T_Char, T_CharTraits, T_Alloc>::getMutexList( CmdLineInterfaceType& _cmd, ArgType* a) -> StringType
 {
 	XorHandler xorHandler = _cmd.getXorHandler();
 	ArgVectorVectorType xorList = xorHandler.getXorList();
@@ -315,13 +328,13 @@ inline StringType ZshCompletionOutput::getMutexList( CmdLineInterfaceType& _cmd,
 
 	for ( int i = 0; static_cast<unsigned int>(i) < xorList.size(); i++ )
 	{
-		for ( ArgVectorIterator it = xorList[i].begin();
+		for ( ArgVectorIteratorType it = xorList[i].begin();
 			it != xorList[i].end();
 			it++)
 		if ( a == (*it) )
 		{
 			list << '(';
-			for ( ArgVectorIterator iu = xorList[i].begin();
+			for ( ArgVectorIteratorType iu = xorList[i].begin();
 				iu != xorList[i].end();
 				iu++ )
 			{

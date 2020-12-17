@@ -50,20 +50,6 @@
 #include <stdlib.h> // Needed for exit(), which isn't defined in some envs.
 
 namespace TCLAP {
-
-template<typename T> void DelPtr(T ptr)
-{
-	delete ptr;
-}
-
-template<typename C> void ClearContainer(C &c)
-{
-	typedef typename C::value_type value_type;
-	std::for_each(c.begin(), c.end(), DelPtr<value_type>);
-	c.clear();
-}
-
-
 /**
  * The base class that manages the command line definition and passes
  * along the parsing to the appropriate Arg classes.
@@ -72,9 +58,10 @@ template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char
 class CmdLine : public CmdLineInterface<T_Char, T_CharTraits, T_Alloc>
 {
 	public:
+		using typename UseAllocatorBase<T_Alloc>::AllocatorType;
+		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
 		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::CharType;
 		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
-		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::AllocatorType;
 		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::StringType;
 		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
 		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::ArgType;
@@ -86,6 +73,8 @@ class CmdLine : public CmdLineInterface<T_Char, T_CharTraits, T_Alloc>
 		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::CmdLineOutputType;
 		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::XorHandlerType;
 		using VisitorListType = std::list<Visitor*, typename std::allocator_traits<AllocatorType>::template rebind_alloc<Visitor*>>;
+		using UseAllocatorBase<T_Alloc>::getAlloc;
+		using UseAllocatorBase<T_Alloc>::rebindAlloc;
 
 	protected:
 
@@ -133,14 +122,14 @@ class CmdLine : public CmdLineInterface<T_Char, T_CharTraits, T_Alloc>
 		 * is called.  At the moment, this only includes the three default
 		 * Args.
 		 */
-		ArgListType _argDeleteOnExitList;
+		std::vector<std::unique_ptr<ArgType>, typename std::allocator_traits<AllocatorType>::template rebind_alloc<std::unique_ptr<ArgType>>> _argPrivateVec;
 
 		/**
 		 * A list of Visitors to be explicitly deleted when the destructor
 		 * is called.  At the moment, these are the Visitors created for the
 		 * default Args.
 		 */
-		VisitorListType _visitorDeleteOnExitList;
+		std::vector<std::unique_ptr<Visitor>, typename std::allocator_traits<AllocatorType>::template rebind_alloc<std::unique_ptr<Visitor>>> _visitorPrivateVec;
 
 		/**
 		 * Object that handles all output for the CmdLine.
@@ -164,17 +153,6 @@ class CmdLine : public CmdLineInterface<T_Char, T_CharTraits, T_Alloc>
 		 * \param s - The message to be used in the usage.
 		 */
 		bool _emptyCombined(const StringType& s);
-
-		/**
-		 * Perform a delete ptr; operation on ptr when this object is deleted.
-		 */
-		void deleteOnExit(ArgType* ptr);
-
-		/**
-		 * Perform a delete ptr; operation on ptr when this object is deleted.
-		 */
-		void deleteOnExit(Visitor* ptr);
-
 private:
 
 		/**
@@ -223,7 +201,8 @@ private:
 		CmdLine(const StringType& message,
 				const CharType delimiter = ' ',
 				const StringType& version = "none",
-				bool helpAndVersion = true);
+				bool helpAndVersion = true,
+				const AllocatorType& alloc = AllocatorType());
 
 		/**
 		 * Deletes any resources allocated by a CmdLine object.
@@ -354,8 +333,10 @@ template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 inline CmdLine<T_Char, T_CharTraits, T_Alloc>::CmdLine(const StringType& m,
                         CharType delim,
                         const StringType& v,
-                        bool help )
+                        bool help,
+						const AllocatorType& alloc )
     :
+  CmdLineInterface<T_Char, T_CharTraits, T_Alloc>(alloc),
   _argList(ArgListType()),
   _progName("not_set_yet"),
   _message(m),
@@ -363,8 +344,8 @@ inline CmdLine<T_Char, T_CharTraits, T_Alloc>::CmdLine(const StringType& m,
   _numRequired(0),
   _delimiter(delim),
   _xorHandler(XorHandlerType()),
-  _argDeleteOnExitList(ArgListType()),
-  _visitorDeleteOnExitList(VisitorListType()),
+  _argPrivateVec(alloc),
+  _visitorPrivateVec(alloc),
   _output(0),
   _handleExceptions(true),
   _userSetOutput(false),
@@ -377,9 +358,6 @@ inline CmdLine<T_Char, T_CharTraits, T_Alloc>::CmdLine(const StringType& m,
 template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 inline CmdLine<T_Char, T_CharTraits, T_Alloc>::~CmdLine()
 {
-	ClearContainer(_argDeleteOnExitList);
-	ClearContainer(_visitorDeleteOnExitList);
-
 	if ( !_userSetOutput ) {
 		delete _output;
 		_output = 0;
@@ -393,35 +371,41 @@ inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::_constructor()
 
 	ArgType::setDelimiter( _delimiter );
 
-	Visitor* v;
-
 	if ( _helpAndVersion )
 	{
-		v = new HelpVisitor<T_Char, T_CharTraits, T_Alloc>( this, &_output );
-		SwitchArg* help = new SwitchArg<T_Char, T_CharTraits, T_Alloc>("h","help",
-		                      "Displays usage information and exits.",
-		                      false, v);
-		add( help );
-		deleteOnExit(help);
-		deleteOnExit(v);
-
-		v = new VersionVisitor<T_Char, T_CharTraits, T_Alloc>( this, &_output );
-		SwitchArg* vers = new SwitchArg<T_Char, T_CharTraits, T_Alloc>("","version",
-		                      "Displays version information and exits.",
-		                      false, v);
-		add( vers );
-		deleteOnExit(vers);
-		deleteOnExit(v);
+		{
+			std::unique_ptr v = std::make_unique<HelpVisitor<T_Char, T_CharTraits, T_Alloc>>(this, &_output, getAlloc());
+			std::unique_ptr help = std::make_unique<SwitchArg<T_Char, T_CharTraits, T_Alloc>>(
+				"h",
+				"help",
+				"Displays usage information and exits.",
+				false, &*v, getAlloc());
+			add(*help);
+			_visitorPrivateVec.push_back(std::move(v));
+			_argPrivateVec.push_back(std::move(help));
+		}
+		{
+			std::unique_ptr v = std::make_unique<VersionVisitor<T_Char, T_CharTraits, T_Alloc>>(this, &_output, getAlloc());
+			std::unique_ptr vers = std::make_unique<SwitchArg<T_Char, T_CharTraits, T_Alloc>>(
+				StringType(),
+				"version",
+				"Displays version information and exits.",
+				false, &*v, getAlloc());
+			add(*vers);
+			_visitorPrivateVec.push_back(std::move(v));
+			_argPrivateVec.push_back(std::move(vers));
+		}
 	}
-
-	v = new IgnoreRestVisitor<T_Char, T_CharTraits, T_Alloc>();
-	SwitchArg<T_Char, T_CharTraits, T_Alloc>* ignore  = new SwitchArg<T_Char, T_CharTraits, T_Alloc>(ArgType::flagStartString(),
-	          ArgType::ignoreNameString(),
-	          "Ignores the rest of the labeled arguments following this flag.",
-	          false, v);
-	add( ignore );
-	deleteOnExit(ignore);
-	deleteOnExit(v);
+	{
+		std::unique_ptr v = std::make_unique<IgnoreRestVisitor<T_Char, T_CharTraits, T_Alloc>>(getAlloc());
+		std::unique_ptr ignore = std::make_unique<SwitchArg<T_Char, T_CharTraits, T_Alloc>>(ArgType::flagStartString(),
+			ArgType::ignoreNameString(),
+			"Ignores the rest of the labeled arguments following this flag.",
+			false, &*v, getAlloc());
+		add(*ignore);
+		_visitorPrivateVec.push_back(std::move(v));
+		_argPrivateVec.push_back(std::move(ignore));
+	}
 }
 
 template<typename T_Char, typename T_CharTraits, typename T_Alloc>
@@ -429,7 +413,7 @@ inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::xorAdd( const ArgVectorType&
 {
 	_xorHandler.add( ors );
 
-	for (ArgVectorIterator it = ors.begin(); it != ors.end(); it++)
+	for (ArgVectorIteratorType it = ors.begin(); it != ors.end(); it++)
 	{
 		(*it)->forceRequired();
 		(*it)->setRequireLabel( "OR required" );
@@ -495,7 +479,7 @@ inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::parse(StringVectorType& args
 		for (int i = 0; static_cast<unsigned int>(i) < args.size(); i++) 
 		{
 			bool matched = false;
-			for (ArgListIterator it = _argList.begin();
+			for (ArgListIteratorType it = _argList.begin();
 			     it != _argList.end(); it++) {
 				if ( (*it)->processArg( &i, args ) )
 				{
@@ -567,7 +551,7 @@ inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::missingArgsException()
 		int count = 0;
 
 		StringType missingArgList;
-		for (ArgListIterator it = _argList.begin(); it != _argList.end(); it++)
+		for (ArgListIteratorType it = _argList.begin(); it != _argList.end(); it++)
 		{
 			if ( (*it)->isRequired() && !(*it)->isSet() )
 			{
@@ -587,18 +571,6 @@ inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::missingArgsException()
 		msg += missingArgList;
 
 		throw(CmdLineParseException(msg));
-}
-
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::deleteOnExit(ArgType* ptr)
-{
-	_argDeleteOnExitList.push_back(ptr);
-}
-
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::deleteOnExit(Visitor* ptr)
-{
-	_visitorDeleteOnExitList.push_back(ptr);
 }
 
 template<typename T_Char, typename T_CharTraits, typename T_Alloc>
@@ -673,7 +645,7 @@ inline bool CmdLine<T_Char, T_CharTraits, T_Alloc>::getExceptionHandling() const
 template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::reset()
 {
-	for( ArgListIterator it = _argList.begin(); it != _argList.end(); it++ )
+	for( ArgListIteratorType it = _argList.begin(); it != _argList.end(); it++ )
 		(*it)->reset();
 	
 	_progName.clear();

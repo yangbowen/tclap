@@ -32,6 +32,7 @@
 #include <iostream>
 #include <algorithm>
 
+#include <tclap/UseAllocatorBase.h>
 
 namespace TCLAP {
 
@@ -50,13 +51,13 @@ class XorHandler;
  * along the parsing to the appropriate Arg classes.
  */
 template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
-class CmdLineInterface
+class CmdLineInterface : public UseAllocatorBase<T_Alloc>
 {
 	public:
-
+		using typename UseAllocatorBase<T_Alloc>::AllocatorType;
+		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
 		using CharType = T_Char;
 		using CharTraitsType = T_CharTraits;
-		using AllocatorType = T_Alloc;
 		using StringType = std::basic_string<T_Char, T_CharTraits, T_Alloc>;
 		using StringVectorType = std::vector<StringType, typename std::allocator_traits<AllocatorType>::template rebind_alloc<StringType>>;
 		using ArgType = Arg<T_Char, T_CharTraits, T_Alloc>;
@@ -67,11 +68,15 @@ class CmdLineInterface
 		using CmdLineInterfaceType = CmdLineInterface<T_Char, T_CharTraits, T_Alloc>;
 		using CmdLineOutputType = CmdLineOutput<T_Char, T_CharTraits, T_Alloc>;
 		using XorHandlerType = XorHandler<T_Char, T_CharTraits, T_Alloc>;
+		using UseAllocatorBase<T_Alloc>::getAlloc;
+		using UseAllocatorBase<T_Alloc>::rebindAlloc;
 
 		/**
 		 * Destructor
 		 */
 		virtual ~CmdLineInterface() {}
+
+		explicit CmdLineInterface(const AllocatorType& alloc) noexcept : UseAllocatorBase<T_Alloc>(alloc) {}
 
 		/**
 		 * Adds an argument to the list of arguments to be parsed.

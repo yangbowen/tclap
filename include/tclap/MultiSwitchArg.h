@@ -46,9 +46,10 @@ template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char
 class MultiSwitchArg : public SwitchArg<T_Char, T_CharTraits, T_Alloc>
 {
 	public:
+		using typename UseAllocatorBase<T_Alloc>::AllocatorType;
+		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
-		using typename Arg<T_Char, T_CharTraits, T_Alloc>::AllocatorType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgType;
@@ -57,6 +58,8 @@ class MultiSwitchArg : public SwitchArg<T_Char, T_CharTraits, T_Alloc>
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgListIteratorType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgVectorIteratorType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CmdLineInterfaceType;
+		using UseAllocatorBase<T_Alloc>::getAlloc;
+		using UseAllocatorBase<T_Alloc>::rebindAlloc;
 		using Arg<T_Char, T_CharTraits, T_Alloc>::addToList;
 		using Arg<T_Char, T_CharTraits, T_Alloc>::beginIgnoring;
 		using Arg<T_Char, T_CharTraits, T_Alloc>::ignoreRest;
@@ -94,31 +97,6 @@ class MultiSwitchArg : public SwitchArg<T_Char, T_CharTraits, T_Alloc>
 		using SwitchArg<T_Char, T_CharTraits, T_Alloc>::operator bool;
 		using SwitchArg<T_Char, T_CharTraits, T_Alloc>::reset;
 
-	protected:
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_flag;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_name;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_description;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_required;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_requireLabel;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_valueRequired;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_alreadySet;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_visitor;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_ignoreable;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_xorSet;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_acceptsMultipleValues;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_checkWithVisitor;
-
-		/**
-		 * The value of the switch.
-		 */
-		int _value;
-
-		/**
-		 * Used to support the reset() method so that ValueArg can be
-		 * reset to their constructed value.
-		 */
-		int _default;
-
 		/**
 		 * MultiSwitchArg constructor.
 		 * \param flag - The one character flag that identifies this
@@ -136,7 +114,8 @@ class MultiSwitchArg : public SwitchArg<T_Char, T_CharTraits, T_Alloc>
 				const StringType& name,
 				const StringType& desc,
 				int init = 0,
-				Visitor* v = NULL);
+				Visitor* v = NULL,
+				const AllocatorType& alloc = AllocatorType());
 
 
 		/**
@@ -158,7 +137,8 @@ class MultiSwitchArg : public SwitchArg<T_Char, T_CharTraits, T_Alloc>
 				const StringType& desc,
 				CmdLineInterfaceType& parser,
 				int init = 0,
-				Visitor* v = NULL);
+				Visitor* v = NULL,
+				const AllocatorType& alloc = AllocatorType());
 
 
 		/**
@@ -188,6 +168,30 @@ class MultiSwitchArg : public SwitchArg<T_Char, T_CharTraits, T_Alloc>
 		
 		void reset();
 
+	protected:
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_flag;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_name;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_description;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_required;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_requireLabel;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_valueRequired;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_alreadySet;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_visitor;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_ignoreable;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_xorSet;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_acceptsMultipleValues;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_checkWithVisitor;
+
+		/**
+		 * The value of the switch.
+		 */
+		int _value;
+
+		/**
+		 * Used to support the reset() method so that ValueArg can be
+		 * reset to their constructed value.
+		 */
+		int _default;
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -198,8 +202,9 @@ inline MultiSwitchArg<T_Char, T_CharTraits, T_Alloc>::MultiSwitchArg(const Strin
 					const StringType& name,
 					const StringType& desc,
 					int init,
-					Visitor* v )
-: SwitchArg(flag, name, desc, false, v),
+					Visitor* v,
+	                const AllocatorType& alloc )
+: SwitchArg<T_Char, T_CharTraits, T_Alloc>(flag, name, desc, false, v, alloc),
 _value( init ),
 _default( init )
 { }
@@ -210,8 +215,9 @@ inline MultiSwitchArg<T_Char, T_CharTraits, T_Alloc>::MultiSwitchArg(const Strin
 					const StringType& desc, 
 					CmdLineInterfaceType& parser,
 					int init,
-					Visitor* v )
-: SwitchArg(flag, name, desc, false, v),
+					Visitor* v,
+	                const AllocatorType& alloc )
+: SwitchArg<T_Char, T_CharTraits, T_Alloc>(flag, name, desc, false, v, alloc),
 _value( init ),
 _default( init )
 { 

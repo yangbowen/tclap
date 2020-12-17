@@ -45,9 +45,10 @@ template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 class StdOutput : public CmdLineOutput<T_Char, T_CharTraits, T_Alloc>
 {
 	public:
+		using typename UseAllocatorBase<T_Alloc>::AllocatorType;
+		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CharType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
-		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::AllocatorType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgType;
@@ -60,6 +61,10 @@ class StdOutput : public CmdLineOutput<T_Char, T_CharTraits, T_Alloc>
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CmdLineOutputType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::XorHandlerType;
 		using OstreamType = std::basic_ostream<T_Char, T_CharTraits>;
+		using UseAllocatorBase<T_Alloc>::getAlloc;
+		using UseAllocatorBase<T_Alloc>::rebindAlloc;
+
+		explicit StdOutput(const AllocatorType& alloc = AllocatorType()) noexcept : CmdLineOutput<T_Char, T_CharTraits, T_Alloc>(alloc) {}
 
 		/**
 		 * Prints the usage to stdout.  Can be overridden to 
@@ -163,7 +168,7 @@ inline void StdOutput<T_Char, T_CharTraits, T_Alloc>::failure( CmdLineInterfaceT
 
 			std::cerr << std::endl << "For complete USAGE and HELP type: " 
 					  << std::endl << "   " << progName << " "
-					  << Arg::nameStartString() << "help"
+					  << ArgType::nameStartString() << "help"
 					  << std::endl << std::endl;
 		}
 	else
@@ -188,7 +193,7 @@ StdOutput<T_Char, T_CharTraits, T_Alloc>::_shortUsage( CmdLineInterfaceType& _cm
 	for ( int i = 0; static_cast<unsigned int>(i) < xorList.size(); i++ )
 		{
 			s += " {";
-			for ( ArgVectorIterator it = xorList[i].begin(); 
+			for ( ArgVectorIteratorType it = xorList[i].begin(); 
 				  it != xorList[i].end(); it++ )
 				s += (*it)->shortID() + "|";
 
@@ -196,7 +201,7 @@ StdOutput<T_Char, T_CharTraits, T_Alloc>::_shortUsage( CmdLineInterfaceType& _cm
 		}
 
 	// then the rest
-	for (ArgListIterator it = argList.begin(); it != argList.end(); it++)
+	for (ArgListIteratorType it = argList.begin(); it != argList.end(); it++)
 		if ( !xorHandler.contains( (*it) ) )
 			s += " " + (*it)->shortID();
 
@@ -221,7 +226,7 @@ StdOutput<T_Char, T_CharTraits, T_Alloc>::_longUsage( CmdLineInterfaceType& _cmd
 	// first the xor 
 	for ( int i = 0; static_cast<unsigned int>(i) < xorList.size(); i++ )
 		{
-			for ( ArgVectorIterator it = xorList[i].begin(); 
+			for ( ArgVectorIteratorType it = xorList[i].begin(); 
 				  it != xorList[i].end(); 
 				  it++ )
 				{
@@ -235,7 +240,7 @@ StdOutput<T_Char, T_CharTraits, T_Alloc>::_longUsage( CmdLineInterfaceType& _cmd
 		}
 
 	// then the rest
-	for (ArgListIterator it = argList.begin(); it != argList.end(); it++)
+	for (ArgListIteratorType it = argList.begin(); it != argList.end(); it++)
 		if ( !xorHandler.contains( (*it) ) )
 			{
 				spacePrint( os, (*it)->longID(), 75, 3, 3 ); 

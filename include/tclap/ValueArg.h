@@ -51,9 +51,10 @@ template<class T, typename T_Char = char, typename T_CharTraits = std::char_trai
 class ValueArg : public Arg<T_Char, T_CharTraits, T_Alloc>
 {
 public:
+    using typename UseAllocatorBase<T_Alloc>::AllocatorType;
+    using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
     using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharType;
     using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
-    using typename Arg<T_Char, T_CharTraits, T_Alloc>::AllocatorType;
     using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringType;
     using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
     using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgType;
@@ -63,6 +64,8 @@ public:
     using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgVectorIteratorType;
     using typename Arg<T_Char, T_CharTraits, T_Alloc>::CmdLineInterfaceType;
     using ConstraintType = Constraint<T, T_Char, T_CharTraits, T_Alloc>;
+    using UseAllocatorBase<T_Alloc>::getAlloc;
+    using UseAllocatorBase<T_Alloc>::rebindAlloc;
 	using Arg<T_Char, T_CharTraits, T_Alloc>::addToList;
     using Arg<T_Char, T_CharTraits, T_Alloc>::beginIgnoring;
     using Arg<T_Char, T_CharTraits, T_Alloc>::ignoreRest;
@@ -94,6 +97,175 @@ public:
     using Arg<T_Char, T_CharTraits, T_Alloc>::allowMore;
     using Arg<T_Char, T_CharTraits, T_Alloc>::acceptsMultipleValues;
     using Arg<T_Char, T_CharTraits, T_Alloc>::reset;
+
+  /**
+   * Labeled ValueArg constructor.
+   * You could conceivably call this constructor with a blank flag, 
+   * but that would make you a bad person.  It would also cause
+   * an exception to be thrown.   If you want an unlabeled argument, 
+   * use the other constructor.
+   * \param flag - The one character flag that identifies this
+   * argument on the command line.
+   * \param name - A one word name for the argument.  Can be
+   * used as a long flag on the command line.
+   * \param desc - A description of what the argument is for or
+   * does.
+   * \param req - Whether the argument is required on the command
+   * line.
+   * \param value - The default value assigned to this argument if it
+   * is not present on the command line.
+   * \param typeDesc - A short, human readable description of the
+   * type that this object expects.  This is used in the generation
+   * of the USAGE statement.  The goal is to be helpful to the end user
+   * of the program.
+   * \param v - An optional visitor.  You probably should not
+   * use this unless you have a very good reason.
+   */
+  ValueArg( const StringType& flag, 
+            const StringType& name, 
+            const StringType& desc, 
+            bool req, 
+            T value,
+            const StringType& typeDesc,
+            Visitor* v = NULL,
+            const AllocatorType& alloc = AllocatorType() );
+                                 
+                                 
+  /**
+   * Labeled ValueArg constructor.
+   * You could conceivably call this constructor with a blank flag, 
+   * but that would make you a bad person.  It would also cause
+   * an exception to be thrown.   If you want an unlabeled argument, 
+   * use the other constructor.
+   * \param flag - The one character flag that identifies this
+   * argument on the command line.
+   * \param name - A one word name for the argument.  Can be
+   * used as a long flag on the command line.
+   * \param desc - A description of what the argument is for or
+   * does.
+   * \param req - Whether the argument is required on the command
+   * line.
+   * \param value - The default value assigned to this argument if it
+   * is not present on the command line.
+   * \param typeDesc - A short, human readable description of the
+   * type that this object expects.  This is used in the generation
+   * of the USAGE statement.  The goal is to be helpful to the end user
+   * of the program.
+   * \param parser - A CmdLine parser object to add this Arg to
+   * \param v - An optional visitor.  You probably should not
+   * use this unless you have a very good reason.
+   */
+  ValueArg( const StringType& flag, 
+            const StringType& name, 
+            const StringType& desc, 
+            bool req, 
+            T value,
+            const StringType& typeDesc,
+            CmdLineInterfaceType& parser,
+            Visitor* v = NULL,
+			const AllocatorType& alloc = AllocatorType() );
+ 
+  /**
+   * Labeled ValueArg constructor.
+   * You could conceivably call this constructor with a blank flag, 
+   * but that would make you a bad person.  It would also cause
+   * an exception to be thrown.   If you want an unlabeled argument, 
+   * use the other constructor.
+   * \param flag - The one character flag that identifies this
+   * argument on the command line.
+   * \param name - A one word name for the argument.  Can be
+   * used as a long flag on the command line.
+   * \param desc - A description of what the argument is for or
+   * does.
+   * \param req - Whether the argument is required on the command
+   * line.
+   * \param value - The default value assigned to this argument if it
+   * is not present on the command line.
+   * \param constraint - A pointer to a Constraint object used
+   * to constrain this Arg.
+   * \param parser - A CmdLine parser object to add this Arg to.
+   * \param v - An optional visitor.  You probably should not
+   * use this unless you have a very good reason.
+   */
+  ValueArg( const StringType& flag, 
+            const StringType& name, 
+            const StringType& desc, 
+            bool req, 
+            T value,
+            ConstraintType* constraint,
+            CmdLineInterfaceType& parser,
+            Visitor* v = NULL,
+			const AllocatorType& alloc = AllocatorType() );
+          
+  /**
+   * Labeled ValueArg constructor.
+   * You could conceivably call this constructor with a blank flag, 
+   * but that would make you a bad person.  It would also cause
+   * an exception to be thrown.   If you want an unlabeled argument, 
+   * use the other constructor.
+   * \param flag - The one character flag that identifies this
+   * argument on the command line.
+   * \param name - A one word name for the argument.  Can be
+   * used as a long flag on the command line.
+   * \param desc - A description of what the argument is for or
+   * does.
+   * \param req - Whether the argument is required on the command
+   * line.
+   * \param value - The default value assigned to this argument if it
+   * is not present on the command line.
+   * \param constraint - A pointer to a Constraint object used
+   * to constrain this Arg.
+   * \param v - An optional visitor.  You probably should not
+   * use this unless you have a very good reason.
+   */
+  ValueArg( const StringType& flag, 
+            const StringType& name, 
+            const StringType& desc, 
+            bool req, 
+            T value,
+            ConstraintType* constraint,
+            Visitor* v = NULL,
+			const AllocatorType& alloc = AllocatorType() );
+
+  /**
+   * Handles the processing of the argument.
+   * This re-implements the Arg version of this method to set the
+   * _value of the argument appropriately.  It knows the difference
+   * between labeled and unlabeled.
+   * \param i - Pointer the the current argument in the list.
+   * \param args - Mutable list of strings. Passed 
+   * in from main().
+   */
+  virtual bool processArg(int* i, StringVectorType& args); 
+
+  /**
+   * Returns the value of the argument.
+   */
+  const T& getValue() const { return _value; }
+
+  // TODO(macbishop): Non-const variant is deprecated, don't
+  // use. Remove in next major.
+  T& getValue() { return _value; }
+
+  /**
+   * A ValueArg can be used as as its value type (T) This is the
+   * same as calling getValue()
+   */
+  operator const T&() const { return getValue(); }
+
+  /**
+   * Specialization of shortID.
+   * \param val - value to be used.
+   */
+  virtual StringType shortID(const StringType& val = "val") const;
+
+  /**
+   * Specialization of longID.
+   * \param val - value to be used.
+   */
+  virtual StringType longID(const StringType& val = "val") const;
+        
+  virtual void reset() ;
 
 protected:
     using Arg<T_Char, T_CharTraits, T_Alloc>::_flag;
@@ -144,173 +316,6 @@ protected:
    */
   void _extractValue( const StringType& val );
 
-public:
-
-  /**
-   * Labeled ValueArg constructor.
-   * You could conceivably call this constructor with a blank flag, 
-   * but that would make you a bad person.  It would also cause
-   * an exception to be thrown.   If you want an unlabeled argument, 
-   * use the other constructor.
-   * \param flag - The one character flag that identifies this
-   * argument on the command line.
-   * \param name - A one word name for the argument.  Can be
-   * used as a long flag on the command line.
-   * \param desc - A description of what the argument is for or
-   * does.
-   * \param req - Whether the argument is required on the command
-   * line.
-   * \param value - The default value assigned to this argument if it
-   * is not present on the command line.
-   * \param typeDesc - A short, human readable description of the
-   * type that this object expects.  This is used in the generation
-   * of the USAGE statement.  The goal is to be helpful to the end user
-   * of the program.
-   * \param v - An optional visitor.  You probably should not
-   * use this unless you have a very good reason.
-   */
-  ValueArg( const StringType& flag, 
-            const StringType& name, 
-            const StringType& desc, 
-            bool req, 
-            T value,
-            const StringType& typeDesc,
-            Visitor* v = NULL);
-                                 
-                                 
-  /**
-   * Labeled ValueArg constructor.
-   * You could conceivably call this constructor with a blank flag, 
-   * but that would make you a bad person.  It would also cause
-   * an exception to be thrown.   If you want an unlabeled argument, 
-   * use the other constructor.
-   * \param flag - The one character flag that identifies this
-   * argument on the command line.
-   * \param name - A one word name for the argument.  Can be
-   * used as a long flag on the command line.
-   * \param desc - A description of what the argument is for or
-   * does.
-   * \param req - Whether the argument is required on the command
-   * line.
-   * \param value - The default value assigned to this argument if it
-   * is not present on the command line.
-   * \param typeDesc - A short, human readable description of the
-   * type that this object expects.  This is used in the generation
-   * of the USAGE statement.  The goal is to be helpful to the end user
-   * of the program.
-   * \param parser - A CmdLine parser object to add this Arg to
-   * \param v - An optional visitor.  You probably should not
-   * use this unless you have a very good reason.
-   */
-  ValueArg( const StringType& flag, 
-            const StringType& name, 
-            const StringType& desc, 
-            bool req, 
-            T value,
-            const StringType& typeDesc,
-            CmdLineInterfaceType& parser,
-            Visitor* v = NULL );
- 
-  /**
-   * Labeled ValueArg constructor.
-   * You could conceivably call this constructor with a blank flag, 
-   * but that would make you a bad person.  It would also cause
-   * an exception to be thrown.   If you want an unlabeled argument, 
-   * use the other constructor.
-   * \param flag - The one character flag that identifies this
-   * argument on the command line.
-   * \param name - A one word name for the argument.  Can be
-   * used as a long flag on the command line.
-   * \param desc - A description of what the argument is for or
-   * does.
-   * \param req - Whether the argument is required on the command
-   * line.
-   * \param value - The default value assigned to this argument if it
-   * is not present on the command line.
-   * \param constraint - A pointer to a Constraint object used
-   * to constrain this Arg.
-   * \param parser - A CmdLine parser object to add this Arg to.
-   * \param v - An optional visitor.  You probably should not
-   * use this unless you have a very good reason.
-   */
-  ValueArg( const StringType& flag, 
-            const StringType& name, 
-            const StringType& desc, 
-            bool req, 
-            T value,
-            ConstraintType* constraint,
-            CmdLineInterfaceType& parser,
-            Visitor* v = NULL );
-          
-  /**
-   * Labeled ValueArg constructor.
-   * You could conceivably call this constructor with a blank flag, 
-   * but that would make you a bad person.  It would also cause
-   * an exception to be thrown.   If you want an unlabeled argument, 
-   * use the other constructor.
-   * \param flag - The one character flag that identifies this
-   * argument on the command line.
-   * \param name - A one word name for the argument.  Can be
-   * used as a long flag on the command line.
-   * \param desc - A description of what the argument is for or
-   * does.
-   * \param req - Whether the argument is required on the command
-   * line.
-   * \param value - The default value assigned to this argument if it
-   * is not present on the command line.
-   * \param constraint - A pointer to a Constraint object used
-   * to constrain this Arg.
-   * \param v - An optional visitor.  You probably should not
-   * use this unless you have a very good reason.
-   */
-  ValueArg( const StringType& flag, 
-            const StringType& name, 
-            const StringType& desc, 
-            bool req, 
-            T value,
-            ConstraintType* constraint,
-            Visitor* v = NULL );
-
-  /**
-   * Handles the processing of the argument.
-   * This re-implements the Arg version of this method to set the
-   * _value of the argument appropriately.  It knows the difference
-   * between labeled and unlabeled.
-   * \param i - Pointer the the current argument in the list.
-   * \param args - Mutable list of strings. Passed 
-   * in from main().
-   */
-  virtual bool processArg(int* i, StringVectorType& args); 
-
-  /**
-   * Returns the value of the argument.
-   */
-  const T& getValue() const { return _value; }
-
-  // TODO(macbishop): Non-const variant is deprecated, don't
-  // use. Remove in next major.
-  T& getValue() { return _value; }
-
-  /**
-   * A ValueArg can be used as as its value type (T) This is the
-   * same as calling getValue()
-   */
-  operator const T&() const { return getValue(); }
-
-  /**
-   * Specialization of shortID.
-   * \param val - value to be used.
-   */
-  virtual StringType shortID(const StringType& val = "val") const;
-
-  /**
-   * Specialization of longID.
-   * \param val - value to be used.
-   */
-  virtual StringType longID(const StringType& val = "val") const;
-        
-  virtual void reset() ;
-
 private:
   /**
    * Prevent accidental copying
@@ -330,8 +335,9 @@ ValueArg<T, T_Char, T_CharTraits, T_Alloc>::ValueArg(const StringType& flag,
                       bool req, 
                       T val,
                       const StringType& typeDesc,
-                      Visitor* v)
-  : Arg(flag, name, desc, req, true, v),
+                      Visitor* v,
+			          const AllocatorType& alloc)
+  : Arg<T_Char, T_CharTraits, T_Alloc>(flag, name, desc, req, true, v, alloc),
     _value( val ),
     _default( val ),
     _typeDesc( typeDesc ),
@@ -346,8 +352,9 @@ ValueArg<T, T_Char, T_CharTraits, T_Alloc>::ValueArg(const StringType& flag,
                       T val,
                       const StringType& typeDesc,
                       CmdLineInterfaceType& parser,
-                      Visitor* v)
-  : Arg(flag, name, desc, req, true, v),
+                      Visitor* v,
+                      const AllocatorType& alloc)
+  : Arg<T_Char, T_CharTraits, T_Alloc>(flag, name, desc, req, true, v, alloc),
     _value( val ),
     _default( val ),
     _typeDesc( typeDesc ),
@@ -363,8 +370,9 @@ ValueArg<T, T_Char, T_CharTraits, T_Alloc>::ValueArg(const StringType& flag,
                       bool req, 
                       T val,
                       ConstraintType* constraint,
-                      Visitor* v)
-  : Arg(flag, name, desc, req, true, v),
+                      Visitor* v,
+                      const AllocatorType& alloc)
+  : Arg<T_Char, T_CharTraits, T_Alloc>(flag, name, desc, req, true, v, alloc),
     _value( val ),
     _default( val ),
     _typeDesc( ConstraintType::shortID(constraint) ),
@@ -379,8 +387,9 @@ ValueArg<T, T_Char, T_CharTraits, T_Alloc>::ValueArg(const StringType& flag,
                       T val,
                       ConstraintType* constraint,
                       CmdLineInterfaceType& parser,
-                      Visitor* v)
-  : Arg(flag, name, desc, req, true, v),
+                      Visitor* v,
+                      const AllocatorType& alloc)
+  : Arg<T_Char, T_CharTraits, T_Alloc>(flag, name, desc, req, true, v, alloc),
     _value( val ),
     _default( val ),
     _typeDesc( ConstraintType::shortID(constraint) ),  // TODO(macbishop): Will crash
@@ -404,7 +413,7 @@ bool ValueArg<T, T_Char, T_CharTraits, T_Alloc>::processArg(int *i, StringVector
 
   StringType flag = args[*i];
 
-  StringType value = "";
+  StringType value;
   trimFlag( flag, value );
 
   if ( argMatches( flag ) )
@@ -419,11 +428,11 @@ bool ValueArg<T, T_Char, T_CharTraits, T_Alloc>::processArg(int *i, StringVector
                                          toString()) );
         }
 
-      if ( Arg::delimiter() != ' ' && value == "" )
+      if ( Arg::delimiter() != ' ' && value.empty() )
         throw( ArgParseException("Couldn't find delimiter for this argument!",
                                  toString() ) );
 
-      if ( value == "" )
+      if ( value.empty() )
         {
           (*i)++;
           if ( static_cast<unsigned int>(*i) < args.size() ) 

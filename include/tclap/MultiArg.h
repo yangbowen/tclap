@@ -48,9 +48,10 @@ template<class T, typename T_Char = char, typename T_CharTraits = std::char_trai
 class MultiArg : public Arg<T_Char, T_CharTraits, T_Alloc>
 {
 public:
+	using typename UseAllocatorBase<T_Alloc>::AllocatorType;
+	using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
 	using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharType;
 	using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
-	using typename Arg<T_Char, T_CharTraits, T_Alloc>::AllocatorType;
 	using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringType;
 	using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
 	using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgType;
@@ -63,6 +64,8 @@ public:
 	using container_type = std::vector<T, typename std::allocator_traits<AllocatorType>::template rebind_alloc<T>>;
 	using iterator = typename container_type::iterator;
 	using const_iterator = typename container_type::const_iterator;
+	using UseAllocatorBase<T_Alloc>::getAlloc;
+	using UseAllocatorBase<T_Alloc>::rebindAlloc;
 	using Arg<T_Char, T_CharTraits, T_Alloc>::addToList;
 	using Arg<T_Char, T_CharTraits, T_Alloc>::beginIgnoring;
 	using Arg<T_Char, T_CharTraits, T_Alloc>::ignoreRest;
@@ -95,49 +98,8 @@ public:
 	using Arg<T_Char, T_CharTraits, T_Alloc>::acceptsMultipleValues;
 	using Arg<T_Char, T_CharTraits, T_Alloc>::reset;
 
-protected:
-	using Arg<T_Char, T_CharTraits, T_Alloc>::_flag;
-	using Arg<T_Char, T_CharTraits, T_Alloc>::_name;
-	using Arg<T_Char, T_CharTraits, T_Alloc>::_description;
-	using Arg<T_Char, T_CharTraits, T_Alloc>::_required;
-	using Arg<T_Char, T_CharTraits, T_Alloc>::_requireLabel;
-	using Arg<T_Char, T_CharTraits, T_Alloc>::_valueRequired;
-	using Arg<T_Char, T_CharTraits, T_Alloc>::_alreadySet;
-	using Arg<T_Char, T_CharTraits, T_Alloc>::_visitor;
-	using Arg<T_Char, T_CharTraits, T_Alloc>::_ignoreable;
-	using Arg<T_Char, T_CharTraits, T_Alloc>::_xorSet;
-	using Arg<T_Char, T_CharTraits, T_Alloc>::_acceptsMultipleValues;
-	using Arg<T_Char, T_CharTraits, T_Alloc>::_checkWithVisitor;
-
-	/**
-	 * The list of values parsed from the CmdLine.
-	 */
-	container_type _values;
-
-	/**
-	 * The description of type T to be used in the usage.
-	 */
-	StringType _typeDesc;
-
-	/**
-	 * A list of constraint on this Arg. 
-	 */
-	ConstraintType* _constraint;
-
-	/**
-	 * Extracts the value from the string.
-	 * Attempts to parse string as type T, if this fails an exception
-	 * is thrown.
-	 * \param val - The string to be read.
-	 */
-	void _extractValue( const StringType& val );
-
-	/**
-	 * Used by XorHandler to decide whether to keep parsing for this arg.
-	 */
-	bool _allowMore;
-
-public:
+	MultiArg(const MultiArg& rhs) = delete;
+	MultiArg& operator=(const MultiArg& rhs) = delete;
 
 	/**
 	 * Constructor.
@@ -161,7 +123,8 @@ public:
                   const StringType& desc,
                   bool req,
                   const StringType& typeDesc,
-                  Visitor* v = NULL);
+                  Visitor* v = NULL,
+				  const AllocatorType& alloc = AllocatorType() );
 
 	/**
 	 * Constructor.
@@ -187,7 +150,8 @@ public:
                   bool req,
                   const StringType& typeDesc,
                   CmdLineInterfaceType& parser,
-                  Visitor* v = NULL );
+                  Visitor* v = NULL,
+				  const AllocatorType& alloc = AllocatorType() );
 
 	/**
 	 * Constructor.
@@ -209,7 +173,8 @@ public:
                   const StringType& desc,
                   bool req,
                   ConstraintType* constraint,
-                  Visitor* v = NULL );
+                  Visitor* v = NULL,
+				  const AllocatorType& alloc = AllocatorType() );
 		  
 	/**
 	 * Constructor.
@@ -233,7 +198,8 @@ public:
                   bool req,
                   ConstraintType* constraint,
                   CmdLineInterfaceType& parser,
-                  Visitor* v = NULL );
+                  Visitor* v = NULL,
+				  const AllocatorType& alloc = AllocatorType() );
 		  
 	/**
 	 * Handles the processing of the argument.
@@ -285,13 +251,47 @@ public:
 	
 	virtual void reset();
 
-private:
-	/**
-	 * Prevent accidental copying
-	 */
-	MultiArg(const MultiArg& rhs);
-	MultiArg& operator=(const MultiArg& rhs);
+protected:
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_flag;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_name;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_description;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_required;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_requireLabel;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_valueRequired;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_alreadySet;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_visitor;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_ignoreable;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_xorSet;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_acceptsMultipleValues;
+	using Arg<T_Char, T_CharTraits, T_Alloc>::_checkWithVisitor;
 
+	/**
+	 * The list of values parsed from the CmdLine.
+	 */
+	container_type _values;
+
+	/**
+	 * The description of type T to be used in the usage.
+	 */
+	StringType _typeDesc;
+
+	/**
+	 * A list of constraint on this Arg. 
+	 */
+	ConstraintType* _constraint;
+
+	/**
+	 * Extracts the value from the string.
+	 * Attempts to parse string as type T, if this fails an exception
+	 * is thrown.
+	 * \param val - The string to be read.
+	 */
+	void _extractValue( const StringType& val );
+
+	/**
+	 * Used by XorHandler to decide whether to keep parsing for this arg.
+	 */
+	bool _allowMore;
 };
 
 template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
@@ -300,8 +300,9 @@ MultiArg<T, T_Char, T_CharTraits, T_Alloc>::MultiArg(const StringType& flag,
                       const StringType& desc,
                       bool req,
                       const StringType& typeDesc,
-                      Visitor* v) :
-   Arg( flag, name, desc, req, true, v ),
+                      Visitor* v,
+				      const AllocatorType& alloc)
+: Arg<T_Char, T_CharTraits, T_Alloc>( flag, name, desc, req, true, v, alloc ),
   _values(container_type()),
   _typeDesc( typeDesc ),
   _constraint( NULL ),
@@ -317,8 +318,9 @@ MultiArg<T, T_Char, T_CharTraits, T_Alloc>::MultiArg(const StringType& flag,
                       bool req,
                       const StringType& typeDesc,
                       CmdLineInterfaceType& parser,
-                      Visitor* v)
-: Arg( flag, name, desc, req, true, v ),
+                      Visitor* v,
+				      const AllocatorType& alloc)
+: Arg<T_Char, T_CharTraits, T_Alloc>( flag, name, desc, req, true, v, alloc ),
   _values(container_type()),
   _typeDesc( typeDesc ),
   _constraint( NULL ),
@@ -337,8 +339,9 @@ MultiArg<T, T_Char, T_CharTraits, T_Alloc>::MultiArg(const StringType& flag,
                       const StringType& desc,
                       bool req,
                       ConstraintType* constraint,
-                      Visitor* v)
-: Arg( flag, name, desc, req, true, v ),
+                      Visitor* v,
+				      const AllocatorType& alloc)
+: Arg<T_Char, T_CharTraits, T_Alloc>( flag, name, desc, req, true, v, alloc ),
   _values(container_type()),
   _typeDesc( ConstraintType::shortID(constraint) ),
   _constraint( constraint ),
@@ -354,8 +357,9 @@ MultiArg<T, T_Char, T_CharTraits, T_Alloc>::MultiArg(const StringType& flag,
                       bool req,
                       ConstraintType* constraint,
                       CmdLineInterfaceType& parser,
-                      Visitor* v)
-: Arg( flag, name, desc, req, true, v ),
+                      Visitor* v,
+				      const AllocatorType& alloc)
+: Arg<T_Char, T_CharTraits, T_Alloc>( flag, name, desc, req, true, v, alloc ),
   _values(container_type()),
   _typeDesc( ConstraintType::shortID(constraint) ),
   _constraint( constraint ),
@@ -375,19 +379,19 @@ bool MultiArg<T, T_Char, T_CharTraits, T_Alloc>::processArg(int *i, StringVector
 		return false;
 
 	StringType flag = args[*i];
-	StringType value = "";
+	StringType value;
 
    	trimFlag( flag, value );
 
    	if ( argMatches( flag ) )
    	{
-   		if ( Arg::delimiter() != ' ' && value == "" )
+   		if ( Arg::delimiter() != ' ' && value.empty() )
 			throw( ArgParseException( 
 			           "Couldn't find delimiter for this argument!",
 					   toString() ) );
 
 		// always take the first one, regardless of start string
-		if ( value == "" )
+		if ( value.empty() )
 		{
 			(*i)++;
 			if ( static_cast<unsigned int>(*i) < args.size() )

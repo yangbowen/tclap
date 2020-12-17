@@ -49,9 +49,10 @@ template<class T, typename T_Char = char, typename T_CharTraits = std::char_trai
 class UnlabeledValueArg : public ValueArg<T, T_Char, T_CharTraits, T_Alloc>
 {
 	public:
+		using typename UseAllocatorBase<T_Alloc>::AllocatorType;
+		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
-		using typename Arg<T_Char, T_CharTraits, T_Alloc>::AllocatorType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgType;
@@ -60,7 +61,9 @@ class UnlabeledValueArg : public ValueArg<T, T_Char, T_CharTraits, T_Alloc>
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgListIteratorType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgVectorIteratorType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CmdLineInterfaceType;
-		using typename ValueArg<T_Char, T_CharTraits, T_Alloc>::ConstraintType;
+		using typename ValueArg<T, T_Char, T_CharTraits, T_Alloc>::ConstraintType;
+		using UseAllocatorBase<T_Alloc>::getAlloc;
+		using UseAllocatorBase<T_Alloc>::rebindAlloc;
 		using Arg<T_Char, T_CharTraits, T_Alloc>::addToList;
 		using Arg<T_Char, T_CharTraits, T_Alloc>::beginIgnoring;
 		using Arg<T_Char, T_CharTraits, T_Alloc>::ignoreRest;
@@ -92,31 +95,12 @@ class UnlabeledValueArg : public ValueArg<T, T_Char, T_CharTraits, T_Alloc>
 		using Arg<T_Char, T_CharTraits, T_Alloc>::allowMore;
 		using Arg<T_Char, T_CharTraits, T_Alloc>::acceptsMultipleValues;
 		using Arg<T_Char, T_CharTraits, T_Alloc>::reset;
-		using ValueArg<T_Char, T_CharTraits, T_Alloc>::processArg;
-		using ValueArg<T_Char, T_CharTraits, T_Alloc>::getValue;
-		using ValueArg<T_Char, T_CharTraits, T_Alloc>::operator const T&;
-		using ValueArg<T_Char, T_CharTraits, T_Alloc>::shortID;
-		using ValueArg<T_Char, T_CharTraits, T_Alloc>::longID;
-		using ValueArg<T_Char, T_CharTraits, T_Alloc>::reset;
-
-	protected:
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_flag;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_name;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_description;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_required;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_requireLabel;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_valueRequired;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_alreadySet;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_visitor;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_ignoreable;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_xorSet;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_acceptsMultipleValues;
-		using Arg<T_Char, T_CharTraits, T_Alloc>::_checkWithVisitor;
-		using ValueArg<T_Char, T_CharTraits, T_Alloc>::_value;
-		using ValueArg<T_Char, T_CharTraits, T_Alloc>::_default;
-		using ValueArg<T_Char, T_CharTraits, T_Alloc>::_typeDesc;
-		using ValueArg<T_Char, T_CharTraits, T_Alloc>::_constraint;
-		using ValueArg<T_Char, T_CharTraits, T_Alloc>::_extractValue;
+		using ValueArg<T, T_Char, T_CharTraits, T_Alloc>::processArg;
+		using ValueArg<T, T_Char, T_CharTraits, T_Alloc>::getValue;
+		using ValueArg<T, T_Char, T_CharTraits, T_Alloc>::operator const T&;
+		using ValueArg<T, T_Char, T_CharTraits, T_Alloc>::shortID;
+		using ValueArg<T, T_Char, T_CharTraits, T_Alloc>::longID;
+		using ValueArg<T, T_Char, T_CharTraits, T_Alloc>::reset;
 
 		/**
 		 * UnlabeledValueArg constructor.
@@ -145,7 +129,8 @@ class UnlabeledValueArg : public ValueArg<T, T_Char, T_CharTraits, T_Alloc>
 				           T value,
 				           const StringType& typeDesc,
 						   bool ignoreable = false,
-				           Visitor* v = NULL); 
+				           Visitor* v = NULL,
+						   const AllocatorType& alloc = AllocatorType() );
 
 		/**
 		 * UnlabeledValueArg constructor.
@@ -176,7 +161,8 @@ class UnlabeledValueArg : public ValueArg<T, T_Char, T_CharTraits, T_Alloc>
 				           const StringType& typeDesc,
 						   CmdLineInterfaceType& parser,
 						   bool ignoreable = false,
-				           Visitor* v = NULL ); 					
+				           Visitor* v = NULL,
+						   const AllocatorType& alloc = AllocatorType() ); 					
 						
 		/**
 		 * UnlabeledValueArg constructor.
@@ -203,7 +189,8 @@ class UnlabeledValueArg : public ValueArg<T, T_Char, T_CharTraits, T_Alloc>
 				           T value,
 				           ConstraintType* constraint,
 						   bool ignoreable = false,
-				           Visitor* v = NULL ); 
+				           Visitor* v = NULL,
+						   const AllocatorType& alloc = AllocatorType() ); 
 
 		
 		/**
@@ -233,7 +220,8 @@ class UnlabeledValueArg : public ValueArg<T, T_Char, T_CharTraits, T_Alloc>
 				           ConstraintType* constraint,
 						   CmdLineInterfaceType& parser,
 						   bool ignoreable = false,
-				           Visitor* v = NULL);
+				           Visitor* v = NULL,
+						   const AllocatorType& alloc = AllocatorType() );
 						
 		/**
 		 * Handles the processing of the argument.
@@ -266,6 +254,24 @@ class UnlabeledValueArg : public ValueArg<T, T_Char, T_CharTraits, T_Alloc>
 		 */
 		virtual void addToList( ArgListType& argList ) const;
 
+	protected:
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_flag;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_name;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_description;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_required;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_requireLabel;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_valueRequired;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_alreadySet;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_visitor;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_ignoreable;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_xorSet;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_acceptsMultipleValues;
+		using Arg<T_Char, T_CharTraits, T_Alloc>::_checkWithVisitor;
+		using ValueArg<T, T_Char, T_CharTraits, T_Alloc>::_value;
+		using ValueArg<T, T_Char, T_CharTraits, T_Alloc>::_default;
+		using ValueArg<T, T_Char, T_CharTraits, T_Alloc>::_typeDesc;
+		using ValueArg<T, T_Char, T_CharTraits, T_Alloc>::_constraint;
+		using ValueArg<T, T_Char, T_CharTraits, T_Alloc>::_extractValue;
 };
 
 /**
@@ -278,12 +284,13 @@ UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledValueArg(const Str
 					                    T val,
 					                    const StringType& typeDesc,
 					                    bool ignoreable,
-					                    Visitor* v)
-: ValueArg("", name, desc, req, val, typeDesc, v)
+					                    Visitor* v,
+										const AllocatorType& alloc)
+: ValueArg<T, T_Char, T_CharTraits, T_Alloc>(StringType(), name, desc, req, val, typeDesc, v, alloc)
 { 
 	_ignoreable = ignoreable;
 
-	OptionalUnlabeledTracker::check(req, toString());
+	OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check(req, toString());
 
 }
 
@@ -295,11 +302,12 @@ UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledValueArg(const Str
 					                    const StringType& typeDesc,
 					                    CmdLineInterfaceType& parser,
 					                    bool ignoreable,
-					                    Visitor* v)
-: ValueArg("", name, desc, req, val, typeDesc, v)
+					                    Visitor* v,
+										const AllocatorType& alloc)
+: ValueArg<T, T_Char, T_CharTraits, T_Alloc>(StringType(), name, desc, req, val, typeDesc, v, alloc)
 { 
 	_ignoreable = ignoreable;
-	OptionalUnlabeledTracker::check(req, toString());
+	OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check(req, toString());
 	parser.add( this );
 }
 
@@ -313,11 +321,12 @@ UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledValueArg(const Str
                                         T val,
                                         ConstraintType* constraint,
                                         bool ignoreable,
-                                        Visitor* v)
-: ValueArg("", name, desc, req, val, constraint, v)
+                                        Visitor* v,
+										const AllocatorType& alloc)
+: ValueArg<T, T_Char, T_CharTraits, T_Alloc>(StringType(), name, desc, req, val, constraint, v, alloc)
 { 
 	_ignoreable = ignoreable;
-	OptionalUnlabeledTracker::check(req, toString());
+	OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check(req, toString());
 }
 
 template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
@@ -328,11 +337,12 @@ UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledValueArg(const Str
 					                    ConstraintType* constraint,
 					                    CmdLineInterfaceType& parser,
 					                    bool ignoreable,
-					                    Visitor* v)
-: ValueArg("", name, desc, req, val, constraint,  v)
+					                    Visitor* v,
+										const AllocatorType& alloc)
+: ValueArg<T, T_Char, T_CharTraits, T_Alloc>(StringType(), name, desc, req, val, constraint,  v, alloc)
 { 
 	_ignoreable = ignoreable;
-	OptionalUnlabeledTracker::check(req, toString());
+	OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check(req, toString());
 	parser.add( this );
 }
 
