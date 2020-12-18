@@ -31,13 +31,13 @@ void parseOptions(int argc, char** argv)
 {
 	try {
 
-	CmdLine cmd("this is a message", '=', "0.99" );
+	CmdLine<> cmd("this is a message", '=', "0.99" );
 
 	//
 	// Define arguments
 	//
 
-	SwitchArg btest("B","existTestB", "exist Test B", false);
+	SwitchArg<> btest("B","existTestB", "exist Test B", false);
 	cmd.add( btest );
 
 	ValueArg<string> stest("", "stringTest", "string test", true, "homer",

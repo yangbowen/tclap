@@ -114,7 +114,7 @@ class MultiSwitchArg : public SwitchArg<T_Char, T_CharTraits, T_Alloc>
 				const StringType& name,
 				const StringType& desc,
 				int init = 0,
-				Visitor* v = NULL,
+				Visitor* v = nullptr,
 				const AllocatorType& alloc = AllocatorType());
 
 
@@ -137,7 +137,7 @@ class MultiSwitchArg : public SwitchArg<T_Char, T_CharTraits, T_Alloc>
 				const StringType& desc,
 				CmdLineInterfaceType& parser,
 				int init = 0,
-				Visitor* v = NULL,
+				Visitor* v = nullptr,
 				const AllocatorType& alloc = AllocatorType());
 
 
@@ -227,7 +227,7 @@ _default( init )
 template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 inline bool MultiSwitchArg<T_Char, T_CharTraits, T_Alloc>::processArg(int *i, StringVectorType& args)
 {
-	if ( _ignoreable && Arg::ignoreRest() )
+	if ( _ignoreable && Arg<T_Char, T_CharTraits, T_Alloc>::ignoreRest() )
 		return false;
 
 	if ( argMatches( args[*i] ))
@@ -266,14 +266,14 @@ template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 inline auto
 MultiSwitchArg<T_Char, T_CharTraits, T_Alloc>::shortID(const StringType& val) const -> StringType
 {
-	return Arg::shortID(val) + " ...";
+	return Arg<T_Char, T_CharTraits, T_Alloc>::shortID(val) + " ...";
 }
 
 template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 inline auto
 MultiSwitchArg<T_Char, T_CharTraits, T_Alloc>::longID(const StringType& val) const -> StringType
 {
-	return Arg::longID(val) + "  (accepted multiple times)";
+	return Arg<T_Char, T_CharTraits, T_Alloc>::longID(val) + "  (accepted multiple times)";
 }
 
 template<typename T_Char, typename T_CharTraits, typename T_Alloc>

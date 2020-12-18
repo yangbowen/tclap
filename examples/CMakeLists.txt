@@ -6,8 +6,8 @@ SET(msvc_cxx "$<CXX_COMPILER_ID:MSVC>")
   
 function(default_opts target)
 target_compile_options(${target} PRIVATE
-    "$<${gcc_like_cxx}:$<BUILD_INTERFACE:-Wall;-Wextra;-Weffc++>>"
-    "$<${msvc_cxx}:$<BUILD_INTERFACE:-W3>>"
+    "$<${gcc_like_cxx}:$<BUILD_INTERFACE:-Wall;-Wextra;-Weffc++;-Wno-c++98-compat;-Wno-c++98-compat-pedantic;-Wno-c++98-compat-extra-semi;-Wno-c++20-compat>>"
+    "$<${msvc_cxx}:$<BUILD_INTERFACE:-W4>>"
 )
 endfunction(default_opts)
 

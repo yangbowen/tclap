@@ -43,7 +43,7 @@ struct Vect {
 
 int main(int argc, char *argv[])
 {
-    TCLAP::CmdLine cmd("Command description message", ' ', "0.9");
+    TCLAP::CmdLine<> cmd("Command description message", ' ', "0.9");
     TCLAP::ValueArg< Vect<double, 3> > vec("v", "vect", "vector",
                                            true, Vect<double, 3>(),
                                            "3D vector", cmd);

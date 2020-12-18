@@ -346,7 +346,7 @@ inline CmdLine<T_Char, T_CharTraits, T_Alloc>::CmdLine(const StringType& m,
   _xorHandler(XorHandlerType()),
   _argPrivateVec(alloc),
   _visitorPrivateVec(alloc),
-  _output(0),
+  _output(nullptr),
   _handleExceptions(true),
   _userSetOutput(false),
   _helpAndVersion(help),
@@ -374,8 +374,8 @@ inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::_constructor()
 	if ( _helpAndVersion )
 	{
 		{
-			std::unique_ptr v = std::make_unique<HelpVisitor<T_Char, T_CharTraits, T_Alloc>>(this, &_output, getAlloc());
-			std::unique_ptr help = std::make_unique<SwitchArg<T_Char, T_CharTraits, T_Alloc>>(
+			std::unique_ptr<HelpVisitor<T_Char, T_CharTraits, T_Alloc>> v = std::make_unique<HelpVisitor<T_Char, T_CharTraits, T_Alloc>>(this, &_output, getAlloc());
+			std::unique_ptr<SwitchArg<T_Char, T_CharTraits, T_Alloc>> help = std::make_unique<SwitchArg<T_Char, T_CharTraits, T_Alloc>>(
 				"h",
 				"help",
 				"Displays usage information and exits.",
@@ -385,8 +385,8 @@ inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::_constructor()
 			_argPrivateVec.push_back(std::move(help));
 		}
 		{
-			std::unique_ptr v = std::make_unique<VersionVisitor<T_Char, T_CharTraits, T_Alloc>>(this, &_output, getAlloc());
-			std::unique_ptr vers = std::make_unique<SwitchArg<T_Char, T_CharTraits, T_Alloc>>(
+			std::unique_ptr<VersionVisitor<T_Char, T_CharTraits, T_Alloc>> v = std::make_unique<VersionVisitor<T_Char, T_CharTraits, T_Alloc>>(this, &_output, getAlloc());
+			std::unique_ptr<SwitchArg<T_Char, T_CharTraits, T_Alloc>> vers = std::make_unique<SwitchArg<T_Char, T_CharTraits, T_Alloc>>(
 				StringType(),
 				"version",
 				"Displays version information and exits.",
@@ -397,8 +397,8 @@ inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::_constructor()
 		}
 	}
 	{
-		std::unique_ptr v = std::make_unique<IgnoreRestVisitor<T_Char, T_CharTraits, T_Alloc>>(getAlloc());
-		std::unique_ptr ignore = std::make_unique<SwitchArg<T_Char, T_CharTraits, T_Alloc>>(ArgType::flagStartString(),
+		std::unique_ptr<IgnoreRestVisitor<T_Char, T_CharTraits, T_Alloc>> v = std::make_unique<IgnoreRestVisitor<T_Char, T_CharTraits, T_Alloc>>(getAlloc());
+		std::unique_ptr<SwitchArg<T_Char, T_CharTraits, T_Alloc>> ignore = std::make_unique<SwitchArg<T_Char, T_CharTraits, T_Alloc>>(ArgType::flagStartString(),
 			ArgType::ignoreNameString(),
 			"Ignores the rest of the labeled arguments following this flag.",
 			false, &*v, getAlloc());

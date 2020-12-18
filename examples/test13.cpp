@@ -25,11 +25,11 @@ int main()
 
    try
    {
-      CmdLine cmd("Test", ' ', "not versioned",true);
+      CmdLine<> cmd("Test", ' ', "not versioned",true);
 
       MultiArg<std::string> Arg("X","fli","fli module",false,"string");
       cmd.add(Arg);
-      MultiSwitchArg ArgMultiSwitch("d","long_d","example");
+      MultiSwitchArg<> ArgMultiSwitch("d","long_d","example");
       cmd.add(ArgMultiSwitch);
 
       std::vector<std::string> in;

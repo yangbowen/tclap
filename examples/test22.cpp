@@ -13,7 +13,7 @@ int main(int argc, char** argv)
 	try {  
 
 	// Define the command line object.
-	CmdLine cmd("Command description message", ' ', "0.9");
+	CmdLine<> cmd("Command description message", ' ', "0.9");
 	cmd.ignoreUnmatched(true);
 
 	// Define a value argument and add it to the command line.
@@ -21,7 +21,7 @@ int main(int argc, char** argv)
 	cmd.add( nameArg );
 
 	// Define a switch and add it to the command line.
-	SwitchArg reverseSwitch("r","reverse","Print name backwards", false);
+	SwitchArg<> reverseSwitch("r","reverse","Print name backwards", false);
 	cmd.add( reverseSwitch );
 
 	// Parse the args.

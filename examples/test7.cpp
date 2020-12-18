@@ -13,7 +13,7 @@ int main(int argc, char **argv)
 	try {
 
 	// Define the command line object.
-	CmdLine cmd("Command description message. This is a long multi-line message meant to test line wrapping.  This is more text that doesn't really do anything besides take up lots of space that otherwise might be used for something real.  That should be enough, don't you think?", ' ', "0.9");
+	CmdLine<> cmd("Command description message. This is a long multi-line message meant to test line wrapping.  This is more text that doesn't really do anything besides take up lots of space that otherwise might be used for something real.  That should be enough, don't you think?", ' ', "0.9");
 
 	vector<string> allowed;
 	allowed.push_back("homer");
@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 		"The cost for each extension of a gap", false, -2, "negative int");
 	cmd.add( gapExtend );
 
-	SwitchArg dna("d","isDna","The input sequences are DNA", false);
+	SwitchArg<> dna("d","isDna","The input sequences are DNA", false);
 	cmd.add( dna );
 
 	ValueArg<string> scoringMatrixName("s","scoring--Matrix",

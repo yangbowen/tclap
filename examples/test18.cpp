@@ -12,7 +12,7 @@ int main(int argc, char** argv)
 {
 	try {
 
-		CmdLine cmd("Command description message", ' ', "0.9", true);
+		CmdLine<> cmd("Command description message", ' ', "0.9", true);
 
 		cmd.setExceptionHandling(false);
 

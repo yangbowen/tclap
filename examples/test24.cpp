@@ -8,7 +8,7 @@ using namespace TCLAP;
 using namespace std;
 
 int main() {
-    CmdLine cmd("Command description message", ' ', "0.9");
+    CmdLine<> cmd("Command description message", ' ', "0.9");
     try { // Argument with two character 'flag'
 		ValueArg<string> nameArg("nx","name","Name to print",true,
 								 "homer","string");

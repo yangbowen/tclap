@@ -124,7 +124,7 @@ class UnlabeledMultiArg : public MultiArg<T, T_Char, T_CharTraits, T_Alloc>
 						   bool req,
 				           const StringType& typeDesc,
 						   bool ignoreable = false,
-				           Visitor* v = NULL,
+				           Visitor* v = nullptr,
 						   const AllocatorType& alloc = AllocatorType() );
 		/**
 		 * Constructor.  
@@ -150,7 +150,7 @@ class UnlabeledMultiArg : public MultiArg<T, T_Char, T_CharTraits, T_Alloc>
 				           const StringType& typeDesc,
 						   CmdLineInterfaceType& parser,
 						   bool ignoreable = false,
-				           Visitor* v = NULL,
+				           Visitor* v = nullptr,
 						   const AllocatorType& alloc = AllocatorType() );
 						 
 		/**
@@ -173,7 +173,7 @@ class UnlabeledMultiArg : public MultiArg<T, T_Char, T_CharTraits, T_Alloc>
 						   bool req,
 						   ConstraintType* constraint,
 						   bool ignoreable = false,
-						   Visitor* v = NULL,
+						   Visitor* v = nullptr,
 						   const AllocatorType& alloc = AllocatorType() );
 
 		/**
@@ -198,7 +198,7 @@ class UnlabeledMultiArg : public MultiArg<T, T_Char, T_CharTraits, T_Alloc>
 						   ConstraintType* constraint,
 						   CmdLineInterfaceType& parser,
 						   bool ignoreable = false,
-						   Visitor* v = NULL,
+						   Visitor* v = nullptr,
 						   const AllocatorType& alloc = AllocatorType() );
 						 
 		/**

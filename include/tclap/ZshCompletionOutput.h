@@ -31,6 +31,7 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <sstream>
 #include <iostream>
 #include <map>
 
@@ -208,7 +209,7 @@ inline void ZshCompletionOutput<T_Char, T_CharTraits, T_Alloc>::printArg(ArgType
 		std::cout << ':';
 
 	std::cout << a->getName() << ':';
-	std::map<StringType, StringType>::iterator compArg = common.find(a->getName());
+	typename std::map<StringType, StringType>::iterator compArg = common.find(a->getName());
 	if ( compArg != common.end() )
 	{
 		std::cout << compArg->second;
@@ -298,7 +299,7 @@ inline void ZshCompletionOutput<T_Char, T_CharTraits, T_Alloc>::printOption(ArgT
 		else
 		{
 			std::cout << ':' << arg;
-			std::map<StringType, StringType>::iterator compArg = common.find(arg);
+			typename std::map<StringType, StringType>::iterator compArg = common.find(arg);
 			if ( compArg != common.end() )
 			{
 				std::cout << ':' << compArg->second;
@@ -320,7 +321,7 @@ inline auto ZshCompletionOutput<T_Char, T_CharTraits, T_Alloc>::getMutexList( Cm
 		return "(-)";
 	}
 
-	ostringstream list;
+	std::basic_ostringstream<T_Char, T_CharTraits, T_Alloc> list;
 	if ( a->acceptsMultipleValues() )
 	{
 		list << '*';

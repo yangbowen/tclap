@@ -37,19 +37,19 @@ void parseOptions(int argc, char** argv)
 {
 	try {
 
-	CmdLine cmd("this is a message", ' ', "0.99" );
+	CmdLine<> cmd("this is a message", ' ', "0.99" );
 
 	//
 	// Define arguments
 	//
 
-	SwitchArg btest("B","existTestB", "tests for the existence of B", false);
+	SwitchArg<> btest("B","existTestB", "tests for the existence of B", false);
 	cmd.add( btest );
 
-	SwitchArg ctest("C","existTestC", "tests for the existence of C", false);
+	SwitchArg<> ctest("C","existTestC", "tests for the existence of C", false);
 	cmd.add( ctest );
 
-	SwitchArg atest("A","existTestA", "tests for the existence of A", false);
+	SwitchArg<> atest("A","existTestA", "tests for the existence of A", false);
 	cmd.add( atest );
 
 	ValueArg<string> stest("s","stringTest","string test",true,"homer",

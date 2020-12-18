@@ -33,7 +33,7 @@ void parseOptions(int argc, char** argv)
 {
 	try {
 
-	CmdLine cmd("this is a message", ' ', "0.99" );
+	CmdLine<> cmd("this is a message", ' ', "0.99" );
 
 	//
 	// Define arguments
@@ -46,13 +46,13 @@ void parseOptions(int argc, char** argv)
 	ValueArg<string> ctest("c", "ccc", "c test", true, "homer", "string");
 	cmd.add( ctest );
 
-	SwitchArg dtest("", "ddd", "d test", false);
+	SwitchArg<> dtest("", "ddd", "d test", false);
 	cmd.add( dtest );
 
 	ValueArg<string> etest("", "eee", "e test", false, "homer", "string");
 	ValueArg<string> ftest("", "fff", "f test", false, "homer", "string");
 	ValueArg<string> gtest("g", "ggg", "g test", false, "homer", "string");
-	vector<Arg*> xorlist;
+	vector<Arg<>*> xorlist;
 	xorlist.push_back(&etest);
 	xorlist.push_back(&ftest);
 	xorlist.push_back(&gtest);

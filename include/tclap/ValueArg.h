@@ -127,7 +127,7 @@ public:
             bool req, 
             T value,
             const StringType& typeDesc,
-            Visitor* v = NULL,
+            Visitor* v = nullptr,
             const AllocatorType& alloc = AllocatorType() );
                                  
                                  
@@ -162,7 +162,7 @@ public:
             T value,
             const StringType& typeDesc,
             CmdLineInterfaceType& parser,
-            Visitor* v = NULL,
+            Visitor* v = nullptr,
 			const AllocatorType& alloc = AllocatorType() );
  
   /**
@@ -194,7 +194,7 @@ public:
             T value,
             ConstraintType* constraint,
             CmdLineInterfaceType& parser,
-            Visitor* v = NULL,
+            Visitor* v = nullptr,
 			const AllocatorType& alloc = AllocatorType() );
           
   /**
@@ -224,7 +224,7 @@ public:
             bool req, 
             T value,
             ConstraintType* constraint,
-            Visitor* v = NULL,
+            Visitor* v = nullptr,
 			const AllocatorType& alloc = AllocatorType() );
 
   /**
@@ -405,7 +405,7 @@ ValueArg<T, T_Char, T_CharTraits, T_Alloc>::ValueArg(const StringType& flag,
 template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
 bool ValueArg<T, T_Char, T_CharTraits, T_Alloc>::processArg(int *i, StringVectorType& args)
 {
-  if ( _ignoreable && Arg::ignoreRest() )
+  if ( _ignoreable && Arg<T_Char, T_CharTraits, T_Alloc>::ignoreRest() )
     return false;
 
   if ( _hasBlanks( args[*i] ) )
@@ -428,7 +428,7 @@ bool ValueArg<T, T_Char, T_CharTraits, T_Alloc>::processArg(int *i, StringVector
                                          toString()) );
         }
 
-      if ( Arg::delimiter() != ' ' && value.empty() )
+      if ( Arg<T_Char, T_CharTraits, T_Alloc>::delimiter() != ' ' && value.empty() )
         throw( ArgParseException("Couldn't find delimiter for this argument!",
                                  toString() ) );
 
@@ -459,7 +459,7 @@ template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
 auto ValueArg<T, T_Char, T_CharTraits, T_Alloc>::shortID(const StringType& val) const -> StringType
 {
   static_cast<void>(val); // Ignore input, don't warn
-  return Arg::shortID( _typeDesc ); 
+  return Arg<T_Char, T_CharTraits, T_Alloc>::shortID( _typeDesc ); 
 }
 
 /**
@@ -469,7 +469,7 @@ template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
 auto ValueArg<T, T_Char, T_CharTraits, T_Alloc>::longID(const StringType& val) const -> StringType
 {
   static_cast<void>(val); // Ignore input, don't warn
-  return Arg::longID( _typeDesc ); 
+  return Arg<T_Char, T_CharTraits, T_Alloc>::longID( _typeDesc ); 
 }
 
 template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
@@ -492,7 +492,7 @@ void ValueArg<T, T_Char, T_CharTraits, T_Alloc>::_extractValue( const StringType
 template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
 void ValueArg<T, T_Char, T_CharTraits, T_Alloc>::reset()
 {
-  Arg::reset();
+  Arg<T_Char, T_CharTraits, T_Alloc>::reset();
   _value = _default;
 }
 

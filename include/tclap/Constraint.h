@@ -53,7 +53,7 @@ class Constraint : public UseAllocatorBase<T_Alloc>
 		using UseAllocatorBase<T_Alloc>::getAlloc;
 		using UseAllocatorBase<T_Alloc>::rebindAlloc;
 
-		explicit Constraint(const AllocatorType& alloc = AllocatorType()) : UseAllocatorBase(alloc) {}
+		explicit Constraint(const AllocatorType& alloc = AllocatorType()) : UseAllocatorBase<T_Alloc>(alloc) {}
 
 		/**
 		 * Returns a description of the Constraint.

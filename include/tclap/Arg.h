@@ -67,6 +67,7 @@ namespace TCLAP {
 		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
 		using CharType = T_Char;
 		using CharTraitsType = T_CharTraits;
+		using StringConvertType = StringConvert<T_Char, T_CharTraits>;
 		using StringType = std::basic_string<T_Char, T_CharTraits, T_Alloc>;
 		using StringVectorType = std::vector<StringType, typename std::allocator_traits<AllocatorType>::template rebind_alloc<StringType>>;
 		using ArgType = Arg<T_Char, T_CharTraits, T_Alloc>;
@@ -112,6 +113,7 @@ namespace TCLAP {
 		 * The char used as a place holder when SwitchArgs are combined.
 		 * Currently set to the bell char (ASCII 7).
 		 */
+		// TODO: Make blankChar() charset-independent.
 		static CharType blankChar() { return (CharType)7; }
 
 		/**
@@ -121,7 +123,7 @@ namespace TCLAP {
 #ifndef TCLAP_FLAGSTARTCHAR
 #define TCLAP_FLAGSTARTCHAR '-'
 #endif
-		static CharType flagStartChar() { return TCLAP_FLAGSTARTCHAR; }
+		static CharType flagStartChar() { return StringConvertType::fromConstBasicChar(TCLAP_FLAGSTARTCHAR); }
 
 		/**
 		 * The sting that indicates the beginning of a flag.  Defaults to "-", but
@@ -131,7 +133,7 @@ namespace TCLAP {
 #ifndef TCLAP_FLAGSTARTSTRING
 #define TCLAP_FLAGSTARTSTRING "-"
 #endif
-		static const StringType flagStartString() { return TCLAP_FLAGSTARTSTRING; }
+		static const StringType flagStartString() { return StringConvertType::fromConstBasicCharString(TCLAP_FLAGSTARTSTRING); }
 
 		/**
 		 * The sting that indicates the beginning of a name.  Defaults to "--", but
@@ -140,12 +142,12 @@ namespace TCLAP {
 #ifndef TCLAP_NAMESTARTSTRING
 #define TCLAP_NAMESTARTSTRING "--"
 #endif
-		static const StringType nameStartString() { return TCLAP_NAMESTARTSTRING; }
+		static const StringType nameStartString() { return StringConvertType::fromConstBasicCharString(TCLAP_NAMESTARTSTRING); }
 
 		/**
 		 * The name used to identify the ignore rest argument.
 		 */
-		static const StringType ignoreNameString() { return "ignore_rest"; }
+		static const StringType ignoreNameString() { return StringConvertType::fromConstBasicCharString("ignore_rest"); }
 
 		/**
 		 * Sets the delimiter for all arguments.
@@ -237,13 +239,13 @@ namespace TCLAP {
 		 * Returns a short ID for the usage.
 		 * \param valueId - The value used in the id.
 		 */
-		virtual StringType shortID(const StringType& valueId = "val") const;
+		virtual StringType shortID(const StringType& valueId = StringConvertType::fromConstBasicCharString("val")) const;
 
 		/**
 		 * Returns a long ID for the usage.
 		 * \param valueId - The value used in the id.
 		 */
-		virtual StringType longID(const StringType& valueId = "val") const;
+		virtual StringType longID(const StringType& valueId = StringConvertType::fromConstBasicCharString("val")) const;
 
 		/**
 		 * Trims a value off of the flag.
@@ -381,7 +383,7 @@ namespace TCLAP {
 			const StringType& desc,
 			bool req,
 			bool valreq,
-			Visitor* v = NULL,
+			Visitor* v = nullptr,
 			const AllocatorType& alloc = AllocatorType());
 
 	private:
@@ -394,7 +396,7 @@ namespace TCLAP {
 		 * The delimiter that separates an argument flag/name from the
 		 * value.
 		 */
-		static CharType& delimiterRef() { static CharType delim = ' '; return delim; }
+		static CharType& delimiterRef() { static CharType delim = StringConvertType::fromConstBasicChar(' '); return delim; }
 	};
 
 	/**
@@ -422,7 +424,7 @@ namespace TCLAP {
 	 * ValueLike traits use operator>> to assign the value from strVal.
 	 */
 	template<typename T, typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>> void
-		ExtractValue(T& destVal, const std::basic_string<T_Char, T_CharTraits, T_Alloc>& strVal, ValueLike vl) {
+	ExtractValue(T& destVal, const std::basic_string<T_Char, T_CharTraits, T_Alloc>& strVal, ValueLike vl) {
 		static_cast<void>(vl); // Avoid warning about unused vl
 		std::basic_istringstream<T_Char, T_CharTraits, T_Alloc> is(strVal.c_str());
 
@@ -441,13 +443,11 @@ namespace TCLAP {
 		}
 
 		if (is.fail())
-			throw(ArgParseException("Couldn't read argument value "
-				"from string '" + strVal + "'"));
+			throw(ArgParseException("Couldn\'t read argument value from string \'" + StringConvert<T_Char, T_CharTraits>::toExceptionDescription(strVal) + "\'"));
 
 
 		if (valuesRead > 1)
-			throw(ArgParseException("More than one valid value parsed from "
-				"string '" + strVal + "'"));
+			throw(ArgParseException("More than one valid value parsed from string \'" + StringConvert<T_Char, T_CharTraits>::toExceptionDescription(strVal) + "\'"));
 
 	}
 
@@ -480,7 +480,7 @@ namespace TCLAP {
 		_name(name),
 		_description(desc),
 		_required(req),
-		_requireLabel("required"),
+		_requireLabel(StringConvertType::fromConstBasicCharString("required")),
 		_valueRequired(valreq),
 		_alreadySet(false),
 		_visitor(v),
@@ -488,25 +488,24 @@ namespace TCLAP {
 		_xorSet(false),
 		_acceptsMultipleValues(false) {
 		if (_flag.length() > 1)
-			throw(SpecificationException(
-				"Argument flag can only be one character long", toString()));
+			throw(SpecificationException("Argument flag can only be one character long", StringConvertType::toExceptionDescription(toString())));
 
 		if (_name != ignoreNameString() &&
 			(_flag == Arg::flagStartString() ||
 				_flag == Arg::nameStartString() ||
 				_flag == " "))
 			throw(SpecificationException("Argument flag cannot be either '" +
-				Arg::flagStartString() + "' or '" +
-				Arg::nameStartString() + "' or a space.",
-				toString()));
+				StringConvertType::toExceptionDescription(Arg::flagStartString()) + "' or '" +
+				StringConvertType::toExceptionDescription(Arg::nameStartString()) + "' or a space.",
+				StringConvertType::toExceptionDescription(toString())));
 
 		if ((_name.substr(0, Arg::flagStartString().length()) == Arg::flagStartString()) ||
 			(_name.substr(0, Arg::nameStartString().length()) == Arg::nameStartString()) ||
 			(_name.find(" ", 0) != StringType::npos))
 			throw(SpecificationException("Argument name begin with either '" +
-				Arg::flagStartString() + "' or '" +
-				Arg::nameStartString() + "' or space.",
-				toString()));
+				StringConvertType::toExceptionDescription(Arg::flagStartString()) + "' or '" +
+				StringConvertType::toExceptionDescription(Arg::nameStartString()) + "' or space.",
+				StringConvertType::toExceptionDescription(toString())));
 
 	}
 
@@ -523,10 +522,10 @@ namespace TCLAP {
 			id = Arg::nameStartString() + _name;
 
 		if (_valueRequired)
-			id += StringType(1, Arg::delimiter()) + "<" + valueId + ">";
+			id += StringType(1, Arg::delimiter()) + StringConvertType::fromConstBasicCharString("<") + valueId + StringConvertType::fromConstBasicCharString(">");
 
 		if (!_required)
-			id = "[" + id + "]";
+			id = StringConvertType::fromConstBasicCharString("[") + id + StringConvertType::fromConstBasicCharString("]");
 
 		return id;
 	}
@@ -539,15 +538,15 @@ namespace TCLAP {
 			id += Arg::flagStartString() + _flag;
 
 			if (_valueRequired)
-				id += StringType(1, Arg::delimiter()) + "<" + valueId + ">";
+				id += StringType(1, Arg::delimiter()) + StringConvertType::fromConstBasicCharString("<") + valueId + StringConvertType::fromConstBasicCharString(">");
 
-			id += ",  ";
+			id += StringConvertType::fromConstBasicCharString(",  ");
 		}
 
 		id += Arg::nameStartString() + _name;
 
 		if (_valueRequired)
-			id += StringType(1, Arg::delimiter()) + "<" + valueId + ">";
+			id += StringType(1, Arg::delimiter()) + StringConvertType::fromConstBasicCharString("<") + valueId + StringConvertType::fromConstBasicCharString(">");
 
 		return id;
 
@@ -565,10 +564,10 @@ namespace TCLAP {
 	inline auto Arg<T_Char, T_CharTraits, T_Alloc>::getDescription() const -> StringType {
 		StringType desc;
 		if (_required)
-			desc = "(" + _requireLabel + ")  ";
+			desc = StringConvertType::fromConstBasicCharString("(") + _requireLabel + StringConvertType::fromConstBasicCharString(")  ");
 
 		//	if ( _valueRequired )
-		//		desc += "(value required)  ";
+		//		desc += StringConvertType::fromConstBasicCharString("(value required)  ");
 
 		desc += _description;
 		return desc;
@@ -616,9 +615,9 @@ namespace TCLAP {
 		StringType s;
 
 		if (!_flag.empty())
-			s += Arg::flagStartString() + _flag + " ";
+			s += Arg::flagStartString() + _flag + StringConvertType::fromConstBasicCharString(" ");
 
-		s += "(" + Arg::nameStartString() + _name + ")";
+		s += StringConvertType::fromConstBasicCharString("(") + Arg::nameStartString() + _name + StringConvertType::fromConstBasicCharString(")");
 
 		return s;
 	}
@@ -634,8 +633,8 @@ namespace TCLAP {
 	 */
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 	inline void Arg<T_Char, T_CharTraits, T_Alloc>::trimFlag(StringType& flag, StringType& value) const {
-		int stop = 0;
-		for (int i = 0; static_cast<unsigned int>(i) < flag.length(); i++)
+		std::size_t stop = 0;
+		for (std::size_t i = 0; i < flag.length(); i++)
 			if (flag[i] == Arg::delimiter()) 		{
 				stop = i;
 				break;

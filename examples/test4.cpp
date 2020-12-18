@@ -14,11 +14,11 @@ using namespace std;
 
 // This exemplifies how the output class can be overridden to provide
 // user defined output.
-class MyOutput : public StdOutput
+class MyOutput : public StdOutput<>
 {
 	public:
 
-		virtual void failure(CmdLineInterface& c, ArgException& e)
+		virtual void failure(CmdLineInterface<>& c, ArgException& e)
 		{
 			static_cast<void>(c); // Ignore input, don't warn
 			cerr << "my failure message: " << endl
@@ -26,16 +26,16 @@ class MyOutput : public StdOutput
 			exit(1);
 		}
 
-		virtual void usage(CmdLineInterface& c)
+		virtual void usage(CmdLineInterface<>& c)
 		{
 			cout << "my usage message:" << endl;
-			list<Arg*> args = c.getArgList();
-			for (ArgListIterator it = args.begin(); it != args.end(); it++)
+			list<Arg<>*> args = c.getArgList();
+			for (ArgListIterator<> it = args.begin(); it != args.end(); it++)
 				cout << (*it)->longID()
 					 << "  (" << (*it)->getDescription() << ")" << endl;
 		}
 
-		virtual void version(CmdLineInterface& c)
+		virtual void version(CmdLineInterface<>& c)
 		{
 			static_cast<void>(c); // Ignore input, don't warn
 			cout << "my version message: 0.1" << endl;
@@ -65,7 +65,7 @@ void parseOptions(int argc, char** argv)
 {
 	try {
 
-	CmdLine cmd("this is a message", ' ', "0.99" );
+	CmdLine<> cmd("this is a message", ' ', "0.99" );
 
 	// set the output
 	MyOutput my;
@@ -77,8 +77,8 @@ void parseOptions(int argc, char** argv)
 	// Define arguments
 	//
 
-	SwitchArg btest("B","sB", "exist Test B", false);
-	SwitchArg atest("A","sA", "exist Test A", false);
+	SwitchArg<> btest("B","sB", "exist Test B", false);
+	SwitchArg<> atest("A","sA", "exist Test A", false);
 
 	ValueArg<string> stest("s", "Bs", "string test", true, "homer",
 					       "string");

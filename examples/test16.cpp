@@ -27,7 +27,7 @@ namespace TCLAP {
 
 int main(int argc, char *argv[])
 {
-    TCLAP::CmdLine cmd("Command description message", ' ', "0.9");
+    TCLAP::CmdLine<> cmd("Command description message", ' ', "0.9");
     TCLAP::ValueArg< std::vector<double> > vec("v", "vect", "vector",
                                                true,  std::vector<double>(),
                                                "3D vector", cmd);

@@ -12,15 +12,15 @@ int main(int argc, char** argv)
 {
 	try {
 
-	CmdLine cmd("Command description message", ' ', "0.9",false);
+	CmdLine<> cmd("Command description message", ' ', "0.9",false);
 
-	SwitchArg reverseSwitch("r","reverse","REVERSE instead of FORWARDS", false);
+	SwitchArg<> reverseSwitch("r","reverse","REVERSE instead of FORWARDS", false);
 	cmd.add( reverseSwitch );
 
-	MultiSwitchArg verbose("V","verbose","Level of verbosity");
+	MultiSwitchArg<> verbose("V","verbose","Level of verbosity");
 	cmd.add( verbose );
 
-	MultiSwitchArg noise("N","noise","Level of noise",5);
+	MultiSwitchArg<> noise("N","noise","Level of noise",5);
 	cmd.add( noise );
 
 	UnlabeledValueArg<string> word("word","a random word", false, "string",

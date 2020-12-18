@@ -11,17 +11,17 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
-	CmdLine cmd("this is a message", ' ', "0.99" );
-	DocBookOutput docoutput;
-	ZshCompletionOutput zshoutput;
-	CmdLineOutput *output = &zshoutput;
+	CmdLine<> cmd("this is a message", ' ', "0.99" );
+	DocBookOutput<> docoutput;
+	ZshCompletionOutput<> zshoutput;
+	CmdLineOutput<>* output = &zshoutput;
 
 	if (argc > 2)
 		output = &docoutput;
 
 	cmd.setOutput(output);
 
-	SwitchArg btest("B","sB", "exist Test B", false);
+	SwitchArg<> btest("B","sB", "exist Test B", false);
 	MultiArg<int> atest("A","sA", "exist Test A", false, "integer");
 
 	ValueArg<string> stest("s", "Bs", "string test", true, "homer",

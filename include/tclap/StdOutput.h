@@ -37,11 +37,14 @@
 
 namespace TCLAP {
 
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+class StdOutput;
+
 /**
  * A class that isolates any output from the CmdLine object so that it
  * may be easily modified.
  */
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
 class StdOutput : public CmdLineOutput<T_Char, T_CharTraits, T_Alloc>
 {
 	public:
@@ -190,20 +193,19 @@ StdOutput<T_Char, T_CharTraits, T_Alloc>::_shortUsage( CmdLineInterfaceType& _cm
 	StringType s = progName + " ";
 
 	// first the xor
-	for ( int i = 0; static_cast<unsigned int>(i) < xorList.size(); i++ )
+	for ( const ArgVectorType& xorEntry : xorList )
 		{
 			s += " {";
-			for ( ArgVectorIteratorType it = xorList[i].begin(); 
-				  it != xorList[i].end(); it++ )
-				s += (*it)->shortID() + "|";
+			for ( const ArgType* const& arg : xorEntry )
+				s += arg->shortID() + "|";
 
 			s[s.length()-1] = '}';
 		}
 
 	// then the rest
-	for (ArgListIteratorType it = argList.begin(); it != argList.end(); it++)
-		if ( !xorHandler.contains( (*it) ) )
-			s += " " + (*it)->shortID();
+	for (const ArgType* const& arg : argList)
+		if ( !xorHandler.contains( arg ) )
+			s += " " + arg->shortID();
 
 	// if the program name is too long, then adjust the second line offset 
 	int secondLineOffset = static_cast<int>(progName.length()) + 2;

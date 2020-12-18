@@ -26,7 +26,7 @@ std::istream &operator>>(std::istream &is, Vect3D &v)
 
 int main(int argc, char *argv[])
 {
-    CmdLine cmd("Command description message", ' ', "0.9");
+    CmdLine<> cmd("Command description message", ' ', "0.9");
     ValueArg<Vect3D> vec("v", "vect", "vector",
 			 true, Vect3D(), "3D vector", cmd);
 

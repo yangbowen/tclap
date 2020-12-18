@@ -30,8 +30,9 @@
 #include <config.h>
 #endif
 
+#include <wchar.h>
 #include <cassert>
-#include <cwchar>
+#include <cstdlib>
 #include <cuchar>
 #include <limits>
 #include <array>
@@ -65,7 +66,7 @@ namespace TCLAP {
 			'_', '{', '}', '[', ']', '#', '(', ')', '<', '>', '%', ':', ';', '.', '?', '*', '+', '-', '/', '^', '&', '|', '~', '!', '=', ',', '\\', '\"', '\''\
 		};\
 		for (std::size_t i = 0; i < arr_mapping.size(); ++i) arr_mapping[i] = type_to{};\
-		for (std::size_t i = 0; i < sizeof(arr_basic_from) / sizeof(char); ++i) arr_mapping[(unsigned char)arr_basic_from[i]] = arr_basic_to[i];\
+		for (std::size_t i = 0; i < sizeof(arr_basic_from) / sizeof(char); ++i) arr_mapping[static_cast<unsigned char>(arr_basic_from[i])] = arr_basic_to[i];\
 		return arr_mapping;\
 	}
 
@@ -90,44 +91,51 @@ namespace TCLAP {
 		using StringTypeTmpl = std::basic_string<T_Char, T_CharTraits, T_Alloc>;
 		StringConvert(const StringConvert& rhs) = delete;
 		StringConvert& operator=(const StringConvert& rhs) = delete;
-		std::string toExceptionDescription(const StringViewType& strview) const;
-		consteval T_Char fromConstBasicChar(char ch_basic_from) {
+		static std::string toExceptionDescription(const StringViewType& strview);
+		static T_Char fromConstBasicChar(char ch_basic_from) {
 			T_Char ch_basic_to{};
 			if (ch_basic_from != char{}) {
-				ch_basic_to = mappingFromBasicChar<T_Char>[(unsigned char)ch_basic_from];
-				static_assert(ch_basic_to != T_Char{}, "Only basic characters are allowed.");
+				ch_basic_to = mappingFromBasicChar<T_Char>[static_cast<unsigned char>(ch_basic_from)];
+				// Only basic characters are allowed.
+				if (ch_basic_to == T_Char{}) { assert(false); abort(); }
 			}
 			return ch_basic_to;
 		}
 		template<std::size_t size_arr_basic_from>
-		consteval std::array<T_Char, size_arr_basic_from - 1> fromConstBasicString(const char(&arr_basic_from)[size_arr_basic_from]) {
+		static std::array<T_Char, size_arr_basic_from - 1> fromConstBasicCharArray(const char(&arr_basic_from)[size_arr_basic_from]) {
 			std::array<T_Char, size_arr_basic_from - 1> arr_str_to;
 			for (std::size_t i = 0; i < size_arr_basic_from - 1; ++i) {
 				T_Char ch_basic_to{};
 				if (arr_basic_from[i] != char{}) {
-					ch_basic_to = mappingFromBasicChar<T_Char>[(unsigned char)arr_basic_from[i]];
-					static_assert(ch_basic_to != T_Char{}, "Only basic characters are allowed.");
+					ch_basic_to = mappingFromBasicChar<T_Char>[static_cast<unsigned char>(arr_basic_from[i])];
+					// Only basic characters are allowed.
+					if (ch_basic_to == T_Char{}) { assert(false); abort(); }
 				}
 				arr_str_to[i] = ch_basic_to;
 			}
 			return arr_str_to;
 		}
+		template<typename T_Alloc = std::allocator<T_Char>, std::size_t size_arr_basic_from>
+		static std::basic_string<T_Char, T_CharTraits, T_Alloc> fromConstBasicCharString(const char(&arr_basic_from)[size_arr_basic_from], const T_Alloc& alloc = T_Alloc()) {
+			std::array<T_Char, size_arr_basic_from - 1> arr_str_to = fromConstBasicCharArray(arr_basic_from);
+			return std::basic_string<T_Char, T_CharTraits, T_Alloc>(arr_str_to.data(), arr_str_to.size(), alloc);
+		}
 	};
 
 	template<>
-	inline std::string StringConvert<char, std::char_traits<char>>::toExceptionDescription(const StringViewType& strview) const {
+	inline std::string StringConvert<char, std::char_traits<char>>::toExceptionDescription(const StringViewType& strview) {
 		return std::string(strview);
 	}
 
 	template<>
-	inline std::string StringConvert<wchar_t, std::char_traits<wchar_t>>::toExceptionDescription(const StringViewType& strview) const {
+	inline std::string StringConvert<wchar_t, std::char_traits<wchar_t>>::toExceptionDescription(const StringViewType& strview) {
 		std::string str;
 		std::mbstate_t mbstate{};
 		char mbch[MB_LEN_MAX]{};
 		std::size_t result_mbconv = 0;
 		for (const CharType& ch : strview) {
-			result_mbconv = std::wcrtomb(mbch, ch, &mbstate);
-			if (result_mbconv == (std::size_t)-1) {
+			errno_t errno_mbconv = wcrtomb_s(&result_mbconv, mbch, ch, &mbstate);
+			if (errno_mbconv || result_mbconv == static_cast<std::size_t>(-1)) {
 				mbstate = mbstate_t{};
 				result_mbconv = std::c16rtomb(mbch, u'\ufffd', &mbstate);
 				mbstate = mbstate_t{};
@@ -136,8 +144,8 @@ namespace TCLAP {
 			str.append(mbch, result_mbconv);
 		}
 		{
-			result_mbconv = std::wcrtomb(mbch, CharType{}, &mbstate);
-			if (result_mbconv == (std::size_t)-1) {
+			errno_t errno_mbconv = wcrtomb_s(&result_mbconv, mbch, CharType{}, &mbstate);
+			if (errno_mbconv || result_mbconv == static_cast<std::size_t>(-1)) {
 				mbstate = mbstate_t{};
 				result_mbconv = std::c16rtomb(mbch, u'\ufffd', &mbstate);
 				mbstate = mbstate_t{};
@@ -156,14 +164,14 @@ defined(__cpp_char8_t) \
 && __cpp_lib_char8_t >= 201907L \
 && false // TODO: Enable this block of code after there's support for std::c8rtomb in major compilers.
 	template<>
-	inline std::string StringConvert<char8_t, std::char_traits<char8_t>>::toExceptionDescription(const StringViewType& strview) const {
+	inline std::string StringConvert<char8_t, std::char_traits<char8_t>>::toExceptionDescription(const StringViewType& strview) {
 		std::string str;
 		std::mbstate_t mbstate{};
 		char mbch[MB_LEN_MAX]{};
 		std::size_t result_mbconv = 0;
 		for (const CharType& ch : strview) {
 			result_mbconv = std::c8rtomb(mbch, ch, &mbstate);
-			if (result_mbconv == (std::size_t)-1) {
+			if (result_mbconv == static_cast<std::size_t>(-1)) {
 				mbstate = mbstate_t{};
 				result_mbconv = std::c16rtomb(mbch, u'\ufffd', &mbstate);
 				mbstate = mbstate_t{};
@@ -173,7 +181,7 @@ defined(__cpp_char8_t) \
 		}
 		{
 			result_mbconv = std::c8rtomb(mbch, CharType{}, &mbstate);
-			if (result_mbconv == (std::size_t)-1) {
+			if (result_mbconv == static_cast<std::size_t>(-1)) {
 				mbstate = mbstate_t{};
 				result_mbconv = std::c16rtomb(mbch, u'\ufffd', &mbstate);
 				mbstate = mbstate_t{};
@@ -187,14 +195,14 @@ defined(__cpp_char8_t) \
 #endif
 
 	template<>
-	inline std::string StringConvert<char16_t, std::char_traits<char16_t>>::toExceptionDescription(const StringViewType& strview) const {
+	inline std::string StringConvert<char16_t, std::char_traits<char16_t>>::toExceptionDescription(const StringViewType& strview) {
 		std::string str;
 		std::mbstate_t mbstate{};
 		char mbch[MB_LEN_MAX]{};
 		std::size_t result_mbconv = 0;
 		for (const CharType& ch : strview) {
 			result_mbconv = std::c16rtomb(mbch, ch, &mbstate);
-			if (result_mbconv == (std::size_t)-1) {
+			if (result_mbconv == static_cast<std::size_t>(-1)) {
 				mbstate = mbstate_t{};
 				result_mbconv = std::c16rtomb(mbch, u'\ufffd', &mbstate);
 				mbstate = mbstate_t{};
@@ -204,7 +212,7 @@ defined(__cpp_char8_t) \
 		}
 		{
 			result_mbconv = std::c16rtomb(mbch, CharType{}, &mbstate);
-			if (result_mbconv == (std::size_t)-1) {
+			if (result_mbconv == static_cast<std::size_t>(-1)) {
 				mbstate = mbstate_t{};
 				result_mbconv = std::c16rtomb(mbch, u'\ufffd', &mbstate);
 				mbstate = mbstate_t{};
@@ -217,14 +225,14 @@ defined(__cpp_char8_t) \
 	}
 
 	template<>
-	inline std::string StringConvert<char32_t, std::char_traits<char32_t>>::toExceptionDescription(const StringViewType& strview) const {
+	inline std::string StringConvert<char32_t, std::char_traits<char32_t>>::toExceptionDescription(const StringViewType& strview) {
 		std::string str;
 		std::mbstate_t mbstate{};
 		char mbch[MB_LEN_MAX]{};
 		std::size_t result_mbconv = 0;
 		for (const CharType& ch : strview) {
 			result_mbconv = std::c32rtomb(mbch, ch, &mbstate);
-			if (result_mbconv == (std::size_t)-1) {
+			if (result_mbconv == static_cast<std::size_t>(-1)) {
 				mbstate = mbstate_t{};
 				result_mbconv = std::c16rtomb(mbch, u'\ufffd', &mbstate);
 				mbstate = mbstate_t{};
@@ -234,7 +242,7 @@ defined(__cpp_char8_t) \
 		}
 		{
 			result_mbconv = std::c32rtomb(mbch, CharType{}, &mbstate);
-			if (result_mbconv == (std::size_t)-1) {
+			if (result_mbconv == static_cast<std::size_t>(-1)) {
 				mbstate = mbstate_t{};
 				result_mbconv = std::c16rtomb(mbch, u'\ufffd', &mbstate);
 				mbstate = mbstate_t{};

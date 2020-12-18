@@ -123,7 +123,7 @@ public:
                   const StringType& desc,
                   bool req,
                   const StringType& typeDesc,
-                  Visitor* v = NULL,
+                  Visitor* v = nullptr,
 				  const AllocatorType& alloc = AllocatorType() );
 
 	/**
@@ -150,7 +150,7 @@ public:
                   bool req,
                   const StringType& typeDesc,
                   CmdLineInterfaceType& parser,
-                  Visitor* v = NULL,
+                  Visitor* v = nullptr,
 				  const AllocatorType& alloc = AllocatorType() );
 
 	/**
@@ -173,7 +173,7 @@ public:
                   const StringType& desc,
                   bool req,
                   ConstraintType* constraint,
-                  Visitor* v = NULL,
+                  Visitor* v = nullptr,
 				  const AllocatorType& alloc = AllocatorType() );
 		  
 	/**
@@ -198,7 +198,7 @@ public:
                   bool req,
                   ConstraintType* constraint,
                   CmdLineInterfaceType& parser,
-                  Visitor* v = NULL,
+                  Visitor* v = nullptr,
 				  const AllocatorType& alloc = AllocatorType() );
 		  
 	/**
@@ -372,7 +372,7 @@ MultiArg<T, T_Char, T_CharTraits, T_Alloc>::MultiArg(const StringType& flag,
 template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
 bool MultiArg<T, T_Char, T_CharTraits, T_Alloc>::processArg(int *i, StringVectorType& args)
 {
- 	if ( _ignoreable && Arg::ignoreRest() )
+ 	if ( _ignoreable && Arg<T_Char, T_CharTraits, T_Alloc>::ignoreRest() )
 		return false;
 
 	if ( _hasBlanks( args[*i] ) )
@@ -385,7 +385,7 @@ bool MultiArg<T, T_Char, T_CharTraits, T_Alloc>::processArg(int *i, StringVector
 
    	if ( argMatches( flag ) )
    	{
-   		if ( Arg::delimiter() != ' ' && value.empty() )
+   		if ( Arg<T_Char, T_CharTraits, T_Alloc>::delimiter() != ' ' && value.empty() )
 			throw( ArgParseException( 
 			           "Couldn't find delimiter for this argument!",
 					   toString() ) );
@@ -427,7 +427,7 @@ template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
 auto MultiArg<T, T_Char, T_CharTraits, T_Alloc>::shortID(const StringType& val) const -> StringType
 {
 	static_cast<void>(val); // Ignore input, don't warn
-	return Arg::shortID(_typeDesc) + " ...";
+	return Arg<T_Char, T_CharTraits, T_Alloc>::shortID(_typeDesc) + " ...";
 }
 
 /**
@@ -437,7 +437,7 @@ template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
 auto MultiArg<T, T_Char, T_CharTraits, T_Alloc>::longID(const StringType& val) const -> StringType
 {
 	static_cast<void>(val); // Ignore input, don't warn
-	return Arg::longID(_typeDesc) + "  (accepted multiple times)";
+	return Arg<T_Char, T_CharTraits, T_Alloc>::longID(_typeDesc) + "  (accepted multiple times)";
 }
 
 /**
@@ -489,7 +489,7 @@ bool MultiArg<T, T_Char, T_CharTraits, T_Alloc>::allowMore()
 template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
 void MultiArg<T, T_Char, T_CharTraits, T_Alloc>::reset()
 {
-	Arg::reset();
+	Arg<T_Char, T_CharTraits, T_Alloc>::reset();
 	_values.clear();
 }
 

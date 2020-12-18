@@ -129,7 +129,7 @@ class UnlabeledValueArg : public ValueArg<T, T_Char, T_CharTraits, T_Alloc>
 				           T value,
 				           const StringType& typeDesc,
 						   bool ignoreable = false,
-				           Visitor* v = NULL,
+				           Visitor* v = nullptr,
 						   const AllocatorType& alloc = AllocatorType() );
 
 		/**
@@ -161,7 +161,7 @@ class UnlabeledValueArg : public ValueArg<T, T_Char, T_CharTraits, T_Alloc>
 				           const StringType& typeDesc,
 						   CmdLineInterfaceType& parser,
 						   bool ignoreable = false,
-				           Visitor* v = NULL,
+				           Visitor* v = nullptr,
 						   const AllocatorType& alloc = AllocatorType() ); 					
 						
 		/**
@@ -189,7 +189,7 @@ class UnlabeledValueArg : public ValueArg<T, T_Char, T_CharTraits, T_Alloc>
 				           T value,
 				           ConstraintType* constraint,
 						   bool ignoreable = false,
-				           Visitor* v = NULL,
+				           Visitor* v = nullptr,
 						   const AllocatorType& alloc = AllocatorType() ); 
 
 		
@@ -220,7 +220,7 @@ class UnlabeledValueArg : public ValueArg<T, T_Char, T_CharTraits, T_Alloc>
 				           ConstraintType* constraint,
 						   CmdLineInterfaceType& parser,
 						   bool ignoreable = false,
-				           Visitor* v = NULL,
+				           Visitor* v = nullptr,
 						   const AllocatorType& alloc = AllocatorType() );
 						
 		/**

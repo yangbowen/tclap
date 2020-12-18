@@ -105,7 +105,7 @@ class ValuesConstraint : public Constraint<T, T_Char, T_CharTraits, T_Alloc>
 
 template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
 ValuesConstraint<T, T_Char, T_CharTraits, T_Alloc>::ValuesConstraint(const container_type& allowed, const AllocatorType& alloc)
-: Constraint(alloc), _allowed(allowed)
+: Constraint<T, T_Char, T_CharTraits, T_Alloc>(alloc), _allowed(allowed)
 { 
     for ( unsigned int i = 0; i < _allowed.size(); i++ )
     {

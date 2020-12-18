@@ -17,7 +17,7 @@ int main(int argc, char** argv)
 
 	try {
 
-	CmdLine cmd("this is a message", ' ', "0.99" );
+	CmdLine<> cmd("this is a message", ' ', "0.99" );
 
 	ValueArg<int> itest("i", "intTest", "integer test", true, 5, "int");
 	cmd.add( itest );

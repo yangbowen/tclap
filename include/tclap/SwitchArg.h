@@ -107,7 +107,7 @@ public:
 	    const StringType& name, 
 	    const StringType& desc,
 	    bool def = false,
-	    Visitor* v = NULL,
+	    Visitor* v = nullptr,
         const AllocatorType& alloc = AllocatorType());
 
                                   
@@ -129,7 +129,7 @@ public:
 	    const StringType& desc,
 	    CmdLineInterfaceType& parser,
 	    bool def = false,
-	    Visitor* v = NULL,
+	    Visitor* v = nullptr,
         const AllocatorType& alloc = AllocatorType());
                                   
                                   
@@ -235,7 +235,7 @@ template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 inline bool SwitchArg<T_Char, T_CharTraits, T_Alloc>::lastCombined(StringType& combinedSwitches )
 {
   for ( unsigned int i = 1; i < combinedSwitches.length(); i++ )
-    if ( combinedSwitches[i] != Arg::blankChar() )
+    if ( combinedSwitches[i] != Arg<T_Char, T_CharTraits, T_Alloc>::blankChar() )
       return false;
         
   return true;
@@ -246,16 +246,16 @@ inline bool SwitchArg<T_Char, T_CharTraits, T_Alloc>::combinedSwitchesMatch(Stri
 {
   // make sure this is actually a combined switch
   if ( combinedSwitches.length() > 0 &&
-       combinedSwitches[0] != Arg::flagStartString()[0] )
+       combinedSwitches[0] != Arg<T_Char, T_CharTraits, T_Alloc>::flagStartString()[0] )
     return false;
 
   // make sure it isn't a long name 
-  if ( combinedSwitches.substr( 0, Arg::nameStartString().length() ) == 
-       Arg::nameStartString() )
+  if ( combinedSwitches.substr( 0, Arg<T_Char, T_CharTraits, T_Alloc>::nameStartString().length() ) ==
+       Arg<T_Char, T_CharTraits, T_Alloc>::nameStartString() )
     return false;
 
   // make sure the delimiter isn't in the string 
-  if ( combinedSwitches.find_first_of(Arg::delimiter()) != StringType::npos)
+  if ( combinedSwitches.find_first_of(Arg<T_Char, T_CharTraits, T_Alloc>::delimiter()) != StringType::npos)
     return false;
 
   // ok, we're not specifying a ValueArg, so we know that we have
@@ -263,13 +263,13 @@ inline bool SwitchArg<T_Char, T_CharTraits, T_Alloc>::combinedSwitchesMatch(Stri
   for ( unsigned int i = 1; i < combinedSwitches.length(); i++ )
     if ( _flag.length() > 0 && 
 	 combinedSwitches[i] == _flag[0] &&
-	 _flag[0] != Arg::flagStartString()[0] ) 
+	 _flag[0] != Arg<T_Char, T_CharTraits, T_Alloc>::flagStartString()[0] )
       {
 	// update the combined switches so this one is no longer present
 	// this is necessary so that no unlabeled args are matched
 	// later in the processing.
 	//combinedSwitches.erase(i,1);
-	combinedSwitches[i] = Arg::blankChar(); 
+	combinedSwitches[i] = Arg<T_Char, T_CharTraits, T_Alloc>::blankChar();
 	return true;
       }
 
@@ -300,7 +300,7 @@ inline void SwitchArg<T_Char, T_CharTraits, T_Alloc>::commonProcessing()
 template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 inline bool SwitchArg<T_Char, T_CharTraits, T_Alloc>::processArg(int *i, StringVectorType& args)
 {
-  if ( _ignoreable && Arg::ignoreRest() )
+  if ( _ignoreable && Arg<T_Char, T_CharTraits, T_Alloc>::ignoreRest() )
     return false;
 
   // if the whole string matches the flag or name string
@@ -333,7 +333,7 @@ inline bool SwitchArg<T_Char, T_CharTraits, T_Alloc>::processArg(int *i, StringV
 template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 inline void SwitchArg<T_Char, T_CharTraits, T_Alloc>::reset()
 {
-  Arg::reset();
+  Arg<T_Char, T_CharTraits, T_Alloc>::reset();
   _value = _default;  
 }
 //////////////////////////////////////////////////////////////////////

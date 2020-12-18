@@ -70,7 +70,7 @@ namespace TCLAP {
 	};
 	template<typename T_Alloc>
 	inline void swap(UseAllocatorBase<T_Alloc>& lhs, UseAllocatorBase<T_Alloc>& rhs) noexcept {
-		if constexpr (AllocatorTraitsType::propagate_on_container_swap::value) {
+		if constexpr (UseAllocatorBase<T_Alloc>::AllocatorTraitsType::propagate_on_container_swap::value) {
 			swap(lhs.getAlloc(), rhs.getAlloc());
 		}
 	}

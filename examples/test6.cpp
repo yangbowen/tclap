@@ -13,7 +13,7 @@ int main(int argc, char** argv)
 	try {
 
 	// Define the command line object.
-	CmdLine cmd("Command description message", ' ', "0.9");
+	CmdLine<> cmd("Command description message", ' ', "0.9");
 
 	vector<string> allowed;
 	allowed.push_back("homer");

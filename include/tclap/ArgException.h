@@ -52,12 +52,14 @@ class ArgException : public std::exception
 			  _errorText(text), 
 			  _argId( id ), 
 			  _typeDescription(td)
-		{ } 
+		{
+			this->_whatStr = _argId + " -- " + _errorText;
+		} 
 		
 		/**
 		 * Destructor.
 		 */
-		virtual ~ArgException() throw() { }
+		virtual ~ArgException() noexcept { }
 
 		/**
 		 * Returns the error text.
@@ -78,11 +80,9 @@ class ArgException : public std::exception
 		/**
 		 * Returns the arg id and error text. 
 		 */
-		const char* what() const throw() 
+		const char* what() const noexcept 
 		{
-			static std::string ex;
-			ex = _argId + " -- " + _errorText;
-			return ex.c_str();
+			return this->_whatStr.c_str();
 		}
 
 		/**
@@ -106,6 +106,11 @@ class ArgException : public std::exception
 		 * The argument related to this exception.
 		 */
 		std::string _argId;
+
+		/**
+		 * The what() string of this exception.
+		 */
+		std::string _whatStr;
 
 		/**
 		 * Describes the type of the exception.  Used to distinguish

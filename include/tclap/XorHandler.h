@@ -168,11 +168,9 @@ inline int XorHandler<T_Char, T_CharTraits, T_Alloc>::check( const ArgType* a )
 template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 inline bool XorHandler<T_Char, T_CharTraits, T_Alloc>::contains( const ArgType* a )
 {
-	for ( int i = 0; static_cast<unsigned int>(i) < _orList.size(); i++ )
-		for ( ArgVectorIteratorType it = _orList[i].begin(); 
-			  it != _orList[i].end(); 
-			  it++ )	
-			if ( a == (*it) )
+	for ( ArgVectorType& orEntry : _orList )
+		for ( const ArgType* const& arg : orEntry )	
+			if ( a == arg )
 				return true;
 
 	return false;

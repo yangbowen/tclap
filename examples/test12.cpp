@@ -46,7 +46,7 @@ struct ArgTraits<Vect3D> {
 
 int main(int argc, char *argv[])
 {
-    CmdLine cmd("Command description message", ' ', "0.9");
+    CmdLine<> cmd("Command description message", ' ', "0.9");
     MultiArg<Vect3D> vec("v", "vect", "vector", 
 			 true, "3D vector", cmd);
     
