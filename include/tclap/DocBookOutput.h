@@ -30,6 +30,7 @@
 #include <iostream>
 #include <algorithm>
 
+#include <tclap/StringConvert.h>
 #include <tclap/CmdLineInterface.h>
 #include <tclap/CmdLineOutput.h>
 #include <tclap/XorHandler.h>
@@ -49,6 +50,7 @@ class DocBookOutput : public CmdLineOutput<T_Char, T_CharTraits, T_Alloc>
 		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CharType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringConvertType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgType;
@@ -83,10 +85,9 @@ class DocBookOutput : public CmdLineOutput<T_Char, T_CharTraits, T_Alloc>
 		 * \param c - The CmdLine object the output is generated for. 
 		 * \param e - The ArgException that caused the failure. 
 		 */
-		virtual void failure(CmdLineInterfaceType& c,
-						     ArgException& e );
+		virtual void failure(CmdLineInterfaceType& c, ArgException<T_Char, T_CharTraits, T_Alloc>& e );
 
-	    DocBookOutput(const AllocatorType& alloc = AllocatorType()) : CmdLineOutput<T_Char, T_CharTraits, T_Alloc>(alloc), theDelimiter('=') {}
+	    DocBookOutput(const AllocatorType& alloc = AllocatorType()) : CmdLineOutput<T_Char, T_CharTraits, T_Alloc>(alloc), theDelimiter(StringConvertType::fromConstBasicChar('=')) {}
 	protected:
 
 		/**
@@ -123,78 +124,65 @@ inline void DocBookOutput<T_Char, T_CharTraits, T_Alloc>::usage(CmdLineInterface
 	const ArgVectorVectorType xorList = xorHandler.getXorList();
 	basename(progName);
 
-	std::cout << "<?xml version='1.0'?>" << std::endl;
-	std::cout << "<!DOCTYPE refentry PUBLIC \"-//OASIS//DTD DocBook XML V4.2//EN\"" << std::endl;
-	std::cout << "\t\"http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd\">" << std::endl << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<?xml version=\"1.0\"?>") << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<!DOCTYPE refentry PUBLIC \"-//OASIS//DTD DocBook XML V4.2//EN\"") << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("\t\"http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd\">") << std::endl << std::endl;
 
-	std::cout << "<refentry>" << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<refentry>") << std::endl;
 
-	std::cout << "<refmeta>" << std::endl;
-	std::cout << "<refentrytitle>" << progName << "</refentrytitle>" << std::endl;
-	std::cout << "<manvolnum>1</manvolnum>" << std::endl;
-	std::cout << "</refmeta>" << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<refmeta>") << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<refentrytitle>") << progName << StringConvertType::fromConstBasicCharString("</refentrytitle>") << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<manvolnum>1</manvolnum>") << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("</refmeta>") << std::endl;
 
-	std::cout << "<refnamediv>" << std::endl;
-	std::cout << "<refname>" << progName << "</refname>" << std::endl;
-	std::cout << "<refpurpose>" << _cmd.getMessage() << "</refpurpose>" << std::endl;
-	std::cout << "</refnamediv>" << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<refnamediv>") << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<refname>") << progName << StringConvertType::fromConstBasicCharString("</refname>") << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<refpurpose>") << _cmd.getMessage() << StringConvertType::fromConstBasicCharString("</refpurpose>") << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("</refnamediv>") << std::endl;
 
-	std::cout << "<refsynopsisdiv>" << std::endl;
-	std::cout << "<cmdsynopsis>" << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<refsynopsisdiv>") << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<cmdsynopsis>") << std::endl;
 
-	std::cout << "<command>" << progName << "</command>" << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<command>") << progName << StringConvertType::fromConstBasicCharString("</command>") << std::endl;
 
 	// xor
-	for ( int i = 0; (unsigned int)i < xorList.size(); i++ )
-	{
-		std::cout << "<group choice='req'>" << std::endl;
-		for ( ArgVectorIteratorType it = xorList[i].begin(); 
-						it != xorList[i].end(); it++ )
-			printShortArg((*it));
-
-		std::cout << "</group>" << std::endl;
+	for (const ArgVectorType& xorEntry : xorList) 	{
+		std::cout << StringConvertType::fromConstBasicCharString("<group choice=\"req\">") << std::endl;
+		for (const ArgType* const& arg : xorEntry) printShortArg(arg);
+		std::cout << StringConvertType::fromConstBasicCharString("</group>") << std::endl;
 	}
-
 	// rest of args
-	for (ArgListIteratorType it = argList.begin(); it != argList.end(); it++)
-		if ( !xorHandler.contains( (*it) ) )
-			printShortArg((*it));
+	for (const ArgType* const& arg : argList) if (!xorHandler.contains(arg)) printShortArg(arg);
 
- 	std::cout << "</cmdsynopsis>" << std::endl;
-	std::cout << "</refsynopsisdiv>" << std::endl;
+ 	std::cout << StringConvertType::fromConstBasicCharString("</cmdsynopsis>") << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("</refsynopsisdiv>") << std::endl;
 
-	std::cout << "<refsect1>" << std::endl;
-	std::cout << "<title>Description</title>" << std::endl;
-	std::cout << "<para>" << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<refsect1>") << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<title>Description</title>") << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<para>") << std::endl;
 	std::cout << _cmd.getMessage() << std::endl; 
-	std::cout << "</para>" << std::endl;
-	std::cout << "</refsect1>" << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("</para>") << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("</refsect1>") << std::endl;
 
-	std::cout << "<refsect1>" << std::endl;
-	std::cout << "<title>Options</title>" << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<refsect1>") << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<title>Options</title>") << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<variablelist>") << std::endl;	
+	for (const ArgType* const& arg : argList) printLongArg(arg);
+	std::cout << StringConvertType::fromConstBasicCharString("</variablelist>") << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("</refsect1>") << std::endl;
 
-	std::cout << "<variablelist>" << std::endl;
-	
-	for (ArgListIteratorType it = argList.begin(); it != argList.end(); it++)
-		printLongArg((*it));
-
-	std::cout << "</variablelist>" << std::endl;
-	std::cout << "</refsect1>" << std::endl;
-
-	std::cout << "<refsect1>" << std::endl;
-	std::cout << "<title>Version</title>" << std::endl;
-	std::cout << "<para>" << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<refsect1>") << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<title>Version</title>") << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<para>") << std::endl;
 	std::cout << xversion << std::endl; 
-	std::cout << "</para>" << std::endl;
-	std::cout << "</refsect1>" << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("</para>") << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("</refsect1>") << std::endl;
 	
-	std::cout << "</refentry>" << std::endl;
-
+	std::cout << StringConvertType::fromConstBasicCharString("</refentry>") << std::endl;
 }
 
 template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline void DocBookOutput<T_Char, T_CharTraits, T_Alloc>::failure( CmdLineInterfaceType& _cmd,
-				    ArgException& e ) 
+inline void DocBookOutput<T_Char, T_CharTraits, T_Alloc>::failure( CmdLineInterfaceType& _cmd, ArgException<T_Char, T_CharTraits, T_Alloc>& e )
 { 
 	static_cast<void>(_cmd); // unused
 	std::cout << e.what() << std::endl;
@@ -227,7 +215,7 @@ inline void DocBookOutput<T_Char, T_CharTraits, T_Alloc>::removeChar( StringType
 template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 inline void DocBookOutput<T_Char, T_CharTraits, T_Alloc>::basename( StringType& s )
 {
-	size_t p = s.find_last_of('/');
+	size_t p = s.find_last_of(StringConvertType::fromConstBasicChar('/'));
 	if ( p != StringType::npos )
 	{
 		s.erase(0, p + 1);
@@ -237,25 +225,22 @@ inline void DocBookOutput<T_Char, T_CharTraits, T_Alloc>::basename( StringType& 
 template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 inline void DocBookOutput<T_Char, T_CharTraits, T_Alloc>::printShortArg(ArgType* a)
 {
-	StringType lt = "&lt;"; 
-	StringType gt = "&gt;"; 
+	StringType lt = StringConvertType::fromConstBasicCharString("&lt;");
+	StringType gt = StringConvertType::fromConstBasicCharString("&gt;");
 
 	StringType id = a->shortID();
-	substituteSpecialChars(id,'<',lt);
-	substituteSpecialChars(id,'>',gt);
-	removeChar(id,'[');
-	removeChar(id,']');
+	substituteSpecialChars(id, StringConvertType::fromConstBasicChar('<'),lt);
+	substituteSpecialChars(id, StringConvertType::fromConstBasicChar('>'),gt);
+	removeChar(id, StringConvertType::fromConstBasicChar('['));
+	removeChar(id, StringConvertType::fromConstBasicChar(']'));
 	
-	StringType choice = "opt";
-	if ( a->isRequired() )
-		choice = "plain";
+	StringType choice = StringConvertType::fromConstBasicCharString("opt");
+	if ( a->isRequired() ) choice = StringConvertType::fromConstBasicCharString("plain");
 
-	std::cout << "<arg choice='" << choice << '\'';
-	if ( a->acceptsMultipleValues() )
-		std::cout << " rep='repeat'";
+	std::cout << StringConvertType::fromConstBasicCharString("<arg choice=\"") << choice << StringConvertType::fromConstBasicChar('\"');
+	if ( a->acceptsMultipleValues() ) std::cout << StringConvertType::fromConstBasicCharString(" rep=\"repeat\"");
 
-
-	std::cout << '>';
+	std::cout << StringConvertType::fromConstBasicChar('>');
 	if ( !a->getFlag().empty() )
 		std::cout << a->flagStartChar() << a->getFlag();
 	else
@@ -263,65 +248,65 @@ inline void DocBookOutput<T_Char, T_CharTraits, T_Alloc>::printShortArg(ArgType*
 	if ( a->isValueRequired() )
 	{
 		StringType arg = a->shortID();
-		removeChar(arg,'[');
-		removeChar(arg,']');
-		removeChar(arg,'<');
-		removeChar(arg,'>');
-		removeChar(arg,'.');
+		removeChar(arg, StringConvertType::fromConstBasicChar('['));
+		removeChar(arg, StringConvertType::fromConstBasicChar(']'));
+		removeChar(arg, StringConvertType::fromConstBasicChar('<'));
+		removeChar(arg, StringConvertType::fromConstBasicChar('>'));
+		removeChar(arg, StringConvertType::fromConstBasicChar('.'));
 		arg.erase(0, arg.find_last_of(theDelimiter) + 1);
 		std::cout << theDelimiter;
-		std::cout << "<replaceable>" << arg << "</replaceable>";
+		std::cout << StringConvertType::fromConstBasicCharString("<replaceable>") << arg << StringConvertType::fromConstBasicCharString("</replaceable>");
 	}
-	std::cout << "</arg>" << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("</arg>") << std::endl;
 
 }
 
 template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 inline void DocBookOutput<T_Char, T_CharTraits, T_Alloc>::printLongArg(ArgType* a)
 {
-	StringType lt = "&lt;"; 
-	StringType gt = "&gt;"; 
+	StringType lt = StringConvertType::fromConstBasicCharString("&lt;");
+	StringType gt = StringConvertType::fromConstBasicCharString("&gt;");
 
 	StringType desc = a->getDescription();
-	substituteSpecialChars(desc,'<',lt);
-	substituteSpecialChars(desc,'>',gt);
+	substituteSpecialChars(desc, StringConvertType::fromConstBasicChar('<'),lt);
+	substituteSpecialChars(desc, StringConvertType::fromConstBasicChar('>'),gt);
 
-	std::cout << "<varlistentry>" << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<varlistentry>") << std::endl;
 
 	if ( !a->getFlag().empty() )
 	{
-		std::cout << "<term>" << std::endl;
-		std::cout << "<option>";
+		std::cout << StringConvertType::fromConstBasicCharString("<term>") << std::endl;
+		std::cout << StringConvertType::fromConstBasicCharString("<option>") << std::endl;
 		std::cout << a->flagStartChar() << a->getFlag();
-		std::cout << "</option>" << std::endl;
-		std::cout << "</term>" << std::endl;
+		std::cout << StringConvertType::fromConstBasicCharString("</option>") << std::endl;
+		std::cout << StringConvertType::fromConstBasicCharString("</term>") << std::endl;
 	}
 
-	std::cout << "<term>" << std::endl;
-	std::cout << "<option>";
+	std::cout << StringConvertType::fromConstBasicCharString("<term>") << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<option>");
 	std::cout << a->nameStartString() << a->getName();
 	if ( a->isValueRequired() )
 	{
 		StringType arg = a->shortID();
-		removeChar(arg,'[');
-		removeChar(arg,']');
-		removeChar(arg,'<');
-		removeChar(arg,'>');
-		removeChar(arg,'.');
+		removeChar(arg, StringConvertType::fromConstBasicChar('['));
+		removeChar(arg, StringConvertType::fromConstBasicChar(']'));
+		removeChar(arg, StringConvertType::fromConstBasicChar('<'));
+		removeChar(arg, StringConvertType::fromConstBasicChar('>'));
+		removeChar(arg, StringConvertType::fromConstBasicChar('.'));
 		arg.erase(0, arg.find_last_of(theDelimiter) + 1);
 		std::cout << theDelimiter;
-		std::cout << "<replaceable>" << arg << "</replaceable>";
+		std::cout << StringConvertType::fromConstBasicCharString("<replaceable>") << arg << StringConvertType::fromConstBasicCharString("</replaceable>");
 	}
-	std::cout << "</option>" << std::endl;
-	std::cout << "</term>" << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("</option>") << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("</term>") << std::endl;
 
-	std::cout << "<listitem>" << std::endl;
-	std::cout << "<para>" << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<listitem>") << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("<para>") << std::endl;
 	std::cout << desc << std::endl;
-	std::cout << "</para>" << std::endl;
-	std::cout << "</listitem>" << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("</para>") << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("</listitem>") << std::endl;
 
-	std::cout << "</varlistentry>" << std::endl;
+	std::cout << StringConvertType::fromConstBasicCharString("</varlistentry>") << std::endl;
 }
 
 } //namespace TCLAP

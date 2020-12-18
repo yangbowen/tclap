@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 
+#include <tclap/StringConvert.h>
 #include <tclap/Arg.h>
 #include <tclap/Constraint.h>
 
@@ -52,6 +53,7 @@ public:
 	using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
 	using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharType;
 	using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
+	using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringConvertType;
 	using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringType;
 	using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
 	using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgType;
@@ -233,13 +235,13 @@ public:
 	 * Returns the a short id string.  Used in the usage. 
 	 * \param val - value to be used.
 	 */
-	virtual StringType shortID(const StringType& val="val") const;
+	virtual StringType shortID(const StringType& val = StringConvertType::fromConstBasicCharString("val")) const;
 
 	/**
 	 * Returns the a long id string.  Used in the usage. 
 	 * \param val - value to be used.
 	 */
-	virtual StringType longID(const StringType& val="val") const;
+	virtual StringType longID(const StringType& val = StringConvertType::fromConstBasicCharString("val")) const;
 
 	/**
 	 * Once we've matched the first value, then the arg is no longer
@@ -385,10 +387,8 @@ bool MultiArg<T, T_Char, T_CharTraits, T_Alloc>::processArg(int *i, StringVector
 
    	if ( argMatches( flag ) )
    	{
-   		if ( Arg<T_Char, T_CharTraits, T_Alloc>::delimiter() != ' ' && value.empty() )
-			throw( ArgParseException( 
-			           "Couldn't find delimiter for this argument!",
-					   toString() ) );
+   		if ( Arg<T_Char, T_CharTraits, T_Alloc>::delimiter() != StringConvertType::fromConstBasicChar(' ') && value.empty() )
+			throw( ArgParseException<T_Char, T_CharTraits, T_Alloc>( StringConvertType::fromConstBasicCharString("Couldn't find delimiter for this argument!"), toString() ) );
 
 		// always take the first one, regardless of start string
 		if ( value.empty() )
@@ -397,8 +397,7 @@ bool MultiArg<T, T_Char, T_CharTraits, T_Alloc>::processArg(int *i, StringVector
 			if ( static_cast<unsigned int>(*i) < args.size() )
 				_extractValue( args[*i] );
 			else
-				throw( ArgParseException("Missing a value for this argument!",
-                                         toString() ) );
+				throw( ArgParseException<T_Char, T_CharTraits, T_Alloc>( StringConvertType::fromConstBasicCharString("Missing a value for this argument!"), toString() ) );
 		} 
 		else
 			_extractValue( value );
@@ -427,7 +426,7 @@ template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
 auto MultiArg<T, T_Char, T_CharTraits, T_Alloc>::shortID(const StringType& val) const -> StringType
 {
 	static_cast<void>(val); // Ignore input, don't warn
-	return Arg<T_Char, T_CharTraits, T_Alloc>::shortID(_typeDesc) + " ...";
+	return Arg<T_Char, T_CharTraits, T_Alloc>::shortID(_typeDesc) + StringConvertType::fromConstBasicCharString(" ...");
 }
 
 /**
@@ -437,7 +436,7 @@ template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
 auto MultiArg<T, T_Char, T_CharTraits, T_Alloc>::longID(const StringType& val) const -> StringType
 {
 	static_cast<void>(val); // Ignore input, don't warn
-	return Arg<T_Char, T_CharTraits, T_Alloc>::longID(_typeDesc) + "  (accepted multiple times)";
+	return Arg<T_Char, T_CharTraits, T_Alloc>::longID(_typeDesc) + StringConvertType::fromConstBasicCharString("  (accepted multiple times)");
 }
 
 /**
@@ -466,16 +465,16 @@ void MultiArg<T, T_Char, T_CharTraits, T_Alloc>::_extractValue( const StringType
 	T tmp;
 	ExtractValue(tmp, val, typename ArgTraits<T>::ValueCategory());
 	_values.push_back(tmp);
-    } catch( ArgParseException &e) {
-	throw ArgParseException(e.error(), toString());
+    } catch( ArgParseException<T_Char, T_CharTraits, T_Alloc>& e ) {
+	throw ArgParseException<T_Char, T_CharTraits, T_Alloc>(e.error(), toString());
     }
 
     if ( _constraint != NULL )
 	if ( ! _constraint->check( _values.back() ) )
-	    throw( CmdLineParseException( "Value '" + val +
-					  "' does not meet constraint: " +
-					  _constraint->description(), 
-					  toString() ) );
+	    throw(CmdLineParseException<T_Char, T_CharTraits, T_Alloc>(
+			StringConvertType::fromConstBasicCharString("Value \'") + val + StringConvertType::fromConstBasicCharString("\' does not meet constraint: ") + _constraint->description(),
+			toString()
+		));
 }
 
 template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>

@@ -19,7 +19,7 @@ struct Vect3D {
 std::istream &operator>>(std::istream &is, Vect3D &v)
 {
     if (!(is >> v.v[0] >> v.v[1] >> v.v[2]))
-	throw TCLAP::ArgParseException(" Argument is not a 3D vector");
+	throw TCLAP::ArgParseException<>(" Argument is not a 3D vector");
 
     return is;
 }
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 
     try {
 	cmd.parse(argc, argv);
-    } catch(std::exception &e) {
+    } catch(std::exception& e) {
 	std::cout << e.what() << std::endl;
 	return EXIT_FAILURE;
     }

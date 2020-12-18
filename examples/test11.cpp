@@ -16,7 +16,7 @@ struct Vect3D {
     {
 	std::istringstream iss(str);
 	if (!(iss >> v[0] >> v[1] >> v[2]))
-	    throw TCLAP::ArgParseException(str + " is not a 3D vector");
+	    throw TCLAP::ArgParseException<>(str + " is not a 3D vector");
 
 	return *this;
     }
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     
     try {
 	cmd.parse(argc, argv);
-    } catch(std::exception &e) {
+    } catch(std::exception& e) {
 	std::cout << e.what() << std::endl;
 	return EXIT_FAILURE;
     }

@@ -51,9 +51,7 @@ template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 inline void OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check( bool req, const StringType& argName )
 {
     if ( OptionalUnlabeledTracker::alreadyOptional() )
-        throw( SpecificationException(
-	"You can't specify ANY Unlabeled Arg following an optional Unlabeled Arg",
-	                argName ) );
+        throw( SpecificationException<T_Char, T_CharTraits, T_Alloc>( StringConvertType::fromConstBasicCharString("You can't specify ANY Unlabeled Arg following an optional Unlabeled Arg"), argName ) );
 
     if ( !req )
         OptionalUnlabeledTracker::gotOptional();

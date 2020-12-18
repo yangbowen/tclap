@@ -34,6 +34,8 @@
 #include <string>
 #include <vector>
 #include <sstream>
+
+#include <tclap/StringConvert.h>
 #include <tclap/Constraint.h>
 
 namespace TCLAP {
@@ -53,6 +55,7 @@ class ValuesConstraint : public Constraint<T, T_Char, T_CharTraits, T_Alloc>
 		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
 		using typename Constraint<T, T_Char, T_CharTraits, T_Alloc>::CharType;
 		using typename Constraint<T, T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
+		using typename Constraint<T, T_Char, T_CharTraits, T_Alloc>::StringConvertType;
 		using typename Constraint<T, T_Char, T_CharTraits, T_Alloc>::StringType;
 		using typename Constraint<T, T_Char, T_CharTraits, T_Alloc>::StringVectorType;
 		using container_type = std::vector<T, typename std::allocator_traits<AllocatorType>::template rebind_alloc<T>>;
@@ -115,7 +118,7 @@ ValuesConstraint<T, T_Char, T_CharTraits, T_Alloc>::ValuesConstraint(const conta
         StringType temp( os.str() ); 
 
         if ( i > 0 )
-			_typeDesc += "|";
+			_typeDesc += StringConvertType::fromConstBasicCharString("|");
         _typeDesc += temp;
     }
 }

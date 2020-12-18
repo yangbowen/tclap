@@ -24,6 +24,6 @@ int main(int argc, char** argv)
     // Parse the args.
     cmd.parse( argc, argv );
 
-    } catch (ArgException &e)  // catch any exceptions
+    } catch (ArgException<>& e)  // catch any exceptions
     { cerr << "error: " << e.error() << " for arg " << e.argId() << endl; }
 }

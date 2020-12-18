@@ -426,6 +426,7 @@ namespace TCLAP {
 	template<typename T, typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>> void
 	ExtractValue(T& destVal, const std::basic_string<T_Char, T_CharTraits, T_Alloc>& strVal, ValueLike vl) {
 		static_cast<void>(vl); // Avoid warning about unused vl
+		using StringConvertType = StringConvert<T_Char, T_CharTraits>;
 		std::basic_istringstream<T_Char, T_CharTraits, T_Alloc> is(strVal.c_str());
 
 		int valuesRead = 0;
@@ -443,11 +444,11 @@ namespace TCLAP {
 		}
 
 		if (is.fail())
-			throw(ArgParseException("Couldn\'t read argument value from string \'" + StringConvert<T_Char, T_CharTraits>::toExceptionDescription(strVal) + "\'"));
+			throw(ArgParseException<T_Char, T_CharTraits, T_Alloc>(StringConvertType::fromConstBasicCharString("Couldn\'t read argument value from string \'") + strVal + StringConvertType::fromConstBasicCharString("\'")));
 
 
 		if (valuesRead > 1)
-			throw(ArgParseException("More than one valid value parsed from string \'" + StringConvert<T_Char, T_CharTraits>::toExceptionDescription(strVal) + "\'"));
+			throw(ArgParseException<T_Char, T_CharTraits, T_Alloc>(StringConvertType::fromConstBasicCharString("More than one valid value parsed from string \'") + strVal + StringConvertType::fromConstBasicCharString("\'")));
 
 	}
 
@@ -488,24 +489,28 @@ namespace TCLAP {
 		_xorSet(false),
 		_acceptsMultipleValues(false) {
 		if (_flag.length() > 1)
-			throw(SpecificationException("Argument flag can only be one character long", StringConvertType::toExceptionDescription(toString())));
+			throw(SpecificationException<T_Char, T_CharTraits, T_Alloc>("Argument flag can only be one character long", toString()));
 
 		if (_name != ignoreNameString() &&
 			(_flag == Arg::flagStartString() ||
 				_flag == Arg::nameStartString() ||
 				_flag == " "))
-			throw(SpecificationException("Argument flag cannot be either '" +
-				StringConvertType::toExceptionDescription(Arg::flagStartString()) + "' or '" +
-				StringConvertType::toExceptionDescription(Arg::nameStartString()) + "' or a space.",
-				StringConvertType::toExceptionDescription(toString())));
+			throw(SpecificationException<T_Char, T_CharTraits, T_Alloc>(
+				StringConvertType::fromConstBasicCharString("Argument flag cannot be either '") +
+				Arg::flagStartString() + StringConvertType::fromConstBasicCharString("' or '") +
+				Arg::nameStartString() + StringConvertType::fromConstBasicCharString("' or a space."),
+				toString()
+			));
 
 		if ((_name.substr(0, Arg::flagStartString().length()) == Arg::flagStartString()) ||
 			(_name.substr(0, Arg::nameStartString().length()) == Arg::nameStartString()) ||
 			(_name.find(" ", 0) != StringType::npos))
-			throw(SpecificationException("Argument name begin with either '" +
-				StringConvertType::toExceptionDescription(Arg::flagStartString()) + "' or '" +
-				StringConvertType::toExceptionDescription(Arg::nameStartString()) + "' or space.",
-				StringConvertType::toExceptionDescription(toString())));
+			throw(SpecificationException<T_Char, T_CharTraits, T_Alloc>(
+				StringConvertType::fromConstBasicCharString("Argument name begin with either '") +
+				Arg::flagStartString() + StringConvertType::fromConstBasicCharString("' or '") +
+				Arg::nameStartString() + StringConvertType::fromConstBasicCharString("' or space."),
+				toString()
+			));
 
 	}
 

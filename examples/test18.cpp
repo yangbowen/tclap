@@ -18,10 +18,10 @@ int main(int argc, char** argv)
 
 		cmd.parse(argc, argv);
 
-	} catch (ArgException &e) { // catch any exceptions
+	} catch (ArgException<>& e) { // catch any exceptions
 		cerr << "error: " << e.error() << " for arg " << e.argId() << endl;
 		return 1;
-	} catch (ExitException &e) { // catch any exceptions
+	} catch (ExitException& e) { // catch any exceptions
 		cerr << "Exiting on ExitException." << endl;
 		return e.getExitStatus();
 	}

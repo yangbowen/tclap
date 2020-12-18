@@ -52,7 +52,7 @@ int main(int argc, char** argv)
 	if ( word.isSet() )
 		cout << "Word: " << word.getValue() << endl;
 
-	} catch (ArgException &e)  // catch any exceptions
+	} catch (ArgException<>& e)  // catch any exceptions
 	{ cerr << "error: " << e.error() << " for arg " << e.argId() << endl; }
 }
 

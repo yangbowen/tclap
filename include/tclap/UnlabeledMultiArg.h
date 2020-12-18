@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 
+#include <tclap/StringConvert.h>
 #include <tclap/MultiArg.h>
 #include <tclap/OptionalUnlabeledTracker.h>
 
@@ -50,6 +51,7 @@ class UnlabeledMultiArg : public MultiArg<T, T_Char, T_CharTraits, T_Alloc>
 		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringConvertType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgType;
@@ -215,13 +217,13 @@ class UnlabeledMultiArg : public MultiArg<T, T_Char, T_CharTraits, T_Alloc>
 		 * Returns the a short id string.  Used in the usage.
 		 * \param val - value to be used.
 		 */
-		virtual StringType shortID(const StringType& val="val") const;
+		virtual StringType shortID(const StringType& val = StringConvertType::fromConstBasicCharString("val")) const;
 
 		/**
 		 * Returns the a long id string.  Used in the usage.
 		 * \param val - value to be used.
 		 */
-		virtual StringType longID(const StringType& val="val") const;
+		virtual StringType longID(const StringType& val = StringConvertType::fromConstBasicCharString("val")) const;
 
 		/**
 		 * Operator ==.
@@ -346,14 +348,14 @@ template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
 auto UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::shortID(const StringType& val) const -> StringType
 {
 	static_cast<void>(val); // Ignore input, don't warn
-	return StringType("<") + _typeDesc + "> ...";
+	return StringConvertType::fromConstBasicCharString("<") + _typeDesc + StringConvertType::fromConstBasicCharString("> ...");
 }
 
 template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
 auto UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::longID(const StringType& val) const -> StringType
 {
 	static_cast<void>(val); // Ignore input, don't warn
-	return StringType("<") + _typeDesc + ">  (accepted multiple times)";
+	return StringConvertType::fromConstBasicCharString("<") + _typeDesc + StringConvertType::fromConstBasicCharString(">  (accepted multiple times)");
 }
 
 template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>

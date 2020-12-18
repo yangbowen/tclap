@@ -92,7 +92,7 @@ namespace TCLAP {
 		StringConvert(const StringConvert& rhs) = delete;
 		StringConvert& operator=(const StringConvert& rhs) = delete;
 		static std::string toExceptionDescription(const StringViewType& strview);
-		static T_Char fromConstBasicChar(char ch_basic_from) {
+		static constexpr T_Char fromConstBasicChar(char ch_basic_from) {
 			T_Char ch_basic_to{};
 			if (ch_basic_from != char{}) {
 				ch_basic_to = mappingFromBasicChar<T_Char>[static_cast<unsigned char>(ch_basic_from)];
@@ -102,7 +102,7 @@ namespace TCLAP {
 			return ch_basic_to;
 		}
 		template<std::size_t size_arr_basic_from>
-		static std::array<T_Char, size_arr_basic_from - 1> fromConstBasicCharArray(const char(&arr_basic_from)[size_arr_basic_from]) {
+		static constexpr std::array<T_Char, size_arr_basic_from - 1> fromConstBasicCharArray(const char(&arr_basic_from)[size_arr_basic_from]) {
 			std::array<T_Char, size_arr_basic_from - 1> arr_str_to;
 			for (std::size_t i = 0; i < size_arr_basic_from - 1; ++i) {
 				T_Char ch_basic_to{};

@@ -45,7 +45,7 @@ int main()
       std::cout << "MultiSwtichArg was found " << ArgMultiSwitch.getValue() << " times.\n";
 
    }
-   catch (ArgException &e)  // catch any exceptions
+   catch (ArgException<>& e)  // catch any exceptions
    {
       std::cerr << "error: " << e.error() << " for arg " << e.argId() << std::endl;
    }

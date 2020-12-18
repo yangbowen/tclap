@@ -32,6 +32,7 @@
 #include <iostream>
 #include <algorithm>
 
+#include <tclap/StringConvert.h>
 #include <tclap/UseAllocatorBase.h>
 
 namespace TCLAP {
@@ -58,6 +59,7 @@ class CmdLineInterface : public UseAllocatorBase<T_Alloc>
 		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
 		using CharType = T_Char;
 		using CharTraitsType = T_CharTraits;
+		using StringConvertType = StringConvert<T_Char, T_CharTraits>;
 		using StringType = std::basic_string<T_Char, T_CharTraits, T_Alloc>;
 		using StringVectorType = std::vector<StringType, typename std::allocator_traits<AllocatorType>::template rebind_alloc<StringType>>;
 		using ArgType = Arg<T_Char, T_CharTraits, T_Alloc>;

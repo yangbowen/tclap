@@ -33,7 +33,7 @@ int main(int argc, char** argv)
 	int _intTest = itest.getValue();
 	cout << "found int: " << _intTest << endl;
 
-	} catch ( ArgException& e )
+	} catch ( ArgException<>& e )
 	{ cout << "ERROR: " << e.error() << " " << e.argId() << endl; }
 }
 

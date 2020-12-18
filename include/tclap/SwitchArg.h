@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 
+#include <tclap/StringConvert.h>
 #include <tclap/Arg.h>
 
 namespace TCLAP {
@@ -49,6 +50,7 @@ public:
     using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
     using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharType;
     using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
+    using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringConvertType;
     using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringType;
     using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
     using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgType;
@@ -281,11 +283,10 @@ template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 inline void SwitchArg<T_Char, T_CharTraits, T_Alloc>::commonProcessing()
 {
   if ( _xorSet )
-    throw(CmdLineParseException(
-				"Mutually exclusive argument already set!", toString()));
+    throw(CmdLineParseException<T_Char, T_CharTraits, T_Alloc>(StringConvertType::fromConstBasicCharString("Mutually exclusive argument already set!"), toString()));
 
   if ( _alreadySet ) 
-    throw(CmdLineParseException("Argument already set!", toString()));
+    throw(CmdLineParseException<T_Char, T_CharTraits, T_Alloc>(StringConvertType::fromConstBasicCharString("Argument already set!"), toString()));
 
   _alreadySet = true;
 
@@ -316,8 +317,7 @@ inline bool SwitchArg<T_Char, T_CharTraits, T_Alloc>::processArg(int *i, StringV
       // check again to ensure we don't misinterpret 
       // this as a MultiSwitchArg 
       if ( combinedSwitchesMatch( args[*i] ) )
-	throw(CmdLineParseException("Argument already set!", 
-				    toString()));
+	throw(CmdLineParseException<T_Char, T_CharTraits, T_Alloc>(StringConvertType::fromConstBasicCharString("Argument already set!"), toString()));
 
       commonProcessing();
 

@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
                                                "3D vector", cmd);
     try {
 	cmd.parse(argc, argv);
-    } catch(std::exception &e) {
+    } catch(std::exception& e) {
 	std::cout << e.what() << std::endl;
 	return EXIT_FAILURE;
     }

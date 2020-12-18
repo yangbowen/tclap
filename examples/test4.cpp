@@ -18,7 +18,7 @@ class MyOutput : public StdOutput<>
 {
 	public:
 
-		virtual void failure(CmdLineInterface<>& c, ArgException& e)
+		virtual void failure(CmdLineInterface<>& c, ArgException<>& e)
 		{
 			static_cast<void>(c); // Ignore input, don't warn
 			cerr << "my failure message: " << endl
@@ -100,7 +100,7 @@ void parseOptions(int argc, char** argv)
 	_boolTestA = atest.getValue();
 
 
-	} catch ( ArgException& e )
+	} catch ( ArgException<>& e )
 	{ cout << "ERROR: " << e.error() << " " << e.argId() << endl; }
 }
 

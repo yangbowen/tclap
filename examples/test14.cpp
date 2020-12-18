@@ -20,14 +20,14 @@ struct Vect : public TCLAP::StringLikeTrait {
                 if (!(iss >> v[n])) {
                     std::ostringstream oss;
                     oss << " is not a vector of size " << LEN;
-                    throw TCLAP::ArgParseException(str + oss.str());
+                    throw TCLAP::ArgParseException<>(str + oss.str());
                 }
             }
 
             if (!iss.eof()) {
                 std::ostringstream oss;
                 oss << " is not a vector of size " << LEN;
-                throw TCLAP::ArgParseException(str + oss.str());
+                throw TCLAP::ArgParseException<>(str + oss.str());
             }
 
             return *this;
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 
     try {
 	cmd.parse(argc, argv);
-    } catch(std::exception &e) {
+    } catch(std::exception& e) {
 	std::cout << e.what() << std::endl;
 	return EXIT_FAILURE;
     }

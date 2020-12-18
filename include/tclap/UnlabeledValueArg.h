@@ -30,6 +30,7 @@
 #include <string>
 #include <vector>
 
+#include <tclap/StringConvert.h>
 #include <tclap/ValueArg.h>
 #include <tclap/OptionalUnlabeledTracker.h>
 
@@ -53,6 +54,7 @@ class UnlabeledValueArg : public ValueArg<T, T_Char, T_CharTraits, T_Alloc>
 		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringConvertType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgType;
@@ -236,12 +238,12 @@ class UnlabeledValueArg : public ValueArg<T, T_Char, T_CharTraits, T_Alloc>
 		/**
 		 * Overrides shortID for specific behavior.
 		 */
-		virtual StringType shortID(const StringType& val="val") const;
+		virtual StringType shortID(const StringType& val = StringConvertType::fromConstBasicCharString("val")) const;
 
 		/**
 		 * Overrides longID for specific behavior.
 		 */
-		virtual StringType longID(const StringType& val="val") const;
+		virtual StringType longID(const StringType& val = StringConvertType::fromConstBasicCharString("val")) const;
 
 		/**
 		 * Overrides operator== for specific behavior.
@@ -373,7 +375,7 @@ template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
 auto UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::shortID(const StringType& val) const -> StringType
 {
 	static_cast<void>(val); // Ignore input, don't warn
-	return StringType("<") + _typeDesc + ">";
+	return StringConvertType::fromConstBasicCharString("<") + _typeDesc + StringConvertType::fromConstBasicCharString(">");
 }
 
 /**
@@ -387,7 +389,7 @@ auto UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::longID(const StringTyp
 	// Ideally we would like to be able to use RTTI to return the name
 	// of the type required for this argument.  However, g++ at least, 
 	// doesn't appear to return terribly useful "names" of the types.  
-	return StringType("<") + _typeDesc + ">";
+	return StringConvertType::fromConstBasicCharString("<") + _typeDesc + StringConvertType::fromConstBasicCharString(">");
 }
 
 /**

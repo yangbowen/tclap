@@ -1,25 +1,25 @@
 // -*- Mode: c++; c-basic-offset: 4; tab-width: 4; -*-
 
-/****************************************************************************** 
- * 
+/******************************************************************************
+ *
  *  file:  ArgException.h
- * 
+ *
  *  Copyright (c) 2003, Michael E. Smoot .
  *  Copyright (c) 2017 Google LLC
  *  All rights reserved.
- * 
+ *
  *  See the file COPYING in the top directory of this distribution for
  *  more information.
- *  
- *  THE SOFTWARE IS PROVIDED _AS IS_, WITHOUT WARRANTY OF ANY KIND, EXPRESS 
- *  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
- *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
- *  DEALINGS IN THE SOFTWARE.  
- *  
- *****************************************************************************/ 
+ *
+ *  THE SOFTWARE IS PROVIDED _AS IS_, WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ *  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ *  DEALINGS IN THE SOFTWARE.
+ *
+ *****************************************************************************/
 
 
 #ifndef TCLAP_ARG_EXCEPTION_H
@@ -28,16 +28,33 @@
 #include <string>
 #include <exception>
 
-namespace TCLAP {
+#include <tclap/StringConvert.h>
+#include <tclap/UseAllocatorBase.h>
 
-/**
- * A simple class that defines and argument exception.  Should be caught
- * whenever a CmdLine is created and parsed.
- */
-class ArgException : public std::exception
-{
+namespace TCLAP {
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	class ArgException;
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	class ArgParseException;
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	class CmdLineParseException;
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	class SpecificationException;
+
+	/**
+	 * A simple class that defines and argument exception.  Should be caught
+	 * whenever a CmdLine is created and parsed.
+	 */
+	template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
+	class ArgException : public UseAllocatorBase<T_Alloc>, public std::exception {
 	public:
-	
+		using typename UseAllocatorBase<T_Alloc>::AllocatorType;
+		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
+		using CharType = T_Char;
+		using CharTraitsType = T_CharTraits;
+		using StringConvertType = StringConvert<T_Char, T_CharTraits>;
+		using StringType = std::basic_string<T_Char, T_CharTraits, T_Alloc>;
+
 		/**
 		 * Constructor.
 		 * \param text - The text of the exception.
@@ -45,160 +62,156 @@ class ArgException : public std::exception
 		 * \param td - Text describing the type of ArgException it is.
 		 * of the exception.
 		 */
-		ArgException( const std::string& text = "undefined exception", 
-					  const std::string& id = "undefined",
-					  const std::string& td = "Generic ArgException")
-			: std::exception(), 
-			  _errorText(text), 
-			  _argId( id ), 
-			  _typeDescription(td)
-		{
-			this->_whatStr = _argId + " -- " + _errorText;
-		} 
-		
+		ArgException(const StringType& text = StringConvertType::fromConstBasicCharString("undefined exception"), const StringType& id = StringType())
+			: ArgException(text, id, StringConvertType::fromConstBasicCharString("Generic ArgException")) {
+		}
+
 		/**
 		 * Destructor.
 		 */
-		virtual ~ArgException() noexcept { }
+		virtual ~ArgException() noexcept {}
 
 		/**
 		 * Returns the error text.
 		 */
-		std::string error() const { return ( _errorText ); }
+		StringType error() const { return this->_errorText; }
 
 		/**
 		 * Returns the argument id.
 		 */
-		std::string argId() const
-		{ 
-			if ( _argId == "undefined" )
-				return " ";
+		StringType argId() const {
+			if (this->_argId.empty())
+				return StringConvertType::fromConstBasicCharString(" ");
 			else
-				return ( "Argument: " + _argId ); 
-		}
-
-		/**
-		 * Returns the arg id and error text. 
-		 */
-		const char* what() const noexcept 
-		{
-			return this->_whatStr.c_str();
+				return StringConvertType::fromConstBasicCharString("Argument: ") + this->_argId;
 		}
 
 		/**
 		 * Returns the type of the exception.  Used to explain and distinguish
 		 * between different child exceptions.
 		 */
-		std::string typeDescription() const
-		{
-			return _typeDescription; 
+		StringType typeDescription() const {
+			return this->_typeDescription;
 		}
 
+	protected:
+		/**
+		 * Constructor.
+		 * \param text - The text of the exception.
+		 * \param id - The text identifying the argument source.
+		 * \param td - Text describing the type of ArgException it is.
+		 * of the exception.
+		 */
+		ArgException(const StringType& text, const StringType& id, const StringType& td)
+			: std::exception(StringConvertType::toExceptionDescription(id + StringType(" -- ") + text).c_str()),
+			_errorText(text),
+			_argId(id),
+			_typeDescription(td) {
+		}
 
 	private:
-
 		/**
 		 * The text of the exception message.
 		 */
-		std::string _errorText;
+		StringType _errorText;
 
 		/**
 		 * The argument related to this exception.
 		 */
-		std::string _argId;
-
-		/**
-		 * The what() string of this exception.
-		 */
-		std::string _whatStr;
+		StringType _argId;
 
 		/**
 		 * Describes the type of the exception.  Used to distinguish
 		 * between different child exceptions.
 		 */
-		std::string _typeDescription;
+		StringType _typeDescription;
+	};
 
-};
-
-/**
- * Thrown from within the child Arg classes when it fails to properly
- * parse the argument it has been passed.
- */
-class ArgParseException : public ArgException
-{ 
+	/**
+	 * Thrown from within the child Arg classes when it fails to properly
+	 * parse the argument it has been passed.
+	 */
+	template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
+	class ArgParseException : public ArgException<T_Char, T_CharTraits, T_Alloc> {
 	public:
+		using typename UseAllocatorBase<T_Alloc>::AllocatorType;
+		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
+		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::CharType;
+		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
+		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::StringConvertType;
+		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::StringType;
+
 		/**
 		 * Constructor.
 		 * \param text - The text of the exception.
-		 * \param id - The text identifying the argument source 
+		 * \param id - The text identifying the argument source
 		 * of the exception.
 		 */
-		ArgParseException( const std::string& text = "undefined exception",
-					       const std::string& id = "undefined" )
-			: ArgException( text, 
-			                id, 
-							std::string( "Exception found while parsing " ) + 
-							std::string( "the value the Arg has been passed." ))
-			{ }
-};
+		ArgParseException(const StringType& text = StringConvertType::fromConstBasicCharString("undefined exception"), const StringType& id = StringType())
+			: ArgException<T_Char, T_CharTraits, T_Alloc>(text, id, StringConvertType::fromConstBasicCharString("Exception found while parsing the value the Arg has been passed.")) {
+		}
+	};
 
-/**
- * Thrown from CmdLine when the arguments on the command line are not
- * properly specified, e.g. too many arguments, required argument missing, etc.
- */
-class CmdLineParseException : public ArgException
-{
+	/**
+	 * Thrown from CmdLine when the arguments on the command line are not
+	 * properly specified, e.g. too many arguments, required argument missing, etc.
+	 */
+	template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
+	class CmdLineParseException : public ArgException<T_Char, T_CharTraits, T_Alloc> {
 	public:
+		using typename UseAllocatorBase<T_Alloc>::AllocatorType;
+		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
+		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::CharType;
+		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
+		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::StringConvertType;
+		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::StringType;
+
 		/**
 		 * Constructor.
 		 * \param text - The text of the exception.
-		 * \param id - The text identifying the argument source 
+		 * \param id - The text identifying the argument source
 		 * of the exception.
 		 */
-		CmdLineParseException( const std::string& text = "undefined exception",
-					           const std::string& id = "undefined" )
-			: ArgException( text, 
-			                id,
-							std::string( "Exception found when the values ") +
-							std::string( "on the command line do not meet ") +
-							std::string( "the requirements of the defined ") +
-							std::string( "Args." ))
-		{ }
-};
+		CmdLineParseException(const StringType& text = StringConvertType::fromConstBasicCharString("undefined exception"), const StringType& id = StringType())
+			: ArgException<T_Char, T_CharTraits, T_Alloc>(text, id, StringConvertType::fromConstBasicCharString("Exception found when the values on the command line do not meet the requirements of the defined Args.")) {
+		}
+	};
 
-/**
- * Thrown from Arg and CmdLine when an Arg is improperly specified, e.g. 
- * same flag as another Arg, same name, etc.
- */
-class SpecificationException : public ArgException
-{
+	/**
+	 * Thrown from Arg and CmdLine when an Arg is improperly specified, e.g.
+	 * same flag as another Arg, same name, etc.
+	 */
+	template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
+	class SpecificationException : public ArgException<T_Char, T_CharTraits, T_Alloc> {
 	public:
+		using typename UseAllocatorBase<T_Alloc>::AllocatorType;
+		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
+		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::CharType;
+		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
+		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::StringConvertType;
+		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::StringType;
+
 		/**
 		 * Constructor.
 		 * \param text - The text of the exception.
-		 * \param id - The text identifying the argument source 
+		 * \param id - The text identifying the argument source
 		 * of the exception.
 		 */
-		SpecificationException( const std::string& text = "undefined exception",
-					            const std::string& id = "undefined" )
-			: ArgException( text, 
-			                id,
-							std::string("Exception found when an Arg object ")+
-							std::string("is improperly defined by the ") +
-							std::string("developer." )) 
-		{ }
+		SpecificationException(const StringType& text = StringConvertType::fromConstBasicCharString("undefined exception"), const StringType& id = StringType())
+			: ArgException<T_Char, T_CharTraits, T_Alloc>(text, id, StringConvertType::fromConstBasicCharString("Exception found when an Arg object is improperly defined by the developer.")) {
+		}
 
-};
+	};
 
-class ExitException {
-public:
-	ExitException(int estat) : _estat(estat) {}
+	class ExitException {
+	public:
+		ExitException(int estat) : _estat(estat) {}
 
-	int getExitStatus() const { return _estat; }
+		int getExitStatus() const { return this->_estat; }
 
-private:
-	int _estat;
-};
+	private:
+		int _estat;
+	};
 
 } // namespace TCLAP
 

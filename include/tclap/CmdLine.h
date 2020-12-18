@@ -24,6 +24,8 @@
 #ifndef TCLAP_CMDLINE_H
 #define TCLAP_CMDLINE_H
 
+#include <tclap/StringConvert.h>
+
 #include <tclap/SwitchArg.h>
 #include <tclap/MultiSwitchArg.h>
 #include <tclap/UnlabeledValueArg.h>
@@ -50,18 +52,18 @@
 #include <stdlib.h> // Needed for exit(), which isn't defined in some envs.
 
 namespace TCLAP {
-/**
- * The base class that manages the command line definition and passes
- * along the parsing to the appropriate Arg classes.
- */
-template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
-class CmdLine : public CmdLineInterface<T_Char, T_CharTraits, T_Alloc>
-{
+	/**
+	 * The base class that manages the command line definition and passes
+	 * along the parsing to the appropriate Arg classes.
+	 */
+	template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
+	class CmdLine : public CmdLineInterface<T_Char, T_CharTraits, T_Alloc> {
 	public:
 		using typename UseAllocatorBase<T_Alloc>::AllocatorType;
 		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
 		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::CharType;
 		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
+		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::StringConvertType;
 		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::StringType;
 		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
 		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::ArgType;
@@ -153,7 +155,7 @@ class CmdLine : public CmdLineInterface<T_Char, T_CharTraits, T_Alloc>
 		 * \param s - The message to be used in the usage.
 		 */
 		bool _emptyCombined(const StringType& s);
-private:
+	private:
 
 		/**
 		 * Prevent accidental copying.
@@ -199,10 +201,10 @@ private:
 		 * Version switches. Defaults to true.
 		 */
 		CmdLine(const StringType& message,
-				const CharType delimiter = ' ',
-				const StringType& version = "none",
-				bool helpAndVersion = true,
-				const AllocatorType& alloc = AllocatorType());
+			const CharType delimiter = StringConvertType::fromConstBasicChar(' '),
+			const StringType& version = StringConvertType::fromConstBasicCharString("none"),
+			bool helpAndVersion = true,
+			const AllocatorType& alloc = AllocatorType());
 
 		/**
 		 * Deletes any resources allocated by a CmdLine object.
@@ -213,13 +215,13 @@ private:
 		 * Adds an argument to the list of arguments to be parsed.
 		 * \param a - Argument to be added.
 		 */
-		void add( ArgType& a );
+		void add(ArgType& a);
 
 		/**
 		 * An alternative add.  Functionally identical.
 		 * \param a - Argument to be added.
 		 */
-		void add( ArgType* a );
+		void add(ArgType* a);
 
 		/**
 		 * Add two Args that will be xor'd.  If this method is used, add does
@@ -227,21 +229,21 @@ private:
 		 * \param a - Argument to be added and xor'd.
 		 * \param b - Argument to be added and xor'd.
 		 */
-		void xorAdd( ArgType& a, ArgType& b );
+		void xorAdd(ArgType& a, ArgType& b);
 
 		/**
 		 * Add a list of Args that will be xor'd.  If this method is used,
 		 * add does not need to be called.
 		 * \param xors - List of Args to be added and xor'd.
 		 */
-		void xorAdd( const ArgVectorType& xors );
+		void xorAdd(const ArgVectorType& xors);
 
 		/**
 		 * Parses the command line.
 		 * \param argc - Number of arguments.
 		 * \param argv - Array of arguments.
 		 */
-		void parse(int argc, const CharType * const * argv);
+		void parse(int argc, const CharType* const* argv);
 
 		/**
 		 * Parses the command line.
@@ -317,144 +319,135 @@ private:
 
 		/**
 		 * Allows unmatched args to be ignored. By default false.
-		 * 
+		 *
 		 * @param ignore If true the cmdline will ignore any unmatched args
 		 * and if false it will behave as normal.
 		 */
 		void ignoreUnmatched(const bool ignore);
-};
+	};
 
 
-///////////////////////////////////////////////////////////////////////////////
-//Begin CmdLine.cpp
-///////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////
+	//Begin CmdLine.cpp
+	///////////////////////////////////////////////////////////////////////////////
 
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline CmdLine<T_Char, T_CharTraits, T_Alloc>::CmdLine(const StringType& m,
-                        CharType delim,
-                        const StringType& v,
-                        bool help,
-						const AllocatorType& alloc )
-    :
-  CmdLineInterface<T_Char, T_CharTraits, T_Alloc>(alloc),
-  _argList(ArgListType()),
-  _progName("not_set_yet"),
-  _message(m),
-  _version(v),
-  _numRequired(0),
-  _delimiter(delim),
-  _xorHandler(XorHandlerType()),
-  _argPrivateVec(alloc),
-  _visitorPrivateVec(alloc),
-  _output(nullptr),
-  _handleExceptions(true),
-  _userSetOutput(false),
-  _helpAndVersion(help),
-  _ignoreUnmatched(false)
-{
-	_constructor();
-}
-
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline CmdLine<T_Char, T_CharTraits, T_Alloc>::~CmdLine()
-{
-	if ( !_userSetOutput ) {
-		delete _output;
-		_output = 0;
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	inline CmdLine<T_Char, T_CharTraits, T_Alloc>::CmdLine(const StringType& m,
+		CharType delim,
+		const StringType& v,
+		bool help,
+		const AllocatorType& alloc)
+		:
+		CmdLineInterface<T_Char, T_CharTraits, T_Alloc>(alloc),
+		_argList(ArgListType()),
+		_progName(StringConvertType::fromConstBasicCharString("not_set_yet")),
+		_message(m),
+		_version(v),
+		_numRequired(0),
+		_delimiter(delim),
+		_xorHandler(XorHandlerType()),
+		_argPrivateVec(alloc),
+		_visitorPrivateVec(alloc),
+		_output(nullptr),
+		_handleExceptions(true),
+		_userSetOutput(false),
+		_helpAndVersion(help),
+		_ignoreUnmatched(false) {
+		_constructor();
 	}
-}
 
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::_constructor()
-{
-	_output = new StdOutput<T_Char, T_CharTraits, T_Alloc>;
-
-	ArgType::setDelimiter( _delimiter );
-
-	if ( _helpAndVersion )
-	{
-		{
-			std::unique_ptr<HelpVisitor<T_Char, T_CharTraits, T_Alloc>> v = std::make_unique<HelpVisitor<T_Char, T_CharTraits, T_Alloc>>(this, &_output, getAlloc());
-			std::unique_ptr<SwitchArg<T_Char, T_CharTraits, T_Alloc>> help = std::make_unique<SwitchArg<T_Char, T_CharTraits, T_Alloc>>(
-				"h",
-				"help",
-				"Displays usage information and exits.",
-				false, &*v, getAlloc());
-			add(*help);
-			_visitorPrivateVec.push_back(std::move(v));
-			_argPrivateVec.push_back(std::move(help));
-		}
-		{
-			std::unique_ptr<VersionVisitor<T_Char, T_CharTraits, T_Alloc>> v = std::make_unique<VersionVisitor<T_Char, T_CharTraits, T_Alloc>>(this, &_output, getAlloc());
-			std::unique_ptr<SwitchArg<T_Char, T_CharTraits, T_Alloc>> vers = std::make_unique<SwitchArg<T_Char, T_CharTraits, T_Alloc>>(
-				StringType(),
-				"version",
-				"Displays version information and exits.",
-				false, &*v, getAlloc());
-			add(*vers);
-			_visitorPrivateVec.push_back(std::move(v));
-			_argPrivateVec.push_back(std::move(vers));
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	inline CmdLine<T_Char, T_CharTraits, T_Alloc>::~CmdLine() {
+		if (!_userSetOutput) {
+			delete _output;
+			_output = 0;
 		}
 	}
-	{
-		std::unique_ptr<IgnoreRestVisitor<T_Char, T_CharTraits, T_Alloc>> v = std::make_unique<IgnoreRestVisitor<T_Char, T_CharTraits, T_Alloc>>(getAlloc());
-		std::unique_ptr<SwitchArg<T_Char, T_CharTraits, T_Alloc>> ignore = std::make_unique<SwitchArg<T_Char, T_CharTraits, T_Alloc>>(ArgType::flagStartString(),
-			ArgType::ignoreNameString(),
-			"Ignores the rest of the labeled arguments following this flag.",
-			false, &*v, getAlloc());
-		add(*ignore);
-		_visitorPrivateVec.push_back(std::move(v));
-		_argPrivateVec.push_back(std::move(ignore));
+
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::_constructor() {
+		_output = new StdOutput<T_Char, T_CharTraits, T_Alloc>;
+
+		ArgType::setDelimiter(_delimiter);
+
+		if (_helpAndVersion) 	{
+			{
+				std::unique_ptr<HelpVisitor<T_Char, T_CharTraits, T_Alloc>> v = std::make_unique<HelpVisitor<T_Char, T_CharTraits, T_Alloc>>(this, &_output, getAlloc());
+				std::unique_ptr<SwitchArg<T_Char, T_CharTraits, T_Alloc>> help = std::make_unique<SwitchArg<T_Char, T_CharTraits, T_Alloc>>(
+					StringConvertType::fromConstBasicCharString("h"),
+					StringConvertType::fromConstBasicCharString("help"),
+					StringConvertType::fromConstBasicCharString("Displays usage information and exits."),
+					false, &*v, getAlloc());
+				add(*help);
+				_visitorPrivateVec.push_back(std::move(v));
+				_argPrivateVec.push_back(std::move(help));
+			}
+			{
+				std::unique_ptr<VersionVisitor<T_Char, T_CharTraits, T_Alloc>> v = std::make_unique<VersionVisitor<T_Char, T_CharTraits, T_Alloc>>(this, &_output, getAlloc());
+				std::unique_ptr<SwitchArg<T_Char, T_CharTraits, T_Alloc>> vers = std::make_unique<SwitchArg<T_Char, T_CharTraits, T_Alloc>>(
+					StringType(),
+					StringConvertType::fromConstBasicCharString("version"),
+					StringConvertType::fromConstBasicCharString("Displays version information and exits."),
+					false, &*v, getAlloc());
+				add(*vers);
+				_visitorPrivateVec.push_back(std::move(v));
+				_argPrivateVec.push_back(std::move(vers));
+			}
+		}
+		{
+			std::unique_ptr<IgnoreRestVisitor<T_Char, T_CharTraits, T_Alloc>> v = std::make_unique<IgnoreRestVisitor<T_Char, T_CharTraits, T_Alloc>>(getAlloc());
+			std::unique_ptr<SwitchArg<T_Char, T_CharTraits, T_Alloc>> ignore = std::make_unique<SwitchArg<T_Char, T_CharTraits, T_Alloc>>(ArgType::flagStartString(),
+				ArgType::ignoreNameString(),
+				StringConvertType::fromConstBasicCharString("Ignores the rest of the labeled arguments following this flag."),
+				false, &*v, getAlloc());
+			add(*ignore);
+			_visitorPrivateVec.push_back(std::move(v));
+			_argPrivateVec.push_back(std::move(ignore));
+		}
 	}
-}
 
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::xorAdd( const ArgVectorType& ors )
-{
-	_xorHandler.add( ors );
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::xorAdd(const ArgVectorType& ors) {
+		_xorHandler.add(ors);
 
-	for (ArgVectorIteratorType it = ors.begin(); it != ors.end(); it++)
-	{
-		(*it)->forceRequired();
-		(*it)->setRequireLabel( "OR required" );
-		add( *it );
+		for (ArgType* const& arg : ors) 	{
+			arg->forceRequired();
+			arg->setRequireLabel(StringConvertType::fromConstBasicCharString("OR required"));
+			add(arg);
+		}
 	}
-}
 
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::xorAdd( ArgType& a, ArgType& b )
-{
-	ArgVectorType ors;
-	ors.push_back( &a );
-	ors.push_back( &b );
-	xorAdd( ors );
-}
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::xorAdd(ArgType& a, ArgType& b) {
+		ArgVectorType ors;
+		ors.push_back(&a);
+		ors.push_back(&b);
+		xorAdd(ors);
+	}
 
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::add( ArgType& a )
-{
-	add( &a );
-}
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::add(ArgType& a) {
+		add(&a);
+	}
 
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::add( ArgType* a )
-{
-	for( ArgListIteratorType it = _argList.begin(); it != _argList.end(); it++ )
-		if ( *a == *(*it) )
-			throw( SpecificationException(
-			        "Argument with same flag/name already exists!",
-			        a->longID() ) );
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::add(ArgType* a) {
+		for (ArgListIteratorType it = _argList.begin(); it != _argList.end(); it++)
+			if (*a == *(*it))
+				throw(SpecificationException<T_Char, T_CharTraits, T_Alloc>(
+					StringConvertType::fromConstBasicCharString("Argument with same flag/name already exists!"),
+					a->longID()
+				));
 
-	a->addToList( _argList );
+		a->addToList(_argList);
 
-	if ( a->isRequired() )
-		_numRequired++;
-}
+		if (a->isRequired())
+			_numRequired++;
+	}
 
 
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::parse(int argc, const CharType * const * argv)
-{
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::parse(int argc, const CharType* const* argv) {
 		// this step is necessary so that we have easy access to
 		// mutable strings.
 		StringVectorType args;
@@ -462,204 +455,180 @@ inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::parse(int argc, const CharTy
 			args.push_back(argv[i]);
 
 		parse(args);
-}
+	}
 
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::parse(StringVectorType& args)
-{
-	bool shouldExit = false;
-	int estat = 0;
-
-	try {
-		_progName = args.front();
-		args.erase(args.begin());
-
-		int requiredCount = 0;
-
-		for (int i = 0; static_cast<unsigned int>(i) < args.size(); i++) 
-		{
-			bool matched = false;
-			for (ArgListIteratorType it = _argList.begin();
-			     it != _argList.end(); it++) {
-				if ( (*it)->processArg( &i, args ) )
-				{
-					requiredCount += _xorHandler.check( *it );
-					matched = true;
-					break;
-				}
-			}
-
-			// checks to see if the argument is an empty combined
-			// switch and if so, then we've actually matched it
-			if ( !matched && _emptyCombined( args[i] ) )
-				matched = true;
-
-			if ( !matched && !ArgType::ignoreRest() && !_ignoreUnmatched)
-				throw(CmdLineParseException("Couldn't find match "
-				                            "for argument",
-				                            args[i]));
-		}
-
-		if ( requiredCount < _numRequired )
-			missingArgsException();
-
-		if ( requiredCount > _numRequired )
-			throw(CmdLineParseException("Too many arguments!"));
-
-	} catch ( ArgException& e ) {
-		// If we're not handling the exceptions, rethrow.
-		if ( !_handleExceptions) {
-			throw;
-		}
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::parse(StringVectorType& args) {
+		bool shouldExit = false;
+		int estat = 0;
 
 		try {
-			_output->failure(*this,e);
-		} catch ( ExitException &ee ) {
+			_progName = args.front();
+			args.erase(args.begin());
+
+			int requiredCount = 0;
+
+			for (int i = 0; static_cast<unsigned int>(i) < args.size(); i++) 		{
+				bool matched = false;
+				for (ArgListIteratorType it = _argList.begin();
+					it != _argList.end(); it++) {
+					if ((*it)->processArg(&i, args)) 				{
+						requiredCount += _xorHandler.check(*it);
+						matched = true;
+						break;
+					}
+				}
+
+				// checks to see if the argument is an empty combined
+				// switch and if so, then we've actually matched it
+				if (!matched && _emptyCombined(args[i]))
+					matched = true;
+
+				if (!matched && !ArgType::ignoreRest() && !_ignoreUnmatched)
+					throw(CmdLineParseException<T_Char, T_CharTraits, T_Alloc>(StringConvertType::fromConstBasicCharString("Couldn't find match for argument"), args[i]));
+			}
+
+			if (requiredCount < _numRequired)
+				missingArgsException();
+
+			if (requiredCount > _numRequired)
+				throw(CmdLineParseException<T_Char, T_CharTraits, T_Alloc>(StringConvertType::fromConstBasicCharString("Too many arguments!")));
+
+		} catch (ArgException<T_Char, T_CharTraits, T_Alloc>& e) {
+			// If we're not handling the exceptions, rethrow.
+			if (!_handleExceptions) {
+				throw;
+			}
+
+			try {
+				_output->failure(*this, e);
+			} catch (ExitException& ee) {
+				estat = ee.getExitStatus();
+				shouldExit = true;
+			}
+		} catch (ExitException& ee) {
+			// If we're not handling the exceptions, rethrow.
+			if (!_handleExceptions) {
+				throw;
+			}
+
 			estat = ee.getExitStatus();
 			shouldExit = true;
 		}
-	} catch (ExitException &ee) {
-		// If we're not handling the exceptions, rethrow.
-		if ( !_handleExceptions) {
-			throw;
-		}
 
-		estat = ee.getExitStatus();
-		shouldExit = true;
+		if (shouldExit)
+			exit(estat);
 	}
 
-	if (shouldExit)
-		exit(estat);
-}
-
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline bool CmdLine<T_Char, T_CharTraits, T_Alloc>::_emptyCombined(const StringType& s)
-{
-	if ( s.length() > 0 && s[0] != ArgType::flagStartChar() )
-		return false;
-
-	for ( int i = 1; static_cast<unsigned int>(i) < s.length(); i++ )
-		if ( s[i] != ArgType::blankChar() )
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	inline bool CmdLine<T_Char, T_CharTraits, T_Alloc>::_emptyCombined(const StringType& s) {
+		if (s.length() > 0 && s[0] != ArgType::flagStartChar())
 			return false;
 
-	return true;
-}
+		for (int i = 1; static_cast<unsigned int>(i) < s.length(); i++)
+			if (s[i] != ArgType::blankChar())
+				return false;
 
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::missingArgsException()
-{
-		int count = 0;
+		return true;
+	}
 
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::missingArgsException() {
+		std::size_t count = 0;
+		bool is_first_missing_arg = true;
 		StringType missingArgList;
-		for (ArgListIteratorType it = _argList.begin(); it != _argList.end(); it++)
-		{
-			if ( (*it)->isRequired() && !(*it)->isSet() )
-			{
-				missingArgList += (*it)->getName();
-				missingArgList += ", ";
+		for (const ArgType* const& arg : this->_argList) {
+			if (arg->isRequired() && !arg->isSet()) {
+				if (is_first_missing_arg)
+					is_first_missing_arg = false;
+				else
+					missingArgList += StringConvertType::fromConstBasicCharString(", ");
+				missingArgList += arg->getName();
 				count++;
 			}
 		}
-		missingArgList = missingArgList.substr(0,missingArgList.length()-2);
-
 		StringType msg;
-		if ( count > 1 )
-			msg = "Required arguments missing: ";
+		if (count > 1)
+			msg = StringConvertType::fromConstBasicCharString("Required arguments missing: ") + missingArgList;
 		else
-			msg = "Required argument missing: ";
+			msg = StringConvertType::fromConstBasicCharString("Required argument missing: ") + missingArgList;
+		throw(CmdLineParseException<T_Char, T_CharTraits, T_Alloc>(msg));
+	}
 
-		msg += missingArgList;
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	inline auto CmdLine<T_Char, T_CharTraits, T_Alloc>::getOutput() -> CmdLineOutputType* {
+		return _output;
+	}
 
-		throw(CmdLineParseException(msg));
-}
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::setOutput(CmdLineOutputType* co) {
+		if (!_userSetOutput)
+			delete _output;
+		_userSetOutput = true;
+		_output = co;
+	}
 
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline auto CmdLine<T_Char, T_CharTraits, T_Alloc>::getOutput() -> CmdLineOutputType*
-{
-	return _output;
-}
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	inline auto CmdLine<T_Char, T_CharTraits, T_Alloc>::getVersion() -> StringType& {
+		return _version;
+	}
 
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::setOutput(CmdLineOutputType* co)
-{
-	if ( !_userSetOutput )
-		delete _output;
-	_userSetOutput = true;
-	_output = co;
-}
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	inline auto CmdLine<T_Char, T_CharTraits, T_Alloc>::getProgramName() -> StringType& {
+		return _progName;
+	}
 
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline auto CmdLine<T_Char, T_CharTraits, T_Alloc>::getVersion() -> StringType&
-{
-	return _version;
-}
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	inline auto CmdLine<T_Char, T_CharTraits, T_Alloc>::getArgList() -> ArgListType& {
+		return _argList;
+	}
 
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline auto CmdLine<T_Char, T_CharTraits, T_Alloc>::getProgramName() -> StringType&
-{
-	return _progName;
-}
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	inline auto CmdLine<T_Char, T_CharTraits, T_Alloc>::getXorHandler() -> XorHandlerType& {
+		return _xorHandler;
+	}
 
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline auto CmdLine<T_Char, T_CharTraits, T_Alloc>::getArgList() -> ArgListType&
-{
-	return _argList;
-}
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	inline auto CmdLine<T_Char, T_CharTraits, T_Alloc>::getDelimiter() -> CharType {
+		return _delimiter;
+	}
 
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline auto CmdLine<T_Char, T_CharTraits, T_Alloc>::getXorHandler() -> XorHandlerType&
-{
-	return _xorHandler;
-}
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	inline auto CmdLine<T_Char, T_CharTraits, T_Alloc>::getMessage() -> StringType& {
+		return _message;
+	}
 
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline auto CmdLine<T_Char, T_CharTraits, T_Alloc>::getDelimiter() -> CharType
-{
-	return _delimiter;
-}
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	inline bool CmdLine<T_Char, T_CharTraits, T_Alloc>::hasHelpAndVersion() {
+		return _helpAndVersion;
+	}
 
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline auto CmdLine<T_Char, T_CharTraits, T_Alloc>::getMessage() -> StringType&
-{
-	return _message;
-}
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::setExceptionHandling(const bool state) {
+		_handleExceptions = state;
+	}
 
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline bool CmdLine<T_Char, T_CharTraits, T_Alloc>::hasHelpAndVersion()
-{
-	return _helpAndVersion;
-}
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	inline bool CmdLine<T_Char, T_CharTraits, T_Alloc>::getExceptionHandling() const {
+		return _handleExceptions;
+	}
 
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::setExceptionHandling(const bool state)
-{
-	_handleExceptions = state;
-}
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::reset() {
+		for (ArgListIteratorType it = _argList.begin(); it != _argList.end(); it++)
+			(*it)->reset();
 
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline bool CmdLine<T_Char, T_CharTraits, T_Alloc>::getExceptionHandling() const
-{
-	return _handleExceptions;
-}
+		_progName.clear();
+	}
 
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::reset()
-{
-	for( ArgListIteratorType it = _argList.begin(); it != _argList.end(); it++ )
-		(*it)->reset();
-	
-	_progName.clear();
-}
+	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
+	inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::ignoreUnmatched(const bool ignore) {
+		_ignoreUnmatched = ignore;
+	}
 
-template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::ignoreUnmatched(const bool ignore)
-{
-	_ignoreUnmatched = ignore;
-}
-
-///////////////////////////////////////////////////////////////////////////////
-//End CmdLine.cpp
-///////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////
+	//End CmdLine.cpp
+	///////////////////////////////////////////////////////////////////////////////
 
 
 

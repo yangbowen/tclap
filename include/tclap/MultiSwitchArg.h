@@ -31,6 +31,7 @@
 #include <string>
 #include <vector>
 
+#include <tclap/StringConvert.h>
 #include <tclap/SwitchArg.h>
 
 namespace TCLAP {
@@ -50,6 +51,7 @@ class MultiSwitchArg : public SwitchArg<T_Char, T_CharTraits, T_Alloc>
 		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringConvertType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgType;
@@ -266,14 +268,14 @@ template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 inline auto
 MultiSwitchArg<T_Char, T_CharTraits, T_Alloc>::shortID(const StringType& val) const -> StringType
 {
-	return Arg<T_Char, T_CharTraits, T_Alloc>::shortID(val) + " ...";
+	return Arg<T_Char, T_CharTraits, T_Alloc>::shortID(val) + StringConvertType::fromConstBasicCharString(" ...");
 }
 
 template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 inline auto
 MultiSwitchArg<T_Char, T_CharTraits, T_Alloc>::longID(const StringType& val) const -> StringType
 {
-	return Arg<T_Char, T_CharTraits, T_Alloc>::longID(val) + "  (accepted multiple times)";
+	return Arg<T_Char, T_CharTraits, T_Alloc>::longID(val) + StringConvertType::fromConstBasicCharString("  (accepted multiple times)");
 }
 
 template<typename T_Char, typename T_CharTraits, typename T_Alloc>

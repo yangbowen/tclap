@@ -30,6 +30,7 @@
 #include <iostream>
 #include <algorithm>
 
+#include <tclap/StringConvert.h>
 #include <tclap/CmdLineInterface.h>
 #include <tclap/CmdLineOutput.h>
 #include <tclap/XorHandler.h>
@@ -52,6 +53,7 @@ class StdOutput : public CmdLineOutput<T_Char, T_CharTraits, T_Alloc>
 		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CharType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringConvertType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgType;
@@ -89,8 +91,7 @@ class StdOutput : public CmdLineOutput<T_Char, T_CharTraits, T_Alloc>
 		 * \param c - The CmdLine object the output is generated for. 
 		 * \param e - The ArgException that caused the failure. 
 		 */
-		virtual void failure(CmdLineInterfaceType& c,
-				     ArgException& e );
+		virtual void failure(CmdLineInterfaceType& c, ArgException<T_Char, T_CharTraits, T_Alloc>& e );
 
 	protected:
 
@@ -135,18 +136,18 @@ inline void StdOutput<T_Char, T_CharTraits, T_Alloc>::version(CmdLineInterfaceTy
 	StringType progName = _cmd.getProgramName();
 	StringType xversion = _cmd.getVersion();
 
-	std::cout << std::endl << progName << "  version: " 
+	std::cout << std::endl << progName << StringConvertType::fromConstBasicCharString("  version: ")
 			  << xversion << std::endl << std::endl;
 }
 
 template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 inline void StdOutput<T_Char, T_CharTraits, T_Alloc>::usage(CmdLineInterfaceType& _cmd )
 {
-	std::cout << std::endl << "USAGE: " << std::endl << std::endl; 
+	std::cout << std::endl << StringConvertType::fromConstBasicCharString("USAGE: ") << std::endl << std::endl;
 
 	_shortUsage( _cmd, std::cout );
 
-	std::cout << std::endl << std::endl << "Where: " << std::endl << std::endl;
+	std::cout << std::endl << std::endl << StringConvertType::fromConstBasicCharString("Where: ") << std::endl << std::endl;
 
 	_longUsage( _cmd, std::cout );
 
@@ -155,22 +156,21 @@ inline void StdOutput<T_Char, T_CharTraits, T_Alloc>::usage(CmdLineInterfaceType
 }
 
 template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline void StdOutput<T_Char, T_CharTraits, T_Alloc>::failure( CmdLineInterfaceType& _cmd,
-								ArgException& e ) 
+inline void StdOutput<T_Char, T_CharTraits, T_Alloc>::failure( CmdLineInterfaceType& _cmd, ArgException<T_Char, T_CharTraits, T_Alloc>& e )
 {
 	StringType progName = _cmd.getProgramName();
 
-	std::cerr << "PARSE ERROR: " << e.argId() << std::endl
-		      << "             " << e.error() << std::endl << std::endl;
+	std::cerr << StringConvertType::fromConstBasicCharString("PARSE ERROR: ") << e.argId() << std::endl
+		      << StringConvertType::fromConstBasicCharString("             ") << e.error() << std::endl << std::endl;
 
 	if ( _cmd.hasHelpAndVersion() )
 		{
-			std::cerr << "Brief USAGE: " << std::endl;
+			std::cerr << StringConvertType::fromConstBasicCharString("Brief USAGE: ") << std::endl;
 
 			_shortUsage( _cmd, std::cerr );	
 
-			std::cerr << std::endl << "For complete USAGE and HELP type: " 
-					  << std::endl << "   " << progName << " "
+			std::cerr << std::endl << StringConvertType::fromConstBasicCharString("For complete USAGE and HELP type: ")
+					  << std::endl << StringConvertType::fromConstBasicCharString("   ") << progName << StringConvertType::fromConstBasicCharString(" ")
 					  << ArgType::nameStartString() << "help"
 					  << std::endl << std::endl;
 		}
@@ -190,22 +190,22 @@ StdOutput<T_Char, T_CharTraits, T_Alloc>::_shortUsage( CmdLineInterfaceType& _cm
 	XorHandlerType xorHandler = _cmd.getXorHandler();
 	ArgVectorVectorType xorList = xorHandler.getXorList();
 
-	StringType s = progName + " ";
+	StringType s = progName + StringConvertType::fromConstBasicCharString(" ");
 
 	// first the xor
 	for ( const ArgVectorType& xorEntry : xorList )
 		{
-			s += " {";
+			s += StringConvertType::fromConstBasicCharString(" {");
 			for ( const ArgType* const& arg : xorEntry )
-				s += arg->shortID() + "|";
+				s += arg->shortID() + StringConvertType::fromConstBasicCharString("|");
 
-			s[s.length()-1] = '}';
+			s[s.length()-1] = StringConvertType::fromConstBasicChar('}');
 		}
 
 	// then the rest
 	for (const ArgType* const& arg : argList)
 		if ( !xorHandler.contains( arg ) )
-			s += " " + arg->shortID();
+			s += StringConvertType::fromConstBasicCharString(" ") + arg->shortID();
 
 	// if the program name is too long, then adjust the second line offset 
 	int secondLineOffset = static_cast<int>(progName.length()) + 2;
@@ -236,7 +236,7 @@ StdOutput<T_Char, T_CharTraits, T_Alloc>::_longUsage( CmdLineInterfaceType& _cmd
 					spacePrint( os, (*it)->getDescription(), 75, 5, 0 );
 
 					if ( it+1 != xorList[i].end() )
-						spacePrint(os, "-- OR --", 75, 9, 0);
+						spacePrint(os, StringConvertType::fromConstBasicCharString("-- OR --"), 75, 9, 0);
 				}
 			os << std::endl << std::endl;
 		}
@@ -279,9 +279,9 @@ inline void StdOutput<T_Char, T_CharTraits, T_Alloc>::spacePrint( OstreamType& o
 					// trim the length so it doesn't end in middle of a word
 					if ( stringLen == allowedLen )
 						while ( stringLen >= 0 &&
-								s[stringLen+start] != ' ' && 
-								s[stringLen+start] != ',' &&
-								s[stringLen+start] != '|' ) 
+								s[stringLen+start] != StringConvertType::fromConstBasicChar(' ') &&
+								s[stringLen+start] != StringConvertType::fromConstBasicChar(',') &&
+								s[stringLen+start] != StringConvertType::fromConstBasicChar('|') )
 							stringLen--;
 	
 					// ok, the word is longer than the line, so just split 
@@ -291,12 +291,12 @@ inline void StdOutput<T_Char, T_CharTraits, T_Alloc>::spacePrint( OstreamType& o
 
 					// check for newlines
 					for ( int i = 0; i < stringLen; i++ )
-						if ( s[start+i] == '\n' )
+						if ( s[start+i] == StringConvertType::fromConstBasicChar('\n') )
 							stringLen = i+1;
 
 					// print the indent	
 					for ( int i = 0; i < indentSpaces; i++ )
-						os << " ";
+						os << StringConvertType::fromConstBasicCharString(" ");
 
 					if ( start == 0 )
 						{
@@ -310,7 +310,7 @@ inline void StdOutput<T_Char, T_CharTraits, T_Alloc>::spacePrint( OstreamType& o
 					os << s.substr(start,stringLen) << std::endl;
 
 					// so we don't start a line with a space
-					while ( s[stringLen+start] == ' ' && start < len )
+					while ( s[stringLen+start] == StringConvertType::fromConstBasicChar(' ') && start < len )
 						start++;
 			
 					start += stringLen;
@@ -319,7 +319,7 @@ inline void StdOutput<T_Char, T_CharTraits, T_Alloc>::spacePrint( OstreamType& o
 	else
 		{
 			for ( int i = 0; i < indentSpaces; i++ )
-				os << " ";
+				os << StringConvertType::fromConstBasicCharString(" ");
 			os << s << std::endl;
 		}
 }

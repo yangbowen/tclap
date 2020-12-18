@@ -35,6 +35,7 @@
 #include <iostream>
 #include <map>
 
+#include <tclap/StringConvert.h>
 #include <tclap/CmdLineInterface.h>
 #include <tclap/CmdLineOutput.h>
 #include <tclap/XorHandler.h>
@@ -57,6 +58,7 @@ class ZshCompletionOutput : public CmdLineOutput<T_Char, T_CharTraits, T_Alloc>
 		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CharType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringConvertType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgType;
@@ -93,8 +95,7 @@ class ZshCompletionOutput : public CmdLineOutput<T_Char, T_CharTraits, T_Alloc>
 		 * \param c - The CmdLine object the output is generated for. 
 		 * \param e - The ArgException that caused the failure. 
 		 */
-		virtual void failure(CmdLineInterfaceType& c,
-						     ArgException& e );
+		virtual void failure(CmdLineInterfaceType& c, ArgException<T_Char, T_CharTraits, T_Alloc>& e );
 
 	protected:
 
@@ -113,17 +114,17 @@ template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 ZshCompletionOutput<T_Char, T_CharTraits, T_Alloc>::ZshCompletionOutput(const AllocatorType& alloc)
 : CmdLineOutput<T_Char, T_CharTraits, T_Alloc>(alloc),
   common(std::map<StringType, StringType>()),
-  theDelimiter('=')
+  theDelimiter(StringConvertType::fromConstBasicChar('='))
 {
-	common["host"] = "_hosts";
-	common["hostname"] = "_hosts";
-	common["file"] = "_files";
-	common["filename"] = "_files";
-	common["user"] = "_users";
-	common["username"] = "_users";
-	common["directory"] = "_directories";
-	common["path"] = "_directories";
-	common["url"] = "_urls";
+	common[StringConvertType::fromConstBasicCharString("host")] = StringConvertType::fromConstBasicCharString("_hosts");
+	common[StringConvertType::fromConstBasicCharString("hostname")] = StringConvertType::fromConstBasicCharString("_hosts");
+	common[StringConvertType::fromConstBasicCharString("file")] = StringConvertType::fromConstBasicCharString("_files");
+	common[StringConvertType::fromConstBasicCharString("filename")] = StringConvertType::fromConstBasicCharString("_files");
+	common[StringConvertType::fromConstBasicCharString("user")] = StringConvertType::fromConstBasicCharString("_users");
+	common[StringConvertType::fromConstBasicCharString("username")] = StringConvertType::fromConstBasicCharString("_users");
+	common[StringConvertType::fromConstBasicCharString("directory")] = StringConvertType::fromConstBasicCharString("_directories");
+	common[StringConvertType::fromConstBasicCharString("path")] = StringConvertType::fromConstBasicCharString("_directories");
+	common[StringConvertType::fromConstBasicCharString("url")] = StringConvertType::fromConstBasicCharString("_urls");
 }
 
 template<typename T_Char, typename T_CharTraits, typename T_Alloc>
@@ -157,8 +158,7 @@ inline void ZshCompletionOutput<T_Char, T_CharTraits, T_Alloc>::usage(CmdLineInt
 }
 
 template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline void ZshCompletionOutput<T_Char, T_CharTraits, T_Alloc>::failure( CmdLineInterfaceType& _cmd,
-				                ArgException& e )
+inline void ZshCompletionOutput<T_Char, T_CharTraits, T_Alloc>::failure( CmdLineInterfaceType& _cmd, ArgException<T_Char, T_CharTraits, T_Alloc>& e )
 {
 	static_cast<void>(_cmd); // unused
 	std::cout << e.what() << std::endl;

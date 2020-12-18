@@ -33,6 +33,7 @@
 #include <iomanip>
 #include <algorithm>
 
+#include <tclap/StringConvert.h>
 #include <tclap/UseAllocatorBase.h>
 
 namespace TCLAP {
@@ -45,6 +46,7 @@ template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 class CmdLineOutput;
 template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 class XorHandler;
+template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 class ArgException;
 
 /**
@@ -59,6 +61,7 @@ class CmdLineOutput : public UseAllocatorBase<T_Alloc>
 		using CharType = T_Char;
 		using CharTraitsType = T_CharTraits;
 		using StringType = std::basic_string<T_Char, T_CharTraits, T_Alloc>;
+		using StringConvertType = StringConvert<T_Char, T_CharTraits>;
 		using StringVectorType = std::vector<StringType, typename std::allocator_traits<AllocatorType>::template rebind_alloc<StringType>>;
 		using ArgType = Arg<T_Char, T_CharTraits, T_Alloc>;
 		using ArgListType = std::list<ArgType*, typename std::allocator_traits<AllocatorType>::template rebind_alloc<ArgType*>>;
@@ -96,8 +99,7 @@ class CmdLineOutput : public UseAllocatorBase<T_Alloc>
 		 * \param c - The CmdLine object the output is generated for. 
 		 * \param e - The ArgException that caused the failure. 
 		 */
-		virtual void failure( CmdLineInterfaceType& c,
-						      ArgException& e )=0;
+		virtual void failure( CmdLineInterfaceType& c, ArgException<T_Char, T_CharTraits, T_Alloc>& e )=0;
 
 };
 
