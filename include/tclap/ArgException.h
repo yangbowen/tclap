@@ -103,7 +103,8 @@ namespace TCLAP {
 		 * of the exception.
 		 */
 		ArgException(const StringType& text, const StringType& id, const StringType& td)
-			: std::exception(StringConvertType::toExceptionDescription(id + StringType(" -- ") + text).c_str()),
+			: UseAllocatorBase<T_Alloc>(text.get_allocator()),
+			std::exception(StringConvertType::toExceptionDescription(id + StringType(" -- ") + text).c_str()),
 			_errorText(text),
 			_argId(id),
 			_typeDescription(td) {

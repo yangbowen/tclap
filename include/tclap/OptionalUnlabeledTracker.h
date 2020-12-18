@@ -28,6 +28,8 @@
 
 #include <string>
 
+#include <tclap/StringConvert.h>
+
 namespace TCLAP {
 	
 template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
@@ -37,6 +39,7 @@ class OptionalUnlabeledTracker
 		using CharType = T_Char;
 		using CharTraitsType = T_CharTraits;
 		using AllocatorType = T_Alloc;
+		using StringConvertType = StringConvert<T_Char, T_CharTraits>;
 		using StringType = std::basic_string<T_Char, T_CharTraits, T_Alloc>;
 		using OptionalUnlabeledTrackerType = OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>;
 		static void check( bool req, const StringType& argName );

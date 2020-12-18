@@ -281,7 +281,7 @@ namespace TCLAP {
 		 * Use by output classes to determine whether an Arg accepts
 		 * multiple values.
 		 */
-		virtual bool acceptsMultipleValues();
+		virtual bool acceptsMultipleValues() const;
 
 		/**
 		 * Clears the Arg object and allows it to be reused by new
@@ -689,7 +689,7 @@ namespace TCLAP {
 	}
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-	inline bool Arg<T_Char, T_CharTraits, T_Alloc>::acceptsMultipleValues() {
+	inline bool Arg<T_Char, T_CharTraits, T_Alloc>::acceptsMultipleValues() const {
 		return _acceptsMultipleValues;
 	}
 

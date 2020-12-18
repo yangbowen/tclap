@@ -100,8 +100,8 @@ class DocBookOutput : public CmdLineOutput<T_Char, T_CharTraits, T_Alloc>
 		void removeChar( StringType& s, CharType r);
 		void basename( StringType& s );
 
-		void printShortArg(ArgType* it);
-		void printLongArg(ArgType* it);
+		void printShortArg(const ArgType* it);
+		void printLongArg(const ArgType* it);
 
 		CharType theDelimiter;
 };
@@ -223,7 +223,7 @@ inline void DocBookOutput<T_Char, T_CharTraits, T_Alloc>::basename( StringType& 
 }
 
 template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline void DocBookOutput<T_Char, T_CharTraits, T_Alloc>::printShortArg(ArgType* a)
+inline void DocBookOutput<T_Char, T_CharTraits, T_Alloc>::printShortArg(const ArgType* a)
 {
 	StringType lt = StringConvertType::fromConstBasicCharString("&lt;");
 	StringType gt = StringConvertType::fromConstBasicCharString("&gt;");
@@ -262,7 +262,7 @@ inline void DocBookOutput<T_Char, T_CharTraits, T_Alloc>::printShortArg(ArgType*
 }
 
 template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-inline void DocBookOutput<T_Char, T_CharTraits, T_Alloc>::printLongArg(ArgType* a)
+inline void DocBookOutput<T_Char, T_CharTraits, T_Alloc>::printLongArg(const ArgType* a)
 {
 	StringType lt = StringConvertType::fromConstBasicCharString("&lt;");
 	StringType gt = StringConvertType::fromConstBasicCharString("&gt;");
