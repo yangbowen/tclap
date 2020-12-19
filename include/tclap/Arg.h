@@ -488,13 +488,12 @@ namespace TCLAP {
 		_ignoreable(true),
 		_xorSet(false),
 		_acceptsMultipleValues(false) {
-		if (_flag.length() > 1)
-			throw(SpecificationException<T_Char, T_CharTraits, T_Alloc>("Argument flag can only be one character long", toString()));
+		if (_flag.length() > 1) throw(SpecificationException<T_Char, T_CharTraits, T_Alloc>(StringConvertType::fromConstBasicCharString("Argument flag can only be one character long"), toString()));
 
 		if (_name != ignoreNameString() &&
 			(_flag == Arg::flagStartString() ||
 				_flag == Arg::nameStartString() ||
-				_flag == " "))
+				_flag == StringConvertType::fromConstBasicCharString(" ")))
 			throw(SpecificationException<T_Char, T_CharTraits, T_Alloc>(
 				StringConvertType::fromConstBasicCharString("Argument flag cannot be either '") +
 				Arg::flagStartString() + StringConvertType::fromConstBasicCharString("' or '") +
@@ -504,7 +503,7 @@ namespace TCLAP {
 
 		if ((_name.substr(0, Arg::flagStartString().length()) == Arg::flagStartString()) ||
 			(_name.substr(0, Arg::nameStartString().length()) == Arg::nameStartString()) ||
-			(_name.find(" ", 0) != StringType::npos))
+			(_name.find(StringConvertType::fromConstBasicCharString(" "), 0) != StringType::npos))
 			throw(SpecificationException<T_Char, T_CharTraits, T_Alloc>(
 				StringConvertType::fromConstBasicCharString("Argument name begin with either '") +
 				Arg::flagStartString() + StringConvertType::fromConstBasicCharString("' or '") +
