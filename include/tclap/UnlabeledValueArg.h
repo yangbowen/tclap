@@ -1,27 +1,27 @@
 // -*- Mode: c++; c-basic-offset: 4; tab-width: 4; -*-
 
 
-/****************************************************************************** 
- * 
+/******************************************************************************
+ *
  *  file:  UnlabeledValueArg.h
- * 
+ *
  *  Copyright (c) 2003, Michael E. Smoot .
  *  Copyright (c) 2004, Michael E. Smoot, Daniel Aarno.
  *  Copyright (c) 2017, Google LLC
  *  All rights reserved.
- * 
+ *
  *  See the file COPYING in the top directory of this distribution for
  *  more information.
- *  
- *  THE SOFTWARE IS PROVIDED _AS IS_, WITHOUT WARRANTY OF ANY KIND, EXPRESS 
- *  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
- *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
- *  DEALINGS IN THE SOFTWARE.  
- *  
- *****************************************************************************/ 
+ *
+ *  THE SOFTWARE IS PROVIDED _AS IS_, WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ *  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ *  DEALINGS IN THE SOFTWARE.
+ *
+ *****************************************************************************/
 
 
 #ifndef TCLAP_UNLABELED_VALUE_ARGUMENT_H
@@ -37,18 +37,17 @@
 
 namespace TCLAP {
 
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-class UnlabeledValueArg;
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	class UnlabeledValueArg;
 
-/**
- * The basic unlabeled argument that parses a value.
- * This is a template class, which means the type T defines the type
- * that a given object will attempt to parse when an UnlabeledValueArg
- * is reached in the list of args that the CmdLine iterates over.
- */
-template<class T, typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
-class UnlabeledValueArg : public ValueArg<T, T_Char, T_CharTraits, T_Alloc>
-{
+	/**
+	 * The basic unlabeled argument that parses a value.
+	 * This is a template class, which means the type T defines the type
+	 * that a given object will attempt to parse when an UnlabeledValueArg
+	 * is reached in the list of args that the CmdLine iterates over.
+	 */
+	template<class T, typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
+	class UnlabeledValueArg : public ValueArg<T, T_Char, T_CharTraits, T_Alloc> {
 	public:
 		using typename UseAllocatorBase<T_Alloc>::AllocatorType;
 		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
@@ -120,19 +119,19 @@ class UnlabeledValueArg : public ValueArg<T, T_Char, T_CharTraits, T_Alloc>
 		 * of the program.
 		 * \param ignoreable - Allows you to specify that this argument can be
 		 * ignored if the '--' flag is set.  This defaults to false (cannot
-		 * be ignored) and should  generally stay that way unless you have 
+		 * be ignored) and should  generally stay that way unless you have
 		 * some special need for certain arguments to be ignored.
 		 * \param v - Optional Visitor.  You should leave this blank unless
 		 * you have a very good reason.
 		 */
-		UnlabeledValueArg( const StringType& name, 
-			               const StringType& desc, 
-						   bool req,
-				           T value,
-				           const StringType& typeDesc,
-						   bool ignoreable = false,
-				           Visitor* v = nullptr,
-						   const AllocatorType& alloc = AllocatorType() );
+		UnlabeledValueArg(const StringType& name,
+			const StringType& desc,
+			bool req,
+			T value,
+			const StringType& typeDesc,
+			bool ignoreable = false,
+			Visitor* v = nullptr,
+			const AllocatorType& alloc = AllocatorType());
 
 		/**
 		 * UnlabeledValueArg constructor.
@@ -151,21 +150,21 @@ class UnlabeledValueArg : public ValueArg<T, T_Char, T_CharTraits, T_Alloc>
 		 * \param parser - A CmdLine parser object to add this Arg to
 		 * \param ignoreable - Allows you to specify that this argument can be
 		 * ignored if the '--' flag is set.  This defaults to false (cannot
-		 * be ignored) and should  generally stay that way unless you have 
+		 * be ignored) and should  generally stay that way unless you have
 		 * some special need for certain arguments to be ignored.
 		 * \param v - Optional Visitor.  You should leave this blank unless
 		 * you have a very good reason.
 		 */
-		UnlabeledValueArg( const StringType& name, 
-			               const StringType& desc, 
-						   bool req,
-				           T value,
-				           const StringType& typeDesc,
-						   CmdLineInterfaceType& parser,
-						   bool ignoreable = false,
-				           Visitor* v = nullptr,
-						   const AllocatorType& alloc = AllocatorType() ); 					
-						
+		UnlabeledValueArg(const StringType& name,
+			const StringType& desc,
+			bool req,
+			T value,
+			const StringType& typeDesc,
+			CmdLineInterfaceType& parser,
+			bool ignoreable = false,
+			Visitor* v = nullptr,
+			const AllocatorType& alloc = AllocatorType());
+
 		/**
 		 * UnlabeledValueArg constructor.
 		 * \param name - A one word name for the argument.  Note that this is used for
@@ -180,21 +179,21 @@ class UnlabeledValueArg : public ValueArg<T, T_Char, T_CharTraits, T_Alloc>
 		 * to constrain this Arg.
 		 * \param ignoreable - Allows you to specify that this argument can be
 		 * ignored if the '--' flag is set.  This defaults to false (cannot
-		 * be ignored) and should  generally stay that way unless you have 
+		 * be ignored) and should  generally stay that way unless you have
 		 * some special need for certain arguments to be ignored.
 		 * \param v - Optional Visitor.  You should leave this blank unless
 		 * you have a very good reason.
 		 */
-		UnlabeledValueArg( const StringType& name, 
-			               const StringType& desc, 
-						   bool req,
-				           T value,
-				           ConstraintType* constraint,
-						   bool ignoreable = false,
-				           Visitor* v = nullptr,
-						   const AllocatorType& alloc = AllocatorType() ); 
+		UnlabeledValueArg(const StringType& name,
+			const StringType& desc,
+			bool req,
+			T value,
+			ConstraintType* constraint,
+			bool ignoreable = false,
+			Visitor* v = nullptr,
+			const AllocatorType& alloc = AllocatorType());
 
-		
+
 		/**
 		 * UnlabeledValueArg constructor.
 		 * \param name - A one word name for the argument.  Note that this is used for
@@ -210,51 +209,51 @@ class UnlabeledValueArg : public ValueArg<T, T_Char, T_CharTraits, T_Alloc>
 		 * \param parser - A CmdLine parser object to add this Arg to
 		 * \param ignoreable - Allows you to specify that this argument can be
 		 * ignored if the '--' flag is set.  This defaults to false (cannot
-		 * be ignored) and should  generally stay that way unless you have 
+		 * be ignored) and should  generally stay that way unless you have
 		 * some special need for certain arguments to be ignored.
 		 * \param v - Optional Visitor.  You should leave this blank unless
 		 * you have a very good reason.
 		 */
-		UnlabeledValueArg( const StringType& name, 
-			               const StringType& desc, 
-						   bool req,
-				           T value,
-				           ConstraintType* constraint,
-						   CmdLineInterfaceType& parser,
-						   bool ignoreable = false,
-				           Visitor* v = nullptr,
-						   const AllocatorType& alloc = AllocatorType() );
-						
+		UnlabeledValueArg(const StringType& name,
+			const StringType& desc,
+			bool req,
+			T value,
+			ConstraintType* constraint,
+			CmdLineInterfaceType& parser,
+			bool ignoreable = false,
+			Visitor* v = nullptr,
+			const AllocatorType& alloc = AllocatorType());
+
 		/**
 		 * Handles the processing of the argument.
 		 * This re-implements the Arg version of this method to set the
 		 * _value of the argument appropriately.  Handling specific to
 		 * unlabeled arguments.
-		 * \param i - Pointer the the current argument in the list.
-		 * \param args - Mutable list of strings. 
+		 * \param idx_arg - Pointer the the current argument in the list.
+		 * \param args - Mutable list of strings.
 		 */
-		virtual bool processArg(int* i, StringVectorType& args); 
+		virtual bool processArg(std::size_t& idx_arg, StringVectorType& args) override;
 
 		/**
 		 * Overrides shortID for specific behavior.
 		 */
-		virtual StringType shortID(const StringType& val = StringConvertType::fromConstBasicCharString("val")) const;
+		virtual StringType shortID(const StringType& val = StringConvertType::fromConstBasicCharString("val")) const override;
 
 		/**
 		 * Overrides longID for specific behavior.
 		 */
-		virtual StringType longID(const StringType& val = StringConvertType::fromConstBasicCharString("val")) const;
+		virtual StringType longID(const StringType& val = StringConvertType::fromConstBasicCharString("val")) const override;
 
 		/**
 		 * Overrides operator== for specific behavior.
 		 */
-		virtual bool operator==(const ArgType& a ) const;
+		virtual bool operator==(const ArgType& a) const override;
 
 		/**
 		 * Instead of pushing to the front of list, push to the back.
 		 * \param argList - The list to add this to.
 		 */
-		virtual void addToList( ArgListType& argList ) const;
+		virtual void addToList(ArgListType& argList) const override;
 
 	protected:
 		using Arg<T_Char, T_CharTraits, T_Alloc>::_flag;
@@ -274,141 +273,132 @@ class UnlabeledValueArg : public ValueArg<T, T_Char, T_CharTraits, T_Alloc>
 		using ValueArg<T, T_Char, T_CharTraits, T_Alloc>::_typeDesc;
 		using ValueArg<T, T_Char, T_CharTraits, T_Alloc>::_constraint;
 		using ValueArg<T, T_Char, T_CharTraits, T_Alloc>::_extractValue;
-};
+	};
 
-/**
- * Constructor implementation.
- */
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledValueArg(const StringType& name,
-					                    const StringType& desc, 
-										bool req,
-					                    T val,
-					                    const StringType& typeDesc,
-					                    bool ignoreable,
-					                    Visitor* v,
-										const AllocatorType& alloc)
-: ValueArg<T, T_Char, T_CharTraits, T_Alloc>(StringType(), name, desc, req, val, typeDesc, v, alloc)
-{ 
-	_ignoreable = ignoreable;
+	/**
+	 * Constructor implementation.
+	 */
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledValueArg(const StringType& name,
+		const StringType& desc,
+		bool req,
+		T val,
+		const StringType& typeDesc,
+		bool ignoreable,
+		Visitor* v,
+		const AllocatorType& alloc)
+		: ValueArg<T, T_Char, T_CharTraits, T_Alloc>(StringType(), name, desc, req, val, typeDesc, v, alloc) {
+		_ignoreable = ignoreable;
 
-	OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check(req, toString());
+		OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check(req, toString());
 
-}
+	}
 
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledValueArg(const StringType& name,
-					                    const StringType& desc, 
-										bool req,
-					                    T val,
-					                    const StringType& typeDesc,
-					                    CmdLineInterfaceType& parser,
-					                    bool ignoreable,
-					                    Visitor* v,
-										const AllocatorType& alloc)
-: ValueArg<T, T_Char, T_CharTraits, T_Alloc>(StringType(), name, desc, req, val, typeDesc, v, alloc)
-{ 
-	_ignoreable = ignoreable;
-	OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check(req, toString());
-	parser.add( this );
-}
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledValueArg(const StringType& name,
+		const StringType& desc,
+		bool req,
+		T val,
+		const StringType& typeDesc,
+		CmdLineInterfaceType& parser,
+		bool ignoreable,
+		Visitor* v,
+		const AllocatorType& alloc)
+		: ValueArg<T, T_Char, T_CharTraits, T_Alloc>(StringType(), name, desc, req, val, typeDesc, v, alloc) {
+		_ignoreable = ignoreable;
+		OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check(req, toString());
+		parser.add(this);
+	}
 
-/**
- * Constructor implementation.
- */
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledValueArg(const StringType& name,
-                                        const StringType& desc, 
-										bool req,
-                                        T val,
-                                        ConstraintType* constraint,
-                                        bool ignoreable,
-                                        Visitor* v,
-										const AllocatorType& alloc)
-: ValueArg<T, T_Char, T_CharTraits, T_Alloc>(StringType(), name, desc, req, val, constraint, v, alloc)
-{ 
-	_ignoreable = ignoreable;
-	OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check(req, toString());
-}
+	/**
+	 * Constructor implementation.
+	 */
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledValueArg(const StringType& name,
+		const StringType& desc,
+		bool req,
+		T val,
+		ConstraintType* constraint,
+		bool ignoreable,
+		Visitor* v,
+		const AllocatorType& alloc)
+		: ValueArg<T, T_Char, T_CharTraits, T_Alloc>(StringType(), name, desc, req, val, constraint, v, alloc) {
+		_ignoreable = ignoreable;
+		OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check(req, toString());
+	}
 
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledValueArg(const StringType& name,
-					                    const StringType& desc, 
-										bool req,
-					                    T val,
-					                    ConstraintType* constraint,
-					                    CmdLineInterfaceType& parser,
-					                    bool ignoreable,
-					                    Visitor* v,
-										const AllocatorType& alloc)
-: ValueArg<T, T_Char, T_CharTraits, T_Alloc>(StringType(), name, desc, req, val, constraint,  v, alloc)
-{ 
-	_ignoreable = ignoreable;
-	OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check(req, toString());
-	parser.add( this );
-}
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledValueArg(const StringType& name,
+		const StringType& desc,
+		bool req,
+		T val,
+		ConstraintType* constraint,
+		CmdLineInterfaceType& parser,
+		bool ignoreable,
+		Visitor* v,
+		const AllocatorType& alloc)
+		: ValueArg<T, T_Char, T_CharTraits, T_Alloc>(StringType(), name, desc, req, val, constraint, v, alloc) {
+		_ignoreable = ignoreable;
+		OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check(req, toString());
+		parser.add(this);
+	}
 
-/**
- * Implementation of processArg().
- */
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-bool UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::processArg(int *i, StringVectorType& args)
-{
-	
-	if ( _alreadySet )
-		return false;
-	
-	if ( _hasBlanks( args[*i] ) )
-		return false;
+	/**
+	 * Implementation of processArg().
+	 */
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	bool UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::processArg(std::size_t& idx_arg, StringVectorType& args) {
 
-	// never ignore an unlabeled arg
-	
-	_extractValue( args[*i] );
-	_alreadySet = true;
-	return true;
-}
+		if (_alreadySet)
+			return false;
 
-/**
- * Overriding shortID for specific output.
- */
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-auto UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::shortID(const StringType& val) const -> StringType
-{
-	static_cast<void>(val); // Ignore input, don't warn
-	return StringConvertType::fromConstBasicCharString("<") + _typeDesc + StringConvertType::fromConstBasicCharString(">");
-}
+		if (_hasBlanks(args[idx_arg]))
+			return false;
 
-/**
- * Overriding longID for specific output.
- */
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-auto UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::longID(const StringType& val) const -> StringType
-{
-	static_cast<void>(val); // Ignore input, don't warn
+		// never ignore an unlabeled arg
 
-	// Ideally we would like to be able to use RTTI to return the name
-	// of the type required for this argument.  However, g++ at least, 
-	// doesn't appear to return terribly useful "names" of the types.  
-	return StringConvertType::fromConstBasicCharString("<") + _typeDesc + StringConvertType::fromConstBasicCharString(">");
-}
-
-/**
- * Overriding operator== for specific behavior.
- */
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-bool UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::operator==(const ArgType& a ) const
-{
-	if ( _name == a.getName() || _description == a.getDescription() )
+		_extractValue(args[idx_arg]);
+		_alreadySet = true;
 		return true;
-	else
-		return false;
-}
+	}
 
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-void UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::addToList( ArgListType& argList ) const
-{
-	argList.push_back( const_cast<ArgType*>(static_cast<const ArgType* const>(this)) );
-}
+	/**
+	 * Overriding shortID for specific output.
+	 */
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	auto UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::shortID(const StringType& val) const -> StringType {
+		static_cast<void>(val); // Ignore input, don't warn
+		return StringConvertType::fromConstBasicCharString("<") + _typeDesc + StringConvertType::fromConstBasicCharString(">");
+	}
+
+	/**
+	 * Overriding longID for specific output.
+	 */
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	auto UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::longID(const StringType& val) const -> StringType {
+		static_cast<void>(val); // Ignore input, don't warn
+
+		// Ideally we would like to be able to use RTTI to return the name
+		// of the type required for this argument.  However, g++ at least, 
+		// doesn't appear to return terribly useful "names" of the types.  
+		return StringConvertType::fromConstBasicCharString("<") + _typeDesc + StringConvertType::fromConstBasicCharString(">");
+	}
+
+	/**
+	 * Overriding operator== for specific behavior.
+	 */
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	bool UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::operator==(const ArgType& a) const {
+		if (_name == a.getName() || _description == a.getDescription())
+			return true;
+		else
+			return false;
+	}
+
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	void UnlabeledValueArg<T, T_Char, T_CharTraits, T_Alloc>::addToList(ArgListType& argList) const {
+		argList.push_back(const_cast<ArgType*>(static_cast<const ArgType* const>(this)));
+	}
 
 }
 #endif

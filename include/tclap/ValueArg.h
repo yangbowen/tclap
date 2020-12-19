@@ -233,11 +233,11 @@ namespace TCLAP {
 		 * This re-implements the Arg version of this method to set the
 		 * _value of the argument appropriately.  It knows the difference
 		 * between labeled and unlabeled.
-		 * \param i - Pointer the the current argument in the list.
+		 * \param idx_arg - Pointer the the current argument in the list.
 		 * \param args - Mutable list of strings. Passed
 		 * in from main().
 		 */
-		virtual bool processArg(int* i, StringVectorType& args);
+		virtual bool processArg(std::size_t& idx_arg, StringVectorType& args) override;
 
 		/**
 		 * Returns the value of the argument.
@@ -258,15 +258,15 @@ namespace TCLAP {
 		 * Specialization of shortID.
 		 * \param val - value to be used.
 		 */
-		virtual StringType shortID(const StringType& val = StringConvertType::fromConstBasicCharString("val")) const;
+		virtual StringType shortID(const StringType& val = StringConvertType::fromConstBasicCharString("val")) const override;
 
 		/**
 		 * Specialization of longID.
 		 * \param val - value to be used.
 		 */
-		virtual StringType longID(const StringType& val = StringConvertType::fromConstBasicCharString("val")) const;
+		virtual StringType longID(const StringType& val = StringConvertType::fromConstBasicCharString("val")) const override;
 
-		virtual void reset();
+		virtual void reset() override;
 
 	protected:
 		using Arg<T_Char, T_CharTraits, T_Alloc>::_flag;
@@ -342,7 +342,7 @@ namespace TCLAP {
 		_value(val),
 		_default(val),
 		_typeDesc(typeDesc),
-		_constraint(NULL) {
+		_constraint(nullptr) {
 	}
 
 	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
@@ -359,7 +359,7 @@ namespace TCLAP {
 		_value(val),
 		_default(val),
 		_typeDesc(typeDesc),
-		_constraint(NULL) {
+		_constraint(nullptr) {
 		parser.add(this);
 	}
 
@@ -393,7 +393,7 @@ namespace TCLAP {
 		_value(val),
 		_default(val),
 		_typeDesc(ConstraintType::shortID(constraint)),  // TODO(macbishop): Will crash
-		// if constraint is NULL
+		// if constraint is nullptr
 		_constraint(constraint) {
 		parser.add(this);
 	}
@@ -402,14 +402,14 @@ namespace TCLAP {
 	 * Implementation of processArg().
 	 */
 	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-	bool ValueArg<T, T_Char, T_CharTraits, T_Alloc>::processArg(int* i, StringVectorType& args) {
+	bool ValueArg<T, T_Char, T_CharTraits, T_Alloc>::processArg(std::size_t& idx_arg, StringVectorType& args) {
 		if (_ignoreable && Arg<T_Char, T_CharTraits, T_Alloc>::ignoreRest())
 			return false;
 
-		if (_hasBlanks(args[*i]))
+		if (_hasBlanks(args[idx_arg]))
 			return false;
 
-		StringType flag = args[*i];
+		StringType flag = args[idx_arg];
 
 		StringType value;
 		trimFlag(flag, value);
@@ -426,9 +426,9 @@ namespace TCLAP {
 				throw(ArgParseException<T_Char, T_CharTraits, T_Alloc>(StringConvertType::fromConstBasicCharString("Couldn\'t find delimiter for this argument!"), toString()));
 
 			if (value.empty()) {
-				(*i)++;
-				if (static_cast<unsigned int>(*i) < args.size())
-					_extractValue(args[*i]);
+				(idx_arg)++;
+				if (idx_arg < args.size())
+					_extractValue(args[idx_arg]);
 				else
 					throw(ArgParseException<T_Char, T_CharTraits, T_Alloc>(StringConvertType::fromConstBasicCharString("Missing a value for this argument!"), toString()));
 			} else
@@ -467,7 +467,7 @@ namespace TCLAP {
 			throw ArgParseException<T_Char, T_CharTraits, T_Alloc>(e.error(), toString());
 		}
 
-		if (_constraint != NULL)
+		if (_constraint)
 			if (!_constraint->check(_value))
 				throw(CmdLineParseException<T_Char, T_CharTraits, T_Alloc>(
 					StringConvertType::fromConstBasicCharString("Value \'")

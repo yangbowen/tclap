@@ -83,7 +83,7 @@ class Constraint : public UseAllocatorBase<T_Alloc>
 
 		static StringType shortID(Constraint *constraint) {
 		  if (!constraint)
-		    throw std::logic_error("Cannot create a ValueArg with a NULL constraint");
+		    throw std::logic_error("Cannot create a ValueArg with a nullptr constraint");
 		  return constraint->shortID();
 		}
 };

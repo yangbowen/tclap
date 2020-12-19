@@ -106,7 +106,7 @@ namespace TCLAP {
 		 * the command line. This is set dynamically, based on the
 		 * Args added to the CmdLine object.
 		 */
-		int _numRequired;
+		std::size_t _numRequired;
 
 		/**
 		 * The character that is used to separate the argument flag/name
@@ -209,19 +209,19 @@ namespace TCLAP {
 		/**
 		 * Deletes any resources allocated by a CmdLine object.
 		 */
-		virtual ~CmdLine();
+		virtual ~CmdLine() override;
 
 		/**
 		 * Adds an argument to the list of arguments to be parsed.
 		 * \param a - Argument to be added.
 		 */
-		void add(ArgType& a);
+		virtual void add(ArgType& a) override;
 
 		/**
 		 * An alternative add.  Functionally identical.
 		 * \param a - Argument to be added.
 		 */
-		void add(ArgType* a);
+		virtual void add(ArgType* a) override;
 
 		/**
 		 * Add two Args that will be xor'd.  If this method is used, add does
@@ -229,73 +229,73 @@ namespace TCLAP {
 		 * \param a - Argument to be added and xor'd.
 		 * \param b - Argument to be added and xor'd.
 		 */
-		void xorAdd(ArgType& a, ArgType& b);
+		virtual void xorAdd(ArgType& a, ArgType& b) override;
 
 		/**
 		 * Add a list of Args that will be xor'd.  If this method is used,
 		 * add does not need to be called.
 		 * \param xors - List of Args to be added and xor'd.
 		 */
-		void xorAdd(const ArgVectorType& xors);
+		virtual void xorAdd(const ArgVectorType& xors) override;
 
 		/**
 		 * Parses the command line.
 		 * \param argc - Number of arguments.
 		 * \param argv - Array of arguments.
 		 */
-		void parse(int argc, const CharType* const* argv);
+		virtual void parse(int argc, const CharType* const* argv) override;
 
 		/**
 		 * Parses the command line.
 		 * \param args - A vector of strings representing the args.
 		 * args[0] is still the program name.
 		 */
-		void parse(StringVectorType& args);
+		virtual void parse(StringVectorType& args) override;
 
 		/**
 		 *
 		 */
-		CmdLineOutputType* getOutput();
+		virtual CmdLineOutputType* getOutput() override;
 
 		/**
 		 *
 		 */
-		void setOutput(CmdLineOutputType* co);
+		virtual void setOutput(CmdLineOutputType* co) override;
 
 		/**
 		 *
 		 */
-		StringType& getVersion();
+		virtual StringType& getVersion() override;
 
 		/**
 		 *
 		 */
-		StringType& getProgramName();
+		virtual StringType& getProgramName() override;
 
 		/**
 		 *
 		 */
-		ArgListType& getArgList();
+		virtual ArgListType& getArgList() override;
 
 		/**
 		 *
 		 */
-		XorHandlerType& getXorHandler();
+		virtual XorHandlerType& getXorHandler() override;
 
 		/**
 		 *
 		 */
-		CharType getDelimiter();
+		virtual CharType getDelimiter() override;
 
 		/**
 		 *
 		 */
-		StringType& getMessage();
+		virtual StringType& getMessage() override;
 
 		/**
 		 *
 		 */
-		bool hasHelpAndVersion();
+		virtual bool hasHelpAndVersion() override;
 
 		/**
 		 * Disables or enables CmdLine's internal parsing exception handling.
@@ -315,7 +315,7 @@ namespace TCLAP {
 		/**
 		 * Allows the CmdLine object to be reused.
 		 */
-		void reset();
+		virtual void reset() override;
 
 		/**
 		 * Allows unmatched args to be ignored. By default false.
@@ -432,8 +432,8 @@ namespace TCLAP {
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 	inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::add(ArgType* a) {
-		for (ArgListIteratorType it = _argList.begin(); it != _argList.end(); it++)
-			if (*a == *(*it))
+		for (const ArgType* const& arg : _argList)
+			if (*a == *arg)
 				throw(SpecificationException<T_Char, T_CharTraits, T_Alloc>(
 					StringConvertType::fromConstBasicCharString("Argument with same flag/name already exists!"),
 					a->longID()
@@ -451,9 +451,7 @@ namespace TCLAP {
 		// this step is necessary so that we have easy access to
 		// mutable strings.
 		StringVectorType args;
-		for (int i = 0; i < argc; i++)
-			args.push_back(argv[i]);
-
+		for (int i = 0; i < argc; i++) args.push_back(argv[i]);
 		parse(args);
 	}
 
@@ -466,14 +464,13 @@ namespace TCLAP {
 			_progName = args.front();
 			args.erase(args.begin());
 
-			int requiredCount = 0;
+			std::size_t requiredCount = 0;
 
-			for (int i = 0; static_cast<unsigned int>(i) < args.size(); i++) 		{
+			for (std::size_t idx_arg = 0; idx_arg < args.size(); idx_arg++) 		{
 				bool matched = false;
-				for (ArgListIteratorType it = _argList.begin();
-					it != _argList.end(); it++) {
-					if ((*it)->processArg(&i, args)) 				{
-						requiredCount += _xorHandler.check(*it);
+				for (ArgType* const& arg : _argList) {
+					if (arg->processArg(idx_arg, args)) 				{
+						requiredCount += _xorHandler.check(arg);
 						matched = true;
 						break;
 					}
@@ -481,11 +478,11 @@ namespace TCLAP {
 
 				// checks to see if the argument is an empty combined
 				// switch and if so, then we've actually matched it
-				if (!matched && _emptyCombined(args[i]))
+				if (!matched && _emptyCombined(args[idx_arg]))
 					matched = true;
 
 				if (!matched && !ArgType::ignoreRest() && !_ignoreUnmatched)
-					throw(CmdLineParseException<T_Char, T_CharTraits, T_Alloc>(StringConvertType::fromConstBasicCharString("Couldn't find match for argument"), args[i]));
+					throw(CmdLineParseException<T_Char, T_CharTraits, T_Alloc>(StringConvertType::fromConstBasicCharString("Couldn't find match for argument"), args[idx_arg]));
 			}
 
 			if (requiredCount < _numRequired)
@@ -522,13 +519,8 @@ namespace TCLAP {
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 	inline bool CmdLine<T_Char, T_CharTraits, T_Alloc>::_emptyCombined(const StringType& s) {
-		if (s.length() > 0 && s[0] != ArgType::flagStartChar())
-			return false;
-
-		for (int i = 1; static_cast<unsigned int>(i) < s.length(); i++)
-			if (s[i] != ArgType::blankChar())
-				return false;
-
+		if (!s.empty() && s.front() != ArgType::flagStartChar()) return false;
+		for (const CharType& ch : s) if (ch != ArgType::blankChar()) return false;
 		return true;
 	}
 

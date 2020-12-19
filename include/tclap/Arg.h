@@ -113,7 +113,7 @@ namespace TCLAP {
 		 * The char used as a place holder when SwitchArgs are combined.
 		 * Currently set to the bell char (ASCII 7).
 		 */
-		// TODO: Make blankChar() charset-independent.
+		 // TODO: Make blankChar() charset-independent.
 		static CharType blankChar() { return (CharType)7; }
 
 		/**
@@ -158,11 +158,11 @@ namespace TCLAP {
 		/**
 		 * Pure virtual method meant to handle the parsing and value assignment
 		 * of the string on the command line.
-		 * \param i - Pointer the the current argument in the list.
+		 * \param idx_arg - Pointer the the current argument in the list.
 		 * \param args - Mutable list of strings. What is
 		 * passed in from main.
 		 */
-		virtual bool processArg(int* i, StringVectorType& args) = 0;
+		virtual bool processArg(std::size_t& idx_arg, StringVectorType& args) = 0;
 
 		/**
 		 * Operator ==.
@@ -342,7 +342,7 @@ namespace TCLAP {
 		/**
 		 * A pointer to a visitor object.
 		 * The visitor allows special handling to occur as soon as the
-		 * argument is matched.  This defaults to NULL and should not
+		 * argument is matched.  This defaults to nullptr and should not
 		 * be used unless absolutely necessary.
 		 */
 		Visitor* _visitor;
@@ -376,7 +376,7 @@ namespace TCLAP {
 		 * \param desc - The description of the argument, used in the usage.
 		 * \param req - Whether the argument is required.
 		 * \param valreq - Whether the a value is required for the argument.
-		 * \param v - The visitor checked by the argument. Defaults to NULL.
+		 * \param v - The visitor checked by the argument. Defaults to nullptr.
 		 */
 		Arg(const StringType& flag,
 			const StringType& name,
@@ -424,12 +424,12 @@ namespace TCLAP {
 	 * ValueLike traits use operator>> to assign the value from strVal.
 	 */
 	template<typename T, typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>> void
-	ExtractValue(T& destVal, const std::basic_string<T_Char, T_CharTraits, T_Alloc>& strVal, ValueLike vl) {
+		ExtractValue(T& destVal, const std::basic_string<T_Char, T_CharTraits, T_Alloc>& strVal, ValueLike vl) {
 		static_cast<void>(vl); // Avoid warning about unused vl
 		using StringConvertType = StringConvert<T_Char, T_CharTraits>;
 		std::basic_istringstream<T_Char, T_CharTraits, T_Alloc> is(strVal.c_str());
 
-		int valuesRead = 0;
+		std::size_t valuesRead = 0;
 		while (is.good()) {
 			if (is.peek() != EOF)
 #ifdef TCLAP_SETBASE_ZERO
@@ -500,7 +500,7 @@ namespace TCLAP {
 				Arg::flagStartString() + StringConvertType::fromConstBasicCharString("' or '") +
 				Arg::nameStartString() + StringConvertType::fromConstBasicCharString("' or a space."),
 				toString()
-			));
+				));
 
 		if ((_name.substr(0, Arg::flagStartString().length()) == Arg::flagStartString()) ||
 			(_name.substr(0, Arg::nameStartString().length()) == Arg::nameStartString()) ||
@@ -510,7 +510,7 @@ namespace TCLAP {
 				Arg::flagStartString() + StringConvertType::fromConstBasicCharString("' or '") +
 				Arg::nameStartString() + StringConvertType::fromConstBasicCharString("' or space."),
 				toString()
-			));
+				));
 
 	}
 
@@ -539,7 +539,7 @@ namespace TCLAP {
 	inline auto Arg<T_Char, T_CharTraits, T_Alloc>::longID(const StringType& valueId) const -> StringType {
 		StringType id;
 
-		if (!_flag.empty()) 	{
+		if (!_flag.empty()) {
 			id += Arg::flagStartString() + _flag;
 
 			if (_valueRequired)
@@ -629,7 +629,7 @@ namespace TCLAP {
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 	inline void Arg<T_Char, T_CharTraits, T_Alloc>::_checkWithVisitor() const {
-		if (_visitor != NULL)
+		if (_visitor != nullptr)
 			_visitor->visit();
 	}
 
@@ -639,17 +639,14 @@ namespace TCLAP {
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 	inline void Arg<T_Char, T_CharTraits, T_Alloc>::trimFlag(StringType& flag, StringType& value) const {
 		std::size_t stop = 0;
-		for (std::size_t i = 0; i < flag.length(); i++)
-			if (flag[i] == Arg::delimiter()) 		{
-				stop = i;
-				break;
-			}
-
-		if (stop > 1) 	{
+		for (std::size_t i = 0; i < flag.length(); i++) if (flag[i] == Arg::delimiter()) {
+			stop = i;
+			break;
+		}
+		if (stop > 1) {
 			value = flag.substr(stop + 1);
 			flag = flag.substr(0, stop);
 		}
-
 	}
 
 	/**
@@ -657,10 +654,7 @@ namespace TCLAP {
 	 */
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 	inline bool Arg<T_Char, T_CharTraits, T_Alloc>::_hasBlanks(const StringType& s) const {
-		for (int i = 1; static_cast<unsigned int>(i) < s.length(); i++)
-			if (s[i] == Arg::blankChar())
-				return true;
-
+		for (const CharType& ch : s) if (ch == Arg::blankChar()) return true;
 		return false;
 	}
 

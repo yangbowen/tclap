@@ -69,7 +69,7 @@ namespace TCLAP {
 		/**
 		 * Destructor.
 		 */
-		virtual ~ArgException() noexcept {}
+		virtual ~ArgException() noexcept override {}
 
 		/**
 		 * Returns the error text.
@@ -104,7 +104,7 @@ namespace TCLAP {
 		 */
 		ArgException(const StringType& text, const StringType& id, const StringType& td)
 			: UseAllocatorBase<T_Alloc>(text.get_allocator()),
-			std::exception(StringConvertType::toExceptionDescription(id + StringType(" -- ") + text).c_str()),
+			std::exception(StringConvertType::toExceptionDescription(id + StringConvertType::fromConstBasicCharString(" -- ") + text).c_str()),
 			_errorText(text),
 			_argId(id),
 			_typeDescription(td) {

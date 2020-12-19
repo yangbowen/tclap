@@ -85,7 +85,7 @@ namespace TCLAP {
 		 * the Arg's in the list. You shouldn't use this.
 		 * \param a - The Arg to be checked.
 		 */
-		int check(const ArgType* a);
+		std::size_t check(const ArgType* a);
 
 		/**
 		 * Returns the XOR specific short usage.
@@ -124,12 +124,12 @@ namespace TCLAP {
 	}
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-	inline int XorHandler<T_Char, T_CharTraits, T_Alloc>::check(const ArgType* a) {
+	inline std::size_t XorHandler<T_Char, T_CharTraits, T_Alloc>::check(const ArgType* a) {
 		// iterate over each XOR list
-		for (const ArgVectorType& xorList : _orList) 	{
+		for (const ArgVectorType& xorList : _orList) {
 			// if the XOR list contains the arg..
 			ArgVectorIteratorType ait = std::find(xorList.begin(), xorList.end(), a);
-			if (ait != xorList.end()) 		{
+			if (ait != xorList.end()) {
 				// first check to see if a mutually exclusive switch
 				// has not already been set
 				for (const ArgType* const& arg : xorList)
@@ -148,7 +148,7 @@ namespace TCLAP {
 				if ((*ait)->allowMore())
 					return 0;
 				else
-					return static_cast<int>(xorList.size());
+					return xorList.size();
 			}
 		}
 

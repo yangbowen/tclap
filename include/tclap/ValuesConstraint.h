@@ -2,26 +2,26 @@
 
 
 
-/****************************************************************************** 
- * 
+/******************************************************************************
+ *
  *  file:  ValuesConstraint.h
- * 
+ *
  *  Copyright (c) 2005, Michael E. Smoot
  *  Copyright (c) 2017, Google LLC
  *  All rights reserved.
- * 
+ *
  *  See the file COPYING in the top directory of this distribution for
  *  more information.
- *  
- *  THE SOFTWARE IS PROVIDED _AS IS_, WITHOUT WARRANTY OF ANY KIND, EXPRESS 
- *  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
- *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
- *  DEALINGS IN THE SOFTWARE.  
- *  
- *****************************************************************************/ 
+ *
+ *  THE SOFTWARE IS PROVIDED _AS IS_, WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ *  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ *  DEALINGS IN THE SOFTWARE.
+ *
+ *****************************************************************************/
 
 #ifndef TCLAP_VALUESCONSTRAINT_H
 #define TCLAP_VALUESCONSTRAINT_H
@@ -40,16 +40,15 @@
 
 namespace TCLAP {
 
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-class ValuesConstraint;
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	class ValuesConstraint;
 
-/**
- * A Constraint that constrains the Arg to only those values specified
- * in the constraint.
- */
-template<class T, typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
-class ValuesConstraint : public Constraint<T, T_Char, T_CharTraits, T_Alloc>
-{
+	/**
+	 * A Constraint that constrains the Arg to only those values specified
+	 * in the constraint.
+	 */
+	template<class T, typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
+	class ValuesConstraint : public Constraint<T, T_Char, T_CharTraits, T_Alloc> {
 	public:
 		using typename UseAllocatorBase<T_Alloc>::AllocatorType;
 		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
@@ -65,8 +64,8 @@ class ValuesConstraint : public Constraint<T, T_Char, T_CharTraits, T_Alloc>
 		using UseAllocatorBase<T_Alloc>::rebindAlloc;
 
 		/**
-		 * Constructor. 
-		 * \param allowed - vector of allowed values. 
+		 * Constructor.
+		 * \param allowed - vector of allowed values.
 		 */
 		ValuesConstraint(const container_type& allowed, const AllocatorType& alloc = AllocatorType());
 
@@ -76,7 +75,7 @@ class ValuesConstraint : public Constraint<T, T_Char, T_CharTraits, T_Alloc>
 		virtual ~ValuesConstraint() {}
 
 		/**
-		 * Returns a description of the Constraint. 
+		 * Returns a description of the Constraint.
 		 */
 		virtual StringType description() const;
 
@@ -88,14 +87,14 @@ class ValuesConstraint : public Constraint<T, T_Char, T_CharTraits, T_Alloc>
 		/**
 		 * The method used to verify that the value parsed from the command
 		 * line meets the constraint.
-		 * \param value - The value that will be checked. 
+		 * \param value - The value that will be checked.
 		 */
 		virtual bool check(const T& value) const;
-	
+
 	protected:
 
 		/**
-		 * The list of valid values. 
+		 * The list of valid values.
 		 */
 		container_type _allowed;
 
@@ -104,45 +103,42 @@ class ValuesConstraint : public Constraint<T, T_Char, T_CharTraits, T_Alloc>
 		 */
 		StringType _typeDesc;
 
-};
+	};
 
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-ValuesConstraint<T, T_Char, T_CharTraits, T_Alloc>::ValuesConstraint(const container_type& allowed, const AllocatorType& alloc)
-: Constraint<T, T_Char, T_CharTraits, T_Alloc>(alloc), _allowed(allowed)
-{ 
-    for ( unsigned int i = 0; i < _allowed.size(); i++ )
-    {
-        std::basic_ostringstream<T_Char, T_CharTraits, T_Alloc> os;
-        os << _allowed[i];
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	ValuesConstraint<T, T_Char, T_CharTraits, T_Alloc>::ValuesConstraint(const container_type& allowed, const AllocatorType& alloc)
+		: Constraint<T, T_Char, T_CharTraits, T_Alloc>(alloc), _allowed(allowed) {
+		bool is_first_value = true;
+		for (T& value : _allowed) {
+			if (is_first_value)
+				is_first_value = false;
+			else
+				_typeDesc += StringConvertType::fromConstBasicCharString("|");
+			{
+				std::basic_ostringstream<T_Char, T_CharTraits, T_Alloc> os;
+				os << value;
+				_typeDesc += os.str();
+			}
+		}
+	}
 
-        StringType temp( os.str() ); 
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	bool ValuesConstraint<T, T_Char, T_CharTraits, T_Alloc>::check(const T& val) const {
+		if (std::find(_allowed.begin(), _allowed.end(), val) == _allowed.end())
+			return false;
+		else
+			return true;
+	}
 
-        if ( i > 0 )
-			_typeDesc += StringConvertType::fromConstBasicCharString("|");
-        _typeDesc += temp;
-    }
-}
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	auto ValuesConstraint<T, T_Char, T_CharTraits, T_Alloc>::shortID() const -> StringType {
+		return _typeDesc;
+	}
 
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-bool ValuesConstraint<T, T_Char, T_CharTraits, T_Alloc>::check( const T& val ) const
-{
-	if ( std::find(_allowed.begin(),_allowed.end(),val) == _allowed.end() )
-		return false;
-	else 
-		return true;
-}
-
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-auto ValuesConstraint<T, T_Char, T_CharTraits, T_Alloc>::shortID() const -> StringType
-{
-    return _typeDesc;	
-}
-
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-auto ValuesConstraint<T, T_Char, T_CharTraits, T_Alloc>::description() const -> StringType
-{
-    return _typeDesc;	
-}
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	auto ValuesConstraint<T, T_Char, T_CharTraits, T_Alloc>::description() const -> StringType {
+		return _typeDesc;
+	}
 
 
 } //namespace TCLAP

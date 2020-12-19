@@ -1,26 +1,26 @@
 // -*- Mode: c++; c-basic-offset: 4; tab-width: 4; -*-
 
 
-/****************************************************************************** 
- * 
+/******************************************************************************
+ *
  *  file:  UnlabeledMultiArg.h
- * 
+ *
  *  Copyright (c) 2003, Michael E. Smoot.
  *  Copyright (c) 2017, Google LLC
  *  All rights reserved.
- * 
+ *
  *  See the file COPYING in the top directory of this distribution for
  *  more information.
- *  
- *  THE SOFTWARE IS PROVIDED _AS IS_, WITHOUT WARRANTY OF ANY KIND, EXPRESS 
- *  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL 
- *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER 
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
- *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
- *  DEALINGS IN THE SOFTWARE.  
- *  
- *****************************************************************************/ 
+ *
+ *  THE SOFTWARE IS PROVIDED _AS IS_, WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ *  OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+ *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ *  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ *  DEALINGS IN THE SOFTWARE.
+ *
+ *****************************************************************************/
 
 
 #ifndef TCLAP_MULTIPLE_UNLABELED_ARGUMENT_H
@@ -35,17 +35,16 @@
 
 namespace TCLAP {
 
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-class UnlabeledMultiArg;
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	class UnlabeledMultiArg;
 
-/**
- * Just like a MultiArg, except that the arguments are unlabeled.  Basically,
- * this Arg will slurp up everything that hasn't been matched to another 
- * Arg.
- */
-template<class T, typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
-class UnlabeledMultiArg : public MultiArg<T, T_Char, T_CharTraits, T_Alloc>
-{
+	/**
+	 * Just like a MultiArg, except that the arguments are unlabeled.  Basically,
+	 * this Arg will slurp up everything that hasn't been matched to another
+	 * Arg.
+	 */
+	template<class T, typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>, typename T_Alloc = std::allocator<T_Char>>
+	class UnlabeledMultiArg : public MultiArg<T, T_Char, T_CharTraits, T_Alloc> {
 	public:
 		using typename UseAllocatorBase<T_Alloc>::AllocatorType;
 		using typename UseAllocatorBase<T_Alloc>::AllocatorTraitsType;
@@ -105,7 +104,7 @@ class UnlabeledMultiArg : public MultiArg<T, T_Char, T_CharTraits, T_Alloc>
 		using MultiArg<T, T_Char, T_CharTraits, T_Alloc>::reset;
 
 		/**
-		 * Constructor.  
+		 * Constructor.
 		 * \param name - The name of the Arg. Note that this is used for
 		 * identification, not as a long flag.
 		 * \param desc - A description of what the argument is for or
@@ -121,15 +120,15 @@ class UnlabeledMultiArg : public MultiArg<T, T_Char, T_CharTraits, T_Alloc>
 		 * \param v - An optional visitor.  You probably should not
 		 * use this unless you have a very good reason.
 		 */
-		UnlabeledMultiArg( const StringType& name,
-				           const StringType& desc,
-						   bool req,
-				           const StringType& typeDesc,
-						   bool ignoreable = false,
-				           Visitor* v = nullptr,
-						   const AllocatorType& alloc = AllocatorType() );
+		UnlabeledMultiArg(const StringType& name,
+			const StringType& desc,
+			bool req,
+			const StringType& typeDesc,
+			bool ignoreable = false,
+			Visitor* v = nullptr,
+			const AllocatorType& alloc = AllocatorType());
 		/**
-		 * Constructor.  
+		 * Constructor.
 		 * \param name - The name of the Arg. Note that this is used for
 		 * identification, not as a long flag.
 		 * \param desc - A description of what the argument is for or
@@ -146,40 +145,40 @@ class UnlabeledMultiArg : public MultiArg<T, T_Char, T_CharTraits, T_Alloc>
 		 * \param v - An optional visitor.  You probably should not
 		 * use this unless you have a very good reason.
 		 */
-		UnlabeledMultiArg( const StringType& name,
-				           const StringType& desc,
-						   bool req,
-				           const StringType& typeDesc,
-						   CmdLineInterfaceType& parser,
-						   bool ignoreable = false,
-				           Visitor* v = nullptr,
-						   const AllocatorType& alloc = AllocatorType() );
-						 
-		/**
-		 * Constructor.  
-		 * \param name - The name of the Arg. Note that this is used for
-		 * identification, not as a long flag.
-		 * \param desc - A description of what the argument is for or
-		 * does.
-		 * \param req - Whether the argument is required on the command
-		 *  line.
-		 * \param constraint - A pointer to a Constraint object used
-		 * to constrain this Arg.
-		 * \param ignoreable - Whether or not this argument can be ignored
-		 * using the "--" flag.
-		 * \param v - An optional visitor.  You probably should not
-		 * use this unless you have a very good reason.
-		 */
-		UnlabeledMultiArg( const StringType& name,
-						   const StringType& desc,
-						   bool req,
-						   ConstraintType* constraint,
-						   bool ignoreable = false,
-						   Visitor* v = nullptr,
-						   const AllocatorType& alloc = AllocatorType() );
+		UnlabeledMultiArg(const StringType& name,
+			const StringType& desc,
+			bool req,
+			const StringType& typeDesc,
+			CmdLineInterfaceType& parser,
+			bool ignoreable = false,
+			Visitor* v = nullptr,
+			const AllocatorType& alloc = AllocatorType());
 
 		/**
-		 * Constructor.  
+		 * Constructor.
+		 * \param name - The name of the Arg. Note that this is used for
+		 * identification, not as a long flag.
+		 * \param desc - A description of what the argument is for or
+		 * does.
+		 * \param req - Whether the argument is required on the command
+		 *  line.
+		 * \param constraint - A pointer to a Constraint object used
+		 * to constrain this Arg.
+		 * \param ignoreable - Whether or not this argument can be ignored
+		 * using the "--" flag.
+		 * \param v - An optional visitor.  You probably should not
+		 * use this unless you have a very good reason.
+		 */
+		UnlabeledMultiArg(const StringType& name,
+			const StringType& desc,
+			bool req,
+			ConstraintType* constraint,
+			bool ignoreable = false,
+			Visitor* v = nullptr,
+			const AllocatorType& alloc = AllocatorType());
+
+		/**
+		 * Constructor.
 		 * \param name - The name of the Arg. Note that this is used for
 		 * identification, not as a long flag.
 		 * \param desc - A description of what the argument is for or
@@ -194,48 +193,48 @@ class UnlabeledMultiArg : public MultiArg<T, T_Char, T_CharTraits, T_Alloc>
 		 * \param v - An optional visitor.  You probably should not
 		 * use this unless you have a very good reason.
 		 */
-		UnlabeledMultiArg( const StringType& name, 
-						   const StringType& desc, 
-						   bool req,
-						   ConstraintType* constraint,
-						   CmdLineInterfaceType& parser,
-						   bool ignoreable = false,
-						   Visitor* v = nullptr,
-						   const AllocatorType& alloc = AllocatorType() );
-						 
+		UnlabeledMultiArg(const StringType& name,
+			const StringType& desc,
+			bool req,
+			ConstraintType* constraint,
+			CmdLineInterfaceType& parser,
+			bool ignoreable = false,
+			Visitor* v = nullptr,
+			const AllocatorType& alloc = AllocatorType());
+
 		/**
 		 * Handles the processing of the argument.
 		 * This re-implements the Arg version of this method to set the
 		 * _value of the argument appropriately.  It knows the difference
 		 * between labeled and unlabeled.
-		 * \param i - Pointer the the current argument in the list.
+		 * \param idx_arg - Pointer the the current argument in the list.
 		 * \param args - Mutable list of strings. Passed from main().
 		 */
-		virtual bool processArg(int* i, StringVectorType& args); 
+		virtual bool processArg(std::size_t& idx_arg, StringVectorType& args) override;
 
 		/**
 		 * Returns the a short id string.  Used in the usage.
 		 * \param val - value to be used.
 		 */
-		virtual StringType shortID(const StringType& val = StringConvertType::fromConstBasicCharString("val")) const;
+		virtual StringType shortID(const StringType& val = StringConvertType::fromConstBasicCharString("val")) const override;
 
 		/**
 		 * Returns the a long id string.  Used in the usage.
 		 * \param val - value to be used.
 		 */
-		virtual StringType longID(const StringType& val = StringConvertType::fromConstBasicCharString("val")) const;
+		virtual StringType longID(const StringType& val = StringConvertType::fromConstBasicCharString("val")) const override;
 
 		/**
 		 * Operator ==.
 		 * \param a - The Arg to be compared to this.
 		 */
-		virtual bool operator==(const ArgType& a) const;
+		virtual bool operator==(const ArgType& a) const override;
 
 		/**
 		 * Pushes this to back of list rather than front.
 		 * \param argList - The list this should be added to.
 		 */
-		virtual void addToList( ArgListType& argList ) const;
+		virtual void addToList(ArgListType& argList) const override;
 
 	protected:
 		using Arg<T_Char, T_CharTraits, T_Alloc>::_flag;
@@ -254,124 +253,115 @@ class UnlabeledMultiArg : public MultiArg<T, T_Char, T_CharTraits, T_Alloc>
 		using MultiArg<T, T_Char, T_CharTraits, T_Alloc>::_typeDesc;
 		using MultiArg<T, T_Char, T_CharTraits, T_Alloc>::_constraint;
 		using MultiArg<T, T_Char, T_CharTraits, T_Alloc>::_extractValue;
-};
+	};
 
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledMultiArg(const StringType& name,
-				                        const StringType& desc, 
-										bool req,
-					                    const StringType& typeDesc,
-										bool ignoreable,
-					                    Visitor* v,
-										const AllocatorType& alloc)
-: MultiArg<T, T_Char, T_CharTraits, T_Alloc>(StringType(), name, desc,  req, typeDesc, v, alloc)
-{ 
-	_ignoreable = ignoreable;
-	OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check(true, toString());
-}
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledMultiArg(const StringType& name,
+		const StringType& desc,
+		bool req,
+		const StringType& typeDesc,
+		bool ignoreable,
+		Visitor* v,
+		const AllocatorType& alloc)
+		: MultiArg<T, T_Char, T_CharTraits, T_Alloc>(StringType(), name, desc, req, typeDesc, v, alloc) {
+		_ignoreable = ignoreable;
+		OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check(true, toString());
+	}
 
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledMultiArg(const StringType& name,
-				                        const StringType& desc, 
-										bool req,
-					                    const StringType& typeDesc,
-										CmdLineInterfaceType& parser,
-										bool ignoreable,
-					                    Visitor* v,
-										const AllocatorType& alloc)
-: MultiArg<T, T_Char, T_CharTraits, T_Alloc>(StringType(), name, desc,  req, typeDesc, v, alloc)
-{ 
-	_ignoreable = ignoreable;
-	OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check(true, toString());
-	parser.add( this );
-}
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledMultiArg(const StringType& name,
+		const StringType& desc,
+		bool req,
+		const StringType& typeDesc,
+		CmdLineInterfaceType& parser,
+		bool ignoreable,
+		Visitor* v,
+		const AllocatorType& alloc)
+		: MultiArg<T, T_Char, T_CharTraits, T_Alloc>(StringType(), name, desc, req, typeDesc, v, alloc) {
+		_ignoreable = ignoreable;
+		OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check(true, toString());
+		parser.add(this);
+	}
 
 
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledMultiArg(const StringType& name,
-				                        const StringType& desc, 
-										bool req,
-					                    ConstraintType* constraint,
-										bool ignoreable,
-					                    Visitor* v,
-										const AllocatorType& alloc)
-: MultiArg<T, T_Char, T_CharTraits, T_Alloc>(StringType(), name, desc,  req, constraint, v, alloc)
-{ 
-	_ignoreable = ignoreable;
-	OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check(true, toString());
-}
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledMultiArg(const StringType& name,
+		const StringType& desc,
+		bool req,
+		ConstraintType* constraint,
+		bool ignoreable,
+		Visitor* v,
+		const AllocatorType& alloc)
+		: MultiArg<T, T_Char, T_CharTraits, T_Alloc>(StringType(), name, desc, req, constraint, v, alloc) {
+		_ignoreable = ignoreable;
+		OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check(true, toString());
+	}
 
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledMultiArg(const StringType& name,
-				                        const StringType& desc, 
-										bool req,
-					                    ConstraintType* constraint,
-										CmdLineInterfaceType& parser,
-										bool ignoreable,
-					                    Visitor* v,
-										const AllocatorType& alloc)
-: MultiArg<T, T_Char, T_CharTraits, T_Alloc>(StringType(), name, desc,  req, constraint, v, alloc)
-{ 
-	_ignoreable = ignoreable;
-	OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check(true, toString());
-	parser.add( this );
-}
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::UnlabeledMultiArg(const StringType& name,
+		const StringType& desc,
+		bool req,
+		ConstraintType* constraint,
+		CmdLineInterfaceType& parser,
+		bool ignoreable,
+		Visitor* v,
+		const AllocatorType& alloc)
+		: MultiArg<T, T_Char, T_CharTraits, T_Alloc>(StringType(), name, desc, req, constraint, v, alloc) {
+		_ignoreable = ignoreable;
+		OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>::check(true, toString());
+		parser.add(this);
+	}
 
 
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-bool UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::processArg(int *i, StringVectorType& args)
-{
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	bool UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::processArg(std::size_t& idx_arg, StringVectorType& args) {
 
-	if ( _hasBlanks( args[*i] ) )
-		return false;
+		if (_hasBlanks(args[idx_arg]))
+			return false;
 
-	// never ignore an unlabeled multi arg
+		// never ignore an unlabeled multi arg
 
 
-	// always take the first value, regardless of the start string 
-	_extractValue( args[(*i)] );
+		// always take the first value, regardless of the start string 
+		_extractValue(args[idx_arg]);
 
-	/*
-	// continue taking args until we hit the end or a start string 
-	while ( (unsigned int)(*i)+1 < args.size() &&
-			args[(*i)+1].find_first_of( Arg::flagStartString() ) != 0 &&
-            args[(*i)+1].find_first_of( Arg::nameStartString() ) != 0 ) 
-		_extractValue( args[++(*i)] );
-	*/
+		/*
+		// continue taking args until we hit the end or a start string
+		while ( idx_arg+1 < args.size() &&
+				args[idx_arg+1].find_first_of( Arg::flagStartString() ) != 0 &&
+				args[idx_arg+1].find_first_of( Arg::nameStartString() ) != 0 )
+			_extractValue( args[++idx_arg] );
+		*/
 
-	_alreadySet = true;
+		_alreadySet = true;
 
-	return true;
-}
-
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-auto UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::shortID(const StringType& val) const -> StringType
-{
-	static_cast<void>(val); // Ignore input, don't warn
-	return StringConvertType::fromConstBasicCharString("<") + _typeDesc + StringConvertType::fromConstBasicCharString("> ...");
-}
-
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-auto UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::longID(const StringType& val) const -> StringType
-{
-	static_cast<void>(val); // Ignore input, don't warn
-	return StringConvertType::fromConstBasicCharString("<") + _typeDesc + StringConvertType::fromConstBasicCharString(">  (accepted multiple times)");
-}
-
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-bool UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::operator==(const ArgType& a) const
-{
-	if ( _name == a.getName() || _description == a.getDescription() )
 		return true;
-	else
-		return false;
-}
+	}
 
-template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
-void UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::addToList( ArgListType& argList ) const
-{
-	argList.push_back( const_cast<ArgType*>(static_cast<const ArgType* const>(this)) );
-}
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	auto UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::shortID(const StringType& val) const -> StringType {
+		static_cast<void>(val); // Ignore input, don't warn
+		return StringConvertType::fromConstBasicCharString("<") + _typeDesc + StringConvertType::fromConstBasicCharString("> ...");
+	}
+
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	auto UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::longID(const StringType& val) const -> StringType {
+		static_cast<void>(val); // Ignore input, don't warn
+		return StringConvertType::fromConstBasicCharString("<") + _typeDesc + StringConvertType::fromConstBasicCharString(">  (accepted multiple times)");
+	}
+
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	bool UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::operator==(const ArgType& a) const {
+		if (_name == a.getName() || _description == a.getDescription())
+			return true;
+		else
+			return false;
+	}
+
+	template<class T, typename T_Char, typename T_CharTraits, typename T_Alloc>
+	void UnlabeledMultiArg<T, T_Char, T_CharTraits, T_Alloc>::addToList(ArgListType& argList) const {
+		argList.push_back(const_cast<ArgType*>(static_cast<const ArgType* const>(this)));
+	}
 
 }
 

@@ -21,6 +21,8 @@
  *
  *****************************************************************************/
 
+#include <type_traits>
+
 // This is an internal tclap file, you should probably not have to
 // include this directly
 
@@ -96,11 +98,10 @@ class ArgTraits {
 	// test(typename C::ValueCategory*) iff type T has the
 	// corresponding typedef. If it does not test(...) will be
 	// matched. This allows us to determine if T::ValueCategory
-	// exists by checking the sizeof for the test function (return
-	// value must have different sizeof).
-	template<typename C> static short test(typename C::ValueCategory*);
-	template<typename C> static long  test(...);
-	static const bool hasTrait = sizeof(test<T>(0)) == sizeof(short);
+	// exists.
+	template<typename C> static std::true_type test(typename C::ValueCategory*);
+	template<typename C> static std::false_type test(...);
+	static constexpr bool hasTrait = decltype(test<T>(0))::value;
 
 	template <typename C, bool>
 	struct DefaultArgTrait {
