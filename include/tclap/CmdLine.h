@@ -136,7 +136,9 @@ namespace TCLAP {
 		/**
 		 * Object that handles all output for the CmdLine.
 		 */
-		CmdLineOutputType* _output;
+		CmdLineOutputType* _output = nullptr;
+
+		std::unique_ptr<CmdLineOutputType> _outputDefault;
 
 		/**
 		 * Should CmdLine handle parsing exceptions internally?
@@ -168,13 +170,6 @@ namespace TCLAP {
 		 * (which is all of it).
 		 */
 		void _constructor();
-
-
-		/**
-		 * Is set to true when a user sets the output object. We use this so
-		 * that we don't delete objects that are created outside of this lib.
-		 */
-		bool _userSetOutput;
 
 		/**
 		 * Whether or not to automatically create help and version switches.
@@ -348,25 +343,19 @@ namespace TCLAP {
 		_xorHandler(XorHandlerType()),
 		_argPrivateVec(alloc),
 		_visitorPrivateVec(alloc),
-		_output(nullptr),
 		_handleExceptions(true),
-		_userSetOutput(false),
 		_helpAndVersion(help),
 		_ignoreUnmatched(false) {
 		_constructor();
 	}
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-	inline CmdLine<T_Char, T_CharTraits, T_Alloc>::~CmdLine() {
-		if (!_userSetOutput) {
-			delete _output;
-			_output = 0;
-		}
-	}
+	inline CmdLine<T_Char, T_CharTraits, T_Alloc>::~CmdLine() {}
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 	inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::_constructor() {
-		_output = new StdOutput<T_Char, T_CharTraits, T_Alloc>;
+		_outputDefault = std::make_unique<StdOutput<T_Char, T_CharTraits, T_Alloc>>();
+		_output = _outputDefault.get();
 
 		ArgType::setDelimiter(_delimiter);
 
@@ -529,7 +518,7 @@ namespace TCLAP {
 		std::size_t count = 0;
 		bool is_first_missing_arg = true;
 		StringType missingArgList;
-		for (const ArgType* const& arg : this->_argList) {
+		for (const ArgType* const& arg : _argList) {
 			if (arg->isRequired() && !arg->isSet()) {
 				if (is_first_missing_arg)
 					is_first_missing_arg = false;
@@ -554,10 +543,8 @@ namespace TCLAP {
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 	inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::setOutput(CmdLineOutputType* co) {
-		if (!_userSetOutput)
-			delete _output;
-		_userSetOutput = true;
 		_output = co;
+		_outputDefault.reset();
 	}
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
@@ -607,9 +594,7 @@ namespace TCLAP {
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 	inline void CmdLine<T_Char, T_CharTraits, T_Alloc>::reset() {
-		for (ArgListIteratorType it = _argList.begin(); it != _argList.end(); it++)
-			(*it)->reset();
-
+		for (ArgType* const& arg : _argList) arg->reset();
 		_progName.clear();
 	}
 

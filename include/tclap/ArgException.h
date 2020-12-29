@@ -71,19 +71,22 @@ namespace TCLAP {
 		 */
 		virtual ~ArgException() noexcept override {}
 
+		ArgException(const ArgException& rhs) = delete;
+		ArgException& operator=(const ArgException& rhs) = delete;
+
 		/**
 		 * Returns the error text.
 		 */
-		StringType error() const { return this->_errorText; }
+		StringType error() const { return _errorText; }
 
 		/**
 		 * Returns the argument id.
 		 */
 		StringType argId() const {
-			if (this->_argId.empty())
+			if (_argId.empty())
 				return StringConvertType::fromConstBasicCharString(" ");
 			else
-				return StringConvertType::fromConstBasicCharString("Argument: ") + this->_argId;
+				return StringConvertType::fromConstBasicCharString("Argument: ") + _argId;
 		}
 
 		/**
@@ -91,7 +94,7 @@ namespace TCLAP {
 		 * between different child exceptions.
 		 */
 		StringType typeDescription() const {
-			return this->_typeDescription;
+			return _typeDescription;
 		}
 
 	protected:
@@ -104,7 +107,7 @@ namespace TCLAP {
 		 */
 		ArgException(const StringType& text, const StringType& id, const StringType& td)
 			: UseAllocatorBase<T_Alloc>(text.get_allocator()),
-			std::exception(StringConvertType::toExceptionDescription(id + StringConvertType::fromConstBasicCharString(" -- ") + text).c_str()),
+			std::exception(StringConvertType::template toMBString<T_Alloc>(id + StringConvertType::fromConstBasicCharString(" -- ") + text).c_str()),
 			_errorText(text),
 			_argId(id),
 			_typeDescription(td) {
@@ -208,7 +211,7 @@ namespace TCLAP {
 	public:
 		ExitException(int estat) : _estat(estat) {}
 
-		int getExitStatus() const { return this->_estat; }
+		int getExitStatus() const { return _estat; }
 
 	private:
 		int _estat;

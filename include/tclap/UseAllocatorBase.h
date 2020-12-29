@@ -51,20 +51,20 @@ namespace TCLAP {
 		UseAllocatorBase(UseAllocatorBase&& rhs) noexcept : _alloc(::std::move(rhs._alloc)) {}
 		UseAllocatorBase& operator=(const UseAllocatorBase& rhs) noexcept {
 			if constexpr (AllocatorTraitsType::propagate_on_container_copy_assignment::value) {
-				this->getAlloc() = rhs.getAlloc();
+				getAlloc() = rhs.getAlloc();
 			}
 			return *this;
 		}
 		UseAllocatorBase& operator=(UseAllocatorBase&& rhs) noexcept {
 			if constexpr (AllocatorTraitsType::propagate_on_container_move_assignment::value) {
-				this->getAlloc() = ::std::move(rhs.getAlloc());
+				getAlloc() = ::std::move(rhs.getAlloc());
 			}
 			return *this;
 		}
-		const AllocatorType& getAlloc() const noexcept { return this->_alloc; }
-		AllocatorType& getAlloc() noexcept { return this->_alloc; }
+		const AllocatorType& getAlloc() const noexcept { return _alloc; }
+		AllocatorType& getAlloc() noexcept { return _alloc; }
 		template<typename T_Value>
-		const AllocatorTypeTmpl<T_Value> rebindAlloc() const noexcept { return AllocatorTypeTmpl<T_Value>(this->getAlloc()); }
+		const AllocatorTypeTmpl<T_Value> rebindAlloc() const noexcept { return AllocatorTypeTmpl<T_Value>(getAlloc()); }
 	private:
 		AllocatorType _alloc;
 	};

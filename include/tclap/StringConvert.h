@@ -37,8 +37,12 @@
 #include <limits>
 #include <array>
 #include <memory>
+#include <algorithm>
+#include <vector>
 #include <string_view>
 #include <string>
+#include <streambuf>
+#include <iostream>
 
 namespace TCLAP {
 	template<typename T_Char, typename T_CharTraits>
@@ -72,7 +76,9 @@ namespace TCLAP {
 
 	TCLAP_MAKE_GET_MAPPING_FROM_BASIC_CHAR(char, );
 	TCLAP_MAKE_GET_MAPPING_FROM_BASIC_CHAR(wchar_t, L);
+#if defined(__cpp_char8_t) && __cpp_char8_t >= 201811L
 	TCLAP_MAKE_GET_MAPPING_FROM_BASIC_CHAR(char8_t, u8);
+#endif
 	TCLAP_MAKE_GET_MAPPING_FROM_BASIC_CHAR(char16_t, u);
 	TCLAP_MAKE_GET_MAPPING_FROM_BASIC_CHAR(char32_t, U);
 
@@ -89,72 +95,572 @@ namespace TCLAP {
 		using StringViewType = std::basic_string_view<T_Char, T_CharTraits>;
 		template<typename T_Alloc = std::allocator<T_Char>>
 		using StringTypeTmpl = std::basic_string<T_Char, T_CharTraits, T_Alloc>;
+		using StreambufType = std::basic_streambuf<T_Char, T_CharTraits>;
+		using IstreamType = std::basic_istream<T_Char, T_CharTraits>;
+		using OstreamType = std::basic_ostream<T_Char, T_CharTraits>;
 		StringConvert(const StringConvert& rhs) = delete;
 		StringConvert& operator=(const StringConvert& rhs) = delete;
-		static std::string toExceptionDescription(const StringViewType& strview);
-		static constexpr T_Char fromConstBasicChar(char ch_basic_from) {
-			T_Char ch_basic_to{};
-			if (ch_basic_from != char{}) {
-				ch_basic_to = mappingFromBasicChar<T_Char>[static_cast<unsigned char>(ch_basic_from)];
+		static constexpr CharType fromConstBasicChar(char ch_basic_from) {
+			CharType ch_basic_to{};
+			if (!std::char_traits<char>::eq(ch_basic_from, char{})) {
+				ch_basic_to = mappingFromBasicChar<CharType>[static_cast<unsigned char>(ch_basic_from)];
 				// Only basic characters are allowed.
-				if (ch_basic_to == T_Char{}) { assert(false); abort(); }
+				if (CharTraitsType::eq(ch_basic_to, CharType{})) { assert(false); abort(); }
 			}
 			return ch_basic_to;
 		}
 		template<std::size_t size_arr_basic_from>
-		static constexpr std::array<T_Char, size_arr_basic_from - 1> fromConstBasicCharArray(const char(&arr_basic_from)[size_arr_basic_from]) {
-			std::array<T_Char, size_arr_basic_from - 1> arr_str_to;
+		static constexpr std::array<CharType, size_arr_basic_from - 1> fromConstBasicCharArray(const char(&arr_basic_from)[size_arr_basic_from]) {
+			std::array<CharType, size_arr_basic_from - 1> arr_str_to;
 			for (std::size_t i = 0; i < size_arr_basic_from - 1; ++i) {
-				T_Char ch_basic_to{};
-				if (arr_basic_from[i] != char{}) {
-					ch_basic_to = mappingFromBasicChar<T_Char>[static_cast<unsigned char>(arr_basic_from[i])];
+				CharType ch_basic_to{};
+				if (!std::char_traits<char>::eq(arr_basic_from[i], char{})) {
+					ch_basic_to = mappingFromBasicChar<CharType>[static_cast<unsigned char>(arr_basic_from[i])];
 					// Only basic characters are allowed.
-					if (ch_basic_to == T_Char{}) { assert(false); abort(); }
+					if (CharTraitsType::eq(ch_basic_to, CharType{})) { assert(false); abort(); }
 				}
 				arr_str_to[i] = ch_basic_to;
 			}
 			return arr_str_to;
 		}
 		template<typename T_Alloc = std::allocator<T_Char>, std::size_t size_arr_basic_from>
-		static std::basic_string<T_Char, T_CharTraits, T_Alloc> fromConstBasicCharString(const char(&arr_basic_from)[size_arr_basic_from], const T_Alloc& alloc = T_Alloc()) {
-			std::array<T_Char, size_arr_basic_from - 1> arr_str_to = fromConstBasicCharArray(arr_basic_from);
-			return std::basic_string<T_Char, T_CharTraits, T_Alloc>(arr_str_to.data(), arr_str_to.size(), alloc);
+		static StringTypeTmpl<T_Alloc> fromConstBasicCharString(const char(&arr_basic_from)[size_arr_basic_from], const T_Alloc& alloc = T_Alloc()) {
+			std::array<CharType, size_arr_basic_from - 1> arr_str_to = fromConstBasicCharArray(arr_basic_from);
+			return StringTypeTmpl<T_Alloc>(arr_str_to.data(), arr_str_to.size(), alloc);
 		}
+		static std::size_t toMBCharRestartable(char(&mbch)[MB_LEN_MAX], const CharType& ch, std::mbstate_t& mbstate);
+		static std::size_t fromMBCharRestartable(CharType& ch, const char* p_mbs, std::size_t size_mbs, std::mbstate_t& mbstate);
+		template<typename T_Alloc = std::allocator<T_Char>>
+		static std::basic_string<char, std::char_traits<char>, T_Alloc> toMBStringRestartable(const StringViewType& strview, std::mbstate_t& mbstate) {
+			std::basic_string<char, std::char_traits<char>, T_Alloc> str;
+			char mbch[MB_LEN_MAX]{};
+			std::size_t result_mbconv = 0;
+			for (const CharType& ch : strview) {
+				result_mbconv = toMBCharRestartable(mbch, ch, &mbstate);
+				if (result_mbconv == static_cast<std::size_t>(-1)) {
+					mbstate = mbstate_t{};
+					result_mbconv = std::c16rtomb(mbch, u'\ufffd', &mbstate);
+					mbstate = mbstate_t{};
+				}
+				assert(result_mbconv <= MB_LEN_MAX);
+				str.append(mbch, result_mbconv);
+			}
+			return str;
+		}
+		template<typename T_Alloc = std::allocator<T_Char>>
+		static StringTypeTmpl<T_Alloc> fromMBStringRestartable(const std::basic_string_view<char, std::char_traits<char>>& strview, std::mbstate_t& mbstate) {
+			std::basic_string_view<char, std::char_traits<char>> strview_temp = strview;
+			StringTypeTmpl<T_Alloc> str;
+			CharType ch{};
+			std::size_t result_mbconv = 0;
+			for (; !strview_temp.empty(); strview_temp.remove_prefix(result_mbconv)) {
+				result_mbconv = std::mbrtoc16(&ch, strview_temp.data(), strview_temp.size(), &mbstate);
+				if (result_mbconv <= strview_temp.size()) {
+					if (!result_mbconv) result_mbconv = 1;
+					// Written one, read some.
+					str.push_back(ch);
+				} else {
+					switch (result_mbconv) {
+						case -1:
+							mbstate = mbstate_t{};
+							// TODO
+							mbstate = mbstate_t{};
+							result_mbconv = 1;
+							break;
+						case -2:
+							// Written none, read all.
+							result_mbconv = strview_temp.size();
+							break;
+						case -3:
+							// Written one, read none.
+							str.push_back(ch);
+							result_mbconv = 0;
+							break;
+						default:
+							assert(false);abort();
+					}
+				}
+				assert(result_mbconv >= 0 && result_mbconv <= strview_temp.size());
+			}
+			return str;
+		}
+		template<typename T_Alloc = std::allocator<char>>
+		static std::basic_string<char, std::char_traits<char>, T_Alloc> toMBString(const StringViewType& strview) {
+			std::mbstate_t mbstate{};
+			std::basic_string<char, std::char_traits<char>, T_Alloc> str = toMBStringRestartable(strview, mbstate);
+			char mbch[MB_LEN_MAX]{};
+			std::size_t result_mbconv = 0;
+			{
+				result_mbconv = toMBCharRestartable(mbch, CharType{}, &mbstate);
+				if (result_mbconv == static_cast<std::size_t>(-1)) {
+					mbstate = mbstate_t{};
+					result_mbconv = std::c16rtomb(mbch, u'\ufffd', &mbstate);
+					mbstate = mbstate_t{};
+				}
+				assert(result_mbconv <= MB_LEN_MAX);
+				assert(result_mbconv > 0);
+				str.append(mbch, result_mbconv - 1);
+			}
+			return str;
+		}
+		template<typename T_Alloc = std::allocator<T_Char>>
+		static StringTypeTmpl<T_Alloc> fromMBString(const std::basic_string_view<char, std::char_traits<char>>& strview) {
+			std::mbstate_t mbstate{};
+			StringTypeTmpl<T_Alloc> str = fromMBStringRestartable(strview, mbstate);
+			CharType ch{};
+			std::size_t result_mbconv = 0;
+			// TODO
+			return str;
+		}
+		static std::unique_ptr<IstreamType> makeConvertedStream_cin();
+		static std::unique_ptr<OstreamType> makeConvertedStream_cout();
+		static std::unique_ptr<OstreamType> makeConvertedStream_cerr();
+		static std::unique_ptr<OstreamType> makeConvertedStream_clog();
+	protected:
+		class ConvertedIstreamBuf final : public StreambufType {
+		public:
+			using char_type = T_Char;
+			using traits_type = T_CharTraits;
+			using int_type = typename T_CharTraits::int_type;
+			using pos_type = typename T_CharTraits::pos_type;
+			using off_type = typename T_CharTraits::off_type;
+			explicit ConvertedIstreamBuf(StreambufType* streambuf_wrapped)
+				: StreambufType(),
+				_streambuf_wrapped(streambuf_wrapped) {
+			}
+			ConvertedIstreamBuf(const ConvertedIstreamBuf& rhs)
+				: StreambufType(static_cast<const StreambufType&>(rhs)),
+				_streambuf_wrapped(rhs._streambuf_wrapped),
+				_mbstate(rhs._mbstate),
+				_vecbuf_buffer(rhs._vecbuf_buffer) {
+				setg(
+					eback() ? _vecbuf_buffer.data() : nullptr,
+					gptr() ? _vecbuf_buffer.data() + (gptr() - eback()) : nullptr,
+					egptr() ? _vecbuf_buffer.data() + (egptr() - eback()) : nullptr
+				);
+			}
+			ConvertedIstreamBuf(ConvertedIstreamBuf&& rhs)
+				: StreambufType(std::move(static_cast<StreambufType&>(rhs))),
+				_streambuf_wrapped(std::move(rhs._streambuf_wrapped)),
+				_mbstate(std::move(rhs._mbstate)),
+				_vecbuf_buffer(std::move(rhs._vecbuf_buffer)) {
+				setg(
+					eback() ? _vecbuf_buffer.data() : nullptr,
+					gptr() ? _vecbuf_buffer.data() + (gptr() - eback()) : nullptr,
+					egptr() ? _vecbuf_buffer.data() + (egptr() - eback()) : nullptr
+				);
+			}
+			virtual ~ConvertedIstreamBuf() override {
+				if (_streambuf_wrapped) pubsync();
+			}
+			ConvertedIstreamBuf& operator=(const ConvertedIstreamBuf& rhs) {
+				static_cast<StreambufType&>(*this) = static_cast<const StreambufType&>(rhs);
+				_streambuf_wrapped = rhs._streambuf_wrapped;
+				_mbstate = rhs._mbstate;
+				_vecbuf_buffer = rhs._vecbuf_buffer;
+				setg(
+					eback() ? _vecbuf_buffer.data() : nullptr,
+					gptr() ? _vecbuf_buffer.data() + (gptr() - eback()) : nullptr,
+					egptr() ? _vecbuf_buffer.data() + (egptr() - eback()) : nullptr
+				);
+				return *this;
+			}
+			ConvertedIstreamBuf& operator=(ConvertedIstreamBuf&& rhs) {
+				static_cast<StreambufType&>(*this) = std::move(static_cast<StreambufType&>(rhs));
+				_streambuf_wrapped = std::move(rhs._streambuf_wrapped);
+				_mbstate = std::move(rhs._mbstate);
+				_vecbuf_buffer = std::move(rhs._vecbuf_buffer);
+				setg(
+					eback() ? _vecbuf_buffer.data() : nullptr,
+					gptr() ? _vecbuf_buffer.data() + (gptr() - eback()) : nullptr,
+					egptr() ? _vecbuf_buffer.data() + (egptr() - eback()) : nullptr
+				);
+				return *this;
+			}
+		protected:
+			StreambufType* _streambuf_wrapped = nullptr;
+			mbstate_t _mbstate{};
+			std::vector<char_type> _vecbuf_buffer;
+			virtual int_type underflow() override {
+				assert(_streambuf_wrapped);
+				{
+					std::vector<char> vecbuf_unconv;
+					std::streamsize count_mbchar_get = std::clamp<std::streamsize>(_streambuf_wrapped->showmanyc(), 1, _count_mbchar_get_max);
+					assert(count_mbchar_get > 0);
+					vecbuf_unconv.resize(count_mbchar_get);
+					count_mbchar_get = std::max<std::streamsize>(_streambuf_wrapped->sgetn(vecbuf_unconv.data(), count_mbchar_get), 0);
+					assert(count_mbchar_get > 0);
+					vecbuf_unconv.resize(count_mbchar_get);
+					if (!vecbuf_unconv.empty()) {
+						if (gptr() != eback()) {
+							assert(eback());
+							assert(gptr());
+							_vecbuf_buffer.erase(_vecbuf_buffer.cbegin(), _vecbuf_buffer.cbegin() + (egptr() - eback()));
+						}
+						{
+							StringTypeTmpl<std::allocator<char_type>> str = fromMBStringRestartable<std::allocator<char_type>>(std::basic_string_view<char, std::char_traits<char>>(vecbuf_unconv.data(), vecbuf_unconv.size()), _mbstate);
+							_vecbuf_buffer.insert(_vecbuf_buffer.cend(), str.begin(), str.end());
+						}
+					}
+				}
+				if (!_vecbuf_buffer.empty()) {
+					setg(_vecbuf_buffer.data(), _vecbuf_buffer.data() + (gptr() - eback()), _vecbuf_buffer.data() + _vecbuf_buffer.size());
+					return traits_type::to_int_type(*gptr());
+				} else {
+					setg(nullptr, nullptr, nullptr);
+					return traits_type::eof();
+				}
+			}
+			virtual int_type uflow() override {
+				int_type int_ch = underflow();
+				if (!traits_type::eq_int_type(int_ch, traits_type::eof())) {
+					assert(gptr() && gptr() != egptr());
+					gbump(1);
+				}
+				return int_ch;
+			}
+			virtual std::streamsize xsgetn(char_type* ptr, std::streamsize size_get) override {
+				char_type* ptr_temp = ptr;
+				std::streamsize size_get_remaining = size_get;
+				while (size_get_remaining > 0) {
+					if (traits_type::eq_int_type(underflow(), traits_type::eof())) break;
+					assert(gptr() && gptr() != egptr());
+					std::streamsize size_copy = std::min(size_get_remaining, egptr() - gptr());
+					assert(size_copy > 0);
+					assert(ptr);
+					std::copy(gptr(), gptr() + size_copy, ptr_temp);
+					setg(eback(), gptr() + size_copy, egptr());
+					ptr_temp += size_copy;
+					size_get_remaining -= size_copy;
+				}
+				assert(size_get_remaining >= 0);
+				return size_get - size_get_remaining;
+			}
+			virtual int sync() override {
+				assert(_streambuf_wrapped);
+				_streambuf_wrapped->pubsync();
+				return 0;
+			}
+		private:
+			static constexpr std::streamsize _count_mbchar_get_max = 0x100;
+		};
+		class ConvertedOstreamBuf final : public StreambufType {
+		public:
+			using char_type = T_Char;
+			using traits_type = T_CharTraits;
+			using int_type = typename T_CharTraits::int_type;
+			using pos_type = typename T_CharTraits::pos_type;
+			using off_type = typename T_CharTraits::off_type;
+			ConvertedOstreamBuf(StreambufType* streambuf_wrapped)
+				: StreambufType(),
+				_streambuf_wrapped(streambuf_wrapped),
+				_vecbuf_buffer(_size_buffer, char_type{}) {
+			}
+			ConvertedOstreamBuf(const ConvertedOstreamBuf& rhs)
+				: StreambufType(static_cast<const StreambufType&>(rhs)),
+				_streambuf_wrapped(rhs._streambuf_wrapped),
+				_mbstate(rhs._mbstate),
+				_vecbuf_buffer(rhs._vecbuf_buffer) {
+				setp(
+					pbase() ? _vecbuf_buffer.data() : nullptr,
+					pptr() ? _vecbuf_buffer.data() + (pptr() - pbase()) : nullptr,
+					epptr() ? _vecbuf_buffer.data() + (epptr() - pbase()) : nullptr
+				);
+			}
+			ConvertedOstreamBuf(ConvertedOstreamBuf&& rhs)
+				: StreambufType(std::move(static_cast<StreambufType&>(rhs))),
+				_streambuf_wrapped(std::move(rhs._streambuf_wrapped)),
+				_mbstate(std::move(rhs._mbstate)),
+				_vecbuf_buffer(std::move(rhs._vecbuf_buffer)) {
+				setp(
+					pbase() ? _vecbuf_buffer.data() : nullptr,
+					pptr() ? _vecbuf_buffer.data() + (pptr() - pbase()) : nullptr,
+					epptr() ? _vecbuf_buffer.data() + (epptr() - pbase()) : nullptr
+				);
+			}
+			virtual ~ConvertedOstreamBuf() override {
+				if (_streambuf_wrapped) pubsync();
+			}
+			ConvertedOstreamBuf& operator=(const ConvertedOstreamBuf& rhs) {
+				static_cast<StreambufType&>(*this) = static_cast<const StreambufType&>(rhs);
+				_streambuf_wrapped = rhs._streambuf_wrapped;
+				_mbstate = rhs._mbstate;
+				_vecbuf_buffer = rhs._vecbuf_buffer;
+				setp(
+					pbase() ? _vecbuf_buffer.data() : nullptr,
+					pptr() ? _vecbuf_buffer.data() + (pptr() - pbase()) : nullptr,
+					epptr() ? _vecbuf_buffer.data() + (epptr() - pbase()) : nullptr
+				);
+				return *this;
+			}
+			ConvertedOstreamBuf& operator=(ConvertedOstreamBuf&& rhs) {
+				static_cast<StreambufType&>(*this) = std::move(static_cast<StreambufType&>(rhs));
+				_streambuf_wrapped = std::move(rhs._streambuf_wrapped);
+				_mbstate = std::move(rhs._mbstate);
+				_vecbuf_buffer = std::move(rhs._vecbuf_buffer);
+				setp(
+					pbase() ? _vecbuf_buffer.data() : nullptr,
+					pptr() ? _vecbuf_buffer.data() + (pptr() - pbase()) : nullptr,
+					epptr() ? _vecbuf_buffer.data() + (epptr() - pbase()) : nullptr
+				);
+				return *this;
+			}
+		protected:
+			StreambufType* _streambuf_wrapped = nullptr;
+			mbstate_t _mbstate{};
+			std::vector<char_type> _vecbuf_buffer;
+			virtual int_type overflow(int_type int_ch = traits_type::eof()) override {
+				assert(_streambuf_wrapped);
+				std::string mbstr;
+				if (pptr() != pbase()) {
+					mbstr = toMBStringRestartable<std::allocator<char>>(StringViewType(pbase(), pptr()), _mbstate);
+				}
+				if (!traits_type::eq_int_type(int_ch, traits_type::eof())) {
+					char_type ch = traits_type::to_char_type(int_ch);
+					mbstr += toMBStringRestartable<std::allocator<char>>(StringViewType(&ch, 1), _mbstate);
+				}
+				assert(mbstr.size() <= std::numeric_limits<std::streamsize>::max());
+				std::streamsize size_put = _streambuf_wrapped->sputn(mbstr.data(), static_cast<std::streamsize>(mbstr.size()));
+				if (size_put == mbstr.size()) {
+					setp(pbase(), epptr());
+					return traits_type::not_eof(traits_type::eof());
+				} else {
+					setp(nullptr, nullptr);
+					return traits_type::eof();
+				}
+			}
+			virtual std::streamsize xsputn(const char_type* ptr, std::streamsize size_put) override {
+				const char_type* ptr_temp = ptr;
+				std::streamsize size_put_remaining = size_put;
+				while (size_put_remaining > 0) {
+					std::streamsize size_copy = std::min(size_put_remaining, epptr() - pptr());
+					assert(size_copy >= 0);
+					if (size_copy > 0) {
+						assert(ptr);
+						std::copy(ptr_temp, ptr_temp + size_copy, pptr());
+						setp(pbase(), pptr() + size_copy, epptr());
+						ptr_temp += size_copy;
+						size_put_remaining -= size_copy;
+					}
+					if (traits_type::eq_int_type(overflow(), traits_type::eof())) break;
+					assert(pptr() && pptr() != epptr());
+				}
+				assert(size_put_remaining >= 0);
+				return size_put - size_put_remaining;
+			}
+			virtual int sync() override {
+				assert(_streambuf_wrapped);
+				overflow();
+				_streambuf_wrapped->pubsync();
+				return 0;
+			}
+		private:
+			static constexpr std::size_t _size_buffer = 0x100;
+		};
+		class ConvertedIstream final : public IstreamType {
+		public:
+			using char_type = T_Char;
+			using traits_type = T_CharTraits;
+			using int_type = typename T_CharTraits::int_type;
+			using pos_type = typename T_CharTraits::pos_type;
+			using off_type = typename T_CharTraits::off_type;
+			ConvertedIstream()
+				: IstreamType(nullptr) {
+				basic_ios<T_Char, T_CharTraits>::set_rdbuf(&_streambuf);
+			}
+			ConvertedIstream(const ConvertedIstream& rhs) = delete;
+			ConvertedIstream(ConvertedIstream&& rhs)
+				: IstreamType(std::move(static_cast<IstreamType&>(rhs))),
+				_streambuf(std::move(rhs._streambuf)) {
+				basic_ios<T_Char, T_CharTraits>::set_rdbuf(&_streambuf);
+				rhs.basic_ios<T_Char, T_CharTraits>::set_rdbuf(&rhs._streambuf);
+			}
+			virtual ~ConvertedIstream() override = default;
+			ConvertedIstream& operator=(const ConvertedIstream& rhs) = delete;
+			ConvertedIstream& operator=(ConvertedIstream&& rhs) {
+				static_cast<IstreamType&>(*this) = std::move(static_cast<IstreamType&>(rhs));
+				_streambuf = std::move(rhs._streambuf);
+				basic_ios<T_Char, T_CharTraits>::set_rdbuf(&_streambuf);
+				rhs.basic_ios<T_Char, T_CharTraits>::set_rdbuf(&rhs._streambuf);
+				return *this;
+			}
+			ConvertedIstreamBuf* rdbuf() const { return _streambuf; }
+		protected:
+			ConvertedIstreamBuf _streambuf;
+		};
+		class ConvertedOstream final : public OstreamType {
+		public:
+			using char_type = T_Char;
+			using traits_type = T_CharTraits;
+			using int_type = typename T_CharTraits::int_type;
+			using pos_type = typename T_CharTraits::pos_type;
+			using off_type = typename T_CharTraits::off_type;
+			ConvertedOstream()
+				: OstreamType(nullptr) {
+				basic_ios<T_Char, T_CharTraits>::set_rdbuf(&_streambuf);
+			}
+			ConvertedOstream(const ConvertedOstream& rhs) = delete;
+			ConvertedOstream(ConvertedOstream&& rhs)
+				: OstreamType(std::move(static_cast<OstreamType&>(rhs))),
+				_streambuf(std::move(rhs._streambuf)) {
+				basic_ios<T_Char, T_CharTraits>::set_rdbuf(&_streambuf);
+				rhs.basic_ios<T_Char, T_CharTraits>::set_rdbuf(&rhs._streambuf);
+			}
+			virtual ~ConvertedOstream() override = default;
+			ConvertedOstream& operator=(const ConvertedOstream& rhs) = delete;
+			ConvertedOstream& operator=(ConvertedOstream&& rhs) {
+				static_cast<OstreamType&>(*this) = std::move(static_cast<OstreamType&>(rhs));
+				_streambuf = std::move(rhs._streambuf);
+				basic_ios<T_Char, T_CharTraits>::set_rdbuf(&_streambuf);
+				rhs.basic_ios<T_Char, T_CharTraits>::set_rdbuf(&rhs._streambuf);
+				return *this;
+			}
+			ConvertedOstreamBuf* rdbuf() const { return _streambuf; }
+		protected:
+			ConvertedOstreamBuf _streambuf;
+		};
 	};
 
 	template<>
-	inline std::string StringConvert<char, std::char_traits<char>>::toExceptionDescription(const StringViewType& strview) {
-		return std::string(strview);
+	class StringConvert<char, std::char_traits<char>> {
+	public:
+		using CharType = char;
+		using CharTraitsType = std::char_traits<char>;
+		using StringViewType = std::basic_string_view<char, std::char_traits<char>>;
+		template<typename T_Alloc = std::allocator<char>>
+		using StringTypeTmpl = std::basic_string<char, std::char_traits<char>, T_Alloc>;
+		using StreambufType = std::basic_streambuf<char, std::char_traits<char>>;
+		using IstreamType = std::basic_istream<char, std::char_traits<char>>;
+		using OstreamType = std::basic_ostream<char, std::char_traits<char>>;
+		StringConvert(const StringConvert& rhs) = delete;
+		StringConvert& operator=(const StringConvert& rhs) = delete;
+		static constexpr char fromConstBasicChar(char ch_basic_from) {
+			char ch_basic_to{};
+			if (!std::char_traits<char>::eq(ch_basic_from, char{})) {
+				ch_basic_to = mappingFromBasicChar<char>[static_cast<unsigned char>(ch_basic_from)];
+				// Only basic characters are allowed.
+				if (CharTraitsType::eq(ch_basic_to, CharType{})) { assert(false); abort(); }
+			}
+			return ch_basic_to;
+		}
+		template<std::size_t size_arr_basic_from>
+		static constexpr std::array<char, size_arr_basic_from - 1> fromConstBasicCharArray(const char(&arr_basic_from)[size_arr_basic_from]) {
+			std::array<char, size_arr_basic_from - 1> arr_str_to;
+			for (std::size_t i = 0; i < size_arr_basic_from - 1; ++i) {
+				char ch_basic_to{};
+				if (!std::char_traits<char>::eq(arr_basic_from[i], char{})) {
+					ch_basic_to = mappingFromBasicChar<char>[static_cast<unsigned char>(arr_basic_from[i])];
+					// Only basic characters are allowed.
+					if (CharTraitsType::eq(ch_basic_to, CharType{})) { assert(false); abort(); }
+				}
+				arr_str_to[i] = ch_basic_to;
+			}
+			return arr_str_to;
+		}
+		template<typename T_Alloc = std::allocator<char>, std::size_t size_arr_basic_from>
+		static StringTypeTmpl<T_Alloc> fromConstBasicCharString(const char(&arr_basic_from)[size_arr_basic_from], const T_Alloc& alloc = T_Alloc()) {
+			std::array<char, size_arr_basic_from - 1> arr_str_to = fromConstBasicCharArray(arr_basic_from);
+			return StringTypeTmpl<T_Alloc>(arr_str_to.data(), arr_str_to.size(), alloc);
+		}
+		static std::size_t toMBCharRestartable(char(&mbch)[MB_LEN_MAX], const CharType& ch, std::mbstate_t& mbstate) {
+			static_cast<void>(mbstate);
+			mbch[0] = ch;
+			return 1;
+		}
+		static std::size_t fromMBCharRestartable(CharType& ch, const char* p_mbs, std::size_t size_mbs, std::mbstate_t& mbstate) {
+			static_cast<void>(mbstate);
+			assert(p_mbs && size_mbs);
+			ch = p_mbs[0];
+			return 1;
+		}
+		template<typename T_Alloc = std::allocator<char>>
+		static std::basic_string<char, std::char_traits<char>, T_Alloc> toMBStringRestartable(const StringViewType& strview, mbstate_t& mbstate) {
+			static_cast<void>(mbstate);
+			return std::basic_string<char, std::char_traits<char>, T_Alloc>(strview);
+		}
+		template<typename T_Alloc = std::allocator<char>>
+		static StringTypeTmpl<T_Alloc> fromMBStringRestartable(const std::basic_string_view<char, std::char_traits<char>>& strview, mbstate_t& mbstate) {
+			static_cast<void>(mbstate);
+			return StringTypeTmpl<T_Alloc>(strview);
+		}
+		template<typename T_Alloc = std::allocator<char>>
+		static std::basic_string<char, std::char_traits<char>, T_Alloc> toMBString(const StringViewType& strview) {
+			mbstate_t mbstate{};
+			return toMBStringRestartable(strview, mbstate);
+		}
+		template<typename T_Alloc = std::allocator<char>>
+		static StringTypeTmpl<T_Alloc> fromMBString(const std::basic_string_view<char, std::char_traits<char>>& strview) {
+			mbstate_t mbstate{};
+			return fromMBStringRestartable(strview, mbstate);
+		}
+		static std::unique_ptr<IstreamType> makeConvertedStream_cin();
+		static std::unique_ptr<OstreamType> makeConvertedStream_cout();
+		static std::unique_ptr<OstreamType> makeConvertedStream_cerr();
+		static std::unique_ptr<OstreamType> makeConvertedStream_clog();
+	};
+
+	template<typename T_Char, typename T_CharTraits>
+	inline auto StringConvert<T_Char, T_CharTraits>::makeConvertedStream_cin() -> std::unique_ptr<IstreamType> {
+		std::unique_ptr<IstreamType> stream = std::make_unique<ConvertedIstream>(std::cin.rdbuf());
+		stream->tie(&std::cout);
+		return stream;
+	}
+
+	template<typename T_Char, typename T_CharTraits>
+	inline auto StringConvert<T_Char, T_CharTraits>::makeConvertedStream_cout() -> std::unique_ptr<OstreamType> {
+		return std::make_unique<ConvertedOstream>(std::cout.rdbuf());
+	}
+
+	template<typename T_Char, typename T_CharTraits>
+	inline auto StringConvert<T_Char, T_CharTraits>::makeConvertedStream_cerr() -> std::unique_ptr<OstreamType> {
+		std::unique_ptr<OstreamType> stream = std::make_unique<ConvertedOstream>(std::cerr.rdbuf());
+		stream->setf(std::ios_base::unitbuf, std::ios_base::unitbuf);
+		stream->tie(&std::cout);
+		return stream;
+	}
+
+	template<typename T_Char, typename T_CharTraits>
+	inline auto StringConvert<T_Char, T_CharTraits>::makeConvertedStream_clog() -> std::unique_ptr<OstreamType> {
+		return std::make_unique<ConvertedOstream>(std::clog.rdbuf());
 	}
 
 	template<>
-	inline std::string StringConvert<wchar_t, std::char_traits<wchar_t>>::toExceptionDescription(const StringViewType& strview) {
-		std::string str;
-		std::mbstate_t mbstate{};
-		char mbch[MB_LEN_MAX]{};
-		std::size_t result_mbconv = 0;
-		for (const CharType& ch : strview) {
-			errno_t errno_mbconv = wcrtomb_s(&result_mbconv, mbch, ch, &mbstate);
-			if (errno_mbconv || result_mbconv == static_cast<std::size_t>(-1)) {
-				mbstate = mbstate_t{};
-				result_mbconv = std::c16rtomb(mbch, u'\ufffd', &mbstate);
-				mbstate = mbstate_t{};
-			}
-			assert(result_mbconv <= MB_LEN_MAX);
-			str.append(mbch, result_mbconv);
-		}
-		{
-			errno_t errno_mbconv = wcrtomb_s(&result_mbconv, mbch, CharType{}, &mbstate);
-			if (errno_mbconv || result_mbconv == static_cast<std::size_t>(-1)) {
-				mbstate = mbstate_t{};
-				result_mbconv = std::c16rtomb(mbch, u'\ufffd', &mbstate);
-				mbstate = mbstate_t{};
-			}
-			assert(result_mbconv <= MB_LEN_MAX);
-			assert(result_mbconv > 0);
-			str.append(mbch, result_mbconv - 1);
-		}
-		return str;
+	inline std::size_t StringConvert<wchar_t, std::char_traits<wchar_t>>::toMBCharRestartable(char(&mbch)[MB_LEN_MAX], const CharType& ch, std::mbstate_t& mbstate) {
+		std::size_t result_mbconv = static_cast<std::size_t>(-1);
+		errno_t errno_mbconv = wcrtomb_s(&result_mbconv, mbch, ch, &mbstate);
+		if (errno_mbconv) result_mbconv = static_cast<std::size_t>(-1);
+		return result_mbconv;
+	}
+
+	template<>
+	inline std::size_t StringConvert<wchar_t, std::char_traits<wchar_t>>::fromMBCharRestartable(CharType& ch, const char* p_mbs, std::size_t size_mbs, std::mbstate_t& mbstate) {
+		assert(p_mbs && size_mbs);
+		return mbrtowc(&ch, p_mbs, size_mbs, &mbstate);
+	}
+
+	template<>
+	inline auto StringConvert<wchar_t, std::char_traits<wchar_t>>::makeConvertedStream_cin() -> std::unique_ptr<IstreamType> {
+		std::unique_ptr<IstreamType> stream = std::make_unique<IstreamType>(std::wcin.rdbuf());
+		stream->tie(&std::wcout);
+		return stream;
+	}
+
+	template<>
+	inline auto StringConvert<wchar_t, std::char_traits<wchar_t>>::makeConvertedStream_cout() -> std::unique_ptr<OstreamType> {
+		return std::make_unique<OstreamType>(std::wcout.rdbuf());
+	}
+
+	template<>
+	inline auto StringConvert<wchar_t, std::char_traits<wchar_t>>::makeConvertedStream_cerr() -> std::unique_ptr<OstreamType> {
+		std::unique_ptr<OstreamType> stream = std::make_unique<OstreamType>(std::wcerr.rdbuf());
+		stream->setf(std::ios_base::unitbuf, std::ios_base::unitbuf);
+		stream->tie(&std::wcout);
+		return stream;
+	}
+
+	template<>
+	inline auto StringConvert<wchar_t, std::char_traits<wchar_t>>::makeConvertedStream_clog() -> std::unique_ptr<OstreamType> {
+		return std::make_unique<OstreamType>(std::wclog.rdbuf());
 	}
 
 #if \
@@ -164,94 +670,37 @@ defined(__cpp_char8_t) \
 && __cpp_lib_char8_t >= 201907L \
 && false // TODO: Enable this block of code after there's support for std::c8rtomb in major compilers.
 	template<>
-	inline std::string StringConvert<char8_t, std::char_traits<char8_t>>::toExceptionDescription(const StringViewType& strview) {
-		std::string str;
-		std::mbstate_t mbstate{};
-		char mbch[MB_LEN_MAX]{};
-		std::size_t result_mbconv = 0;
-		for (const CharType& ch : strview) {
-			result_mbconv = std::c8rtomb(mbch, ch, &mbstate);
-			if (result_mbconv == static_cast<std::size_t>(-1)) {
-				mbstate = mbstate_t{};
-				result_mbconv = std::c16rtomb(mbch, u'\ufffd', &mbstate);
-				mbstate = mbstate_t{};
-			}
-			assert(result_mbconv <= MB_LEN_MAX);
-			str.append(mbch, result_mbconv);
-		}
-		{
-			result_mbconv = std::c8rtomb(mbch, CharType{}, &mbstate);
-			if (result_mbconv == static_cast<std::size_t>(-1)) {
-				mbstate = mbstate_t{};
-				result_mbconv = std::c16rtomb(mbch, u'\ufffd', &mbstate);
-				mbstate = mbstate_t{};
-			}
-			assert(result_mbconv <= MB_LEN_MAX);
-			assert(result_mbconv > 0);
-			str.append(mbch, result_mbconv - 1);
-		}
-		return str;
+	inline std::size_t StringConvert<char8_t, std::char_traits<char8_t>>::toMBCharRestartable(char(&mbch)[MB_LEN_MAX], const CharType& ch, std::mbstate_t& mbstate) {
+		return std::c8rtomb(mbch, ch, &mbstate);
+	}
+
+	template<>
+	inline std::size_t StringConvert<char8_t, std::char_traits<char8_t>>::fromMBCharRestartable(CharType& ch, const char* p_mbs, std::size_t size_mbs, std::mbstate_t& mbstate) {
+		assert(p_mbs && size_mbs);
+		return std::mbrtoc8(&ch, p_mbs, size_mbs, &mbstate);
 	}
 #endif
 
 	template<>
-	inline std::string StringConvert<char16_t, std::char_traits<char16_t>>::toExceptionDescription(const StringViewType& strview) {
-		std::string str;
-		std::mbstate_t mbstate{};
-		char mbch[MB_LEN_MAX]{};
-		std::size_t result_mbconv = 0;
-		for (const CharType& ch : strview) {
-			result_mbconv = std::c16rtomb(mbch, ch, &mbstate);
-			if (result_mbconv == static_cast<std::size_t>(-1)) {
-				mbstate = mbstate_t{};
-				result_mbconv = std::c16rtomb(mbch, u'\ufffd', &mbstate);
-				mbstate = mbstate_t{};
-			}
-			assert(result_mbconv <= MB_LEN_MAX);
-			str.append(mbch, result_mbconv);
-		}
-		{
-			result_mbconv = std::c16rtomb(mbch, CharType{}, &mbstate);
-			if (result_mbconv == static_cast<std::size_t>(-1)) {
-				mbstate = mbstate_t{};
-				result_mbconv = std::c16rtomb(mbch, u'\ufffd', &mbstate);
-				mbstate = mbstate_t{};
-			}
-			assert(result_mbconv <= MB_LEN_MAX);
-			assert(result_mbconv > 0);
-			str.append(mbch, result_mbconv - 1);
-		}
-		return str;
+	inline std::size_t StringConvert<char16_t, std::char_traits<char16_t>>::toMBCharRestartable(char(&mbch)[MB_LEN_MAX], const CharType& ch, std::mbstate_t& mbstate) {
+		return std::c16rtomb(mbch, ch, &mbstate);
 	}
 
 	template<>
-	inline std::string StringConvert<char32_t, std::char_traits<char32_t>>::toExceptionDescription(const StringViewType& strview) {
-		std::string str;
-		std::mbstate_t mbstate{};
-		char mbch[MB_LEN_MAX]{};
-		std::size_t result_mbconv = 0;
-		for (const CharType& ch : strview) {
-			result_mbconv = std::c32rtomb(mbch, ch, &mbstate);
-			if (result_mbconv == static_cast<std::size_t>(-1)) {
-				mbstate = mbstate_t{};
-				result_mbconv = std::c16rtomb(mbch, u'\ufffd', &mbstate);
-				mbstate = mbstate_t{};
-			}
-			assert(result_mbconv <= MB_LEN_MAX);
-			str.append(mbch, result_mbconv);
-		}
-		{
-			result_mbconv = std::c32rtomb(mbch, CharType{}, &mbstate);
-			if (result_mbconv == static_cast<std::size_t>(-1)) {
-				mbstate = mbstate_t{};
-				result_mbconv = std::c16rtomb(mbch, u'\ufffd', &mbstate);
-				mbstate = mbstate_t{};
-			}
-			assert(result_mbconv <= MB_LEN_MAX);
-			assert(result_mbconv > 0);
-			str.append(mbch, result_mbconv - 1);
-		}
-		return str;
+	inline std::size_t StringConvert<char16_t, std::char_traits<char16_t>>::fromMBCharRestartable(CharType& ch, const char* p_mbs, std::size_t size_mbs, std::mbstate_t& mbstate) {
+		assert(p_mbs && size_mbs);
+		return std::mbrtoc16(&ch, p_mbs, size_mbs, &mbstate);
+	}
+
+	template<>
+	inline std::size_t StringConvert<char32_t, std::char_traits<char32_t>>::toMBCharRestartable(char(&mbch)[MB_LEN_MAX], const CharType& ch, std::mbstate_t& mbstate) {
+		return std::c32rtomb(mbch, ch, &mbstate);
+	}
+
+	template<>
+	inline std::size_t StringConvert<char32_t, std::char_traits<char32_t>>::fromMBCharRestartable(CharType& ch, const char* p_mbs, std::size_t size_mbs, std::mbstate_t& mbstate) {
+		assert(p_mbs && size_mbs);
+		return std::mbrtoc32(&ch, p_mbs, size_mbs, &mbstate);
 	}
 } //namespace TCLAP
 
