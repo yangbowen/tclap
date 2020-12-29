@@ -233,10 +233,10 @@ namespace TCLAP {
 				_streambuf_wrapped(rhs._streambuf_wrapped),
 				_mbstate(rhs._mbstate),
 				_vecbuf_buffer(rhs._vecbuf_buffer) {
-				setg(
-					eback() ? _vecbuf_buffer.data() : nullptr,
-					gptr() ? _vecbuf_buffer.data() + (gptr() - eback()) : nullptr,
-					egptr() ? _vecbuf_buffer.data() + (egptr() - eback()) : nullptr
+				StreambufType::setg(
+					StreambufType::eback() ? _vecbuf_buffer.data() : nullptr,
+					StreambufType::gptr() ? _vecbuf_buffer.data() + (StreambufType::gptr() - StreambufType::eback()) : nullptr,
+					StreambufType::egptr() ? _vecbuf_buffer.data() + (StreambufType::egptr() - StreambufType::eback()) : nullptr
 				);
 			}
 			ConvertedIstreamBuf(ConvertedIstreamBuf&& rhs)
@@ -244,24 +244,24 @@ namespace TCLAP {
 				_streambuf_wrapped(std::move(rhs._streambuf_wrapped)),
 				_mbstate(std::move(rhs._mbstate)),
 				_vecbuf_buffer(std::move(rhs._vecbuf_buffer)) {
-				setg(
-					eback() ? _vecbuf_buffer.data() : nullptr,
-					gptr() ? _vecbuf_buffer.data() + (gptr() - eback()) : nullptr,
-					egptr() ? _vecbuf_buffer.data() + (egptr() - eback()) : nullptr
+				StreambufType::setg(
+					StreambufType::eback() ? _vecbuf_buffer.data() : nullptr,
+					StreambufType::gptr() ? _vecbuf_buffer.data() + (StreambufType::gptr() - StreambufType::eback()) : nullptr,
+					StreambufType::egptr() ? _vecbuf_buffer.data() + (StreambufType::egptr() - StreambufType::eback()) : nullptr
 				);
 			}
 			virtual ~ConvertedIstreamBuf() override {
-				if (_streambuf_wrapped) pubsync();
+				if (_streambuf_wrapped) StreambufType::pubsync();
 			}
 			ConvertedIstreamBuf& operator=(const ConvertedIstreamBuf& rhs) {
 				static_cast<StreambufType&>(*this) = static_cast<const StreambufType&>(rhs);
 				_streambuf_wrapped = rhs._streambuf_wrapped;
 				_mbstate = rhs._mbstate;
 				_vecbuf_buffer = rhs._vecbuf_buffer;
-				setg(
-					eback() ? _vecbuf_buffer.data() : nullptr,
-					gptr() ? _vecbuf_buffer.data() + (gptr() - eback()) : nullptr,
-					egptr() ? _vecbuf_buffer.data() + (egptr() - eback()) : nullptr
+				StreambufType::setg(
+					StreambufType::eback() ? _vecbuf_buffer.data() : nullptr,
+					StreambufType::gptr() ? _vecbuf_buffer.data() + (StreambufType::gptr() - StreambufType::eback()) : nullptr,
+					StreambufType::egptr() ? _vecbuf_buffer.data() + (StreambufType::egptr() - StreambufType::eback()) : nullptr
 				);
 				return *this;
 			}
@@ -270,10 +270,10 @@ namespace TCLAP {
 				_streambuf_wrapped = std::move(rhs._streambuf_wrapped);
 				_mbstate = std::move(rhs._mbstate);
 				_vecbuf_buffer = std::move(rhs._vecbuf_buffer);
-				setg(
-					eback() ? _vecbuf_buffer.data() : nullptr,
-					gptr() ? _vecbuf_buffer.data() + (gptr() - eback()) : nullptr,
-					egptr() ? _vecbuf_buffer.data() + (egptr() - eback()) : nullptr
+				StreambufType::setg(
+					StreambufType::eback() ? _vecbuf_buffer.data() : nullptr,
+					StreambufType::gptr() ? _vecbuf_buffer.data() + (StreambufType::gptr() - StreambufType::eback()) : nullptr,
+					StreambufType::egptr() ? _vecbuf_buffer.data() + (StreambufType::egptr() - StreambufType::eback()) : nullptr
 				);
 				return *this;
 			}
@@ -292,10 +292,10 @@ namespace TCLAP {
 					assert(count_mbchar_get > 0);
 					vecbuf_unconv.resize(count_mbchar_get);
 					if (!vecbuf_unconv.empty()) {
-						if (gptr() != eback()) {
-							assert(eback());
-							assert(gptr());
-							_vecbuf_buffer.erase(_vecbuf_buffer.cbegin(), _vecbuf_buffer.cbegin() + (egptr() - eback()));
+						if (StreambufType::gptr() != StreambufType::eback()) {
+							assert(StreambufType::eback());
+							assert(StreambufType::gptr());
+							_vecbuf_buffer.erase(_vecbuf_buffer.cbegin(), _vecbuf_buffer.cbegin() + (StreambufType::egptr() - StreambufType::eback()));
 						}
 						{
 							StringTypeTmpl<std::allocator<char_type>> str = fromMBStringRestartable<std::allocator<char_type>>(std::basic_string_view<char, std::char_traits<char>>(vecbuf_unconv.data(), vecbuf_unconv.size()), _mbstate);
@@ -304,17 +304,17 @@ namespace TCLAP {
 					}
 				}
 				if (!_vecbuf_buffer.empty()) {
-					setg(_vecbuf_buffer.data(), _vecbuf_buffer.data() + (gptr() - eback()), _vecbuf_buffer.data() + _vecbuf_buffer.size());
-					return traits_type::to_int_type(*gptr());
+					StreambufType::setg(_vecbuf_buffer.data(), _vecbuf_buffer.data() + (StreambufType::gptr() - StreambufType::eback()), _vecbuf_buffer.data() + _vecbuf_buffer.size());
+					return traits_type::to_int_type(*StreambufType::gptr());
 				} else {
-					setg(nullptr, nullptr, nullptr);
+					StreambufType::setg(nullptr, nullptr, nullptr);
 					return traits_type::eof();
 				}
 			}
 			virtual int_type uflow() override {
 				int_type int_ch = underflow();
 				if (!traits_type::eq_int_type(int_ch, traits_type::eof())) {
-					assert(gptr() && gptr() != egptr());
+					assert(StreambufType::gptr() && StreambufType::gptr() != StreambufType::egptr());
 					gbump(1);
 				}
 				return int_ch;
@@ -324,12 +324,12 @@ namespace TCLAP {
 				std::streamsize size_get_remaining = size_get;
 				while (size_get_remaining > 0) {
 					if (traits_type::eq_int_type(underflow(), traits_type::eof())) break;
-					assert(gptr() && gptr() != egptr());
-					std::streamsize size_copy = std::min(size_get_remaining, egptr() - gptr());
+					assert(StreambufType::gptr() && StreambufType::gptr() != StreambufType::egptr());
+					std::streamsize size_copy = std::min(size_get_remaining, StreambufType::egptr() - StreambufType::gptr());
 					assert(size_copy > 0);
 					assert(ptr);
-					std::copy(gptr(), gptr() + size_copy, ptr_temp);
-					setg(eback(), gptr() + size_copy, egptr());
+					std::copy(StreambufType::gptr(), StreambufType::gptr() + size_copy, ptr_temp);
+					StreambufType::setg(StreambufType::eback(), StreambufType::gptr() + size_copy, StreambufType::egptr());
 					ptr_temp += size_copy;
 					size_get_remaining -= size_copy;
 				}
@@ -361,10 +361,10 @@ namespace TCLAP {
 				_streambuf_wrapped(rhs._streambuf_wrapped),
 				_mbstate(rhs._mbstate),
 				_vecbuf_buffer(rhs._vecbuf_buffer) {
-				setp(
-					pbase() ? _vecbuf_buffer.data() : nullptr,
-					pptr() ? _vecbuf_buffer.data() + (pptr() - pbase()) : nullptr,
-					epptr() ? _vecbuf_buffer.data() + (epptr() - pbase()) : nullptr
+				StreambufType::setp(
+					StreambufType::pbase() ? _vecbuf_buffer.data() : nullptr,
+					StreambufType::pptr() ? _vecbuf_buffer.data() + (StreambufType::pptr() - StreambufType::pbase()) : nullptr,
+					StreambufType::epptr() ? _vecbuf_buffer.data() + (StreambufType::epptr() - StreambufType::pbase()) : nullptr
 				);
 			}
 			ConvertedOstreamBuf(ConvertedOstreamBuf&& rhs)
@@ -372,24 +372,24 @@ namespace TCLAP {
 				_streambuf_wrapped(std::move(rhs._streambuf_wrapped)),
 				_mbstate(std::move(rhs._mbstate)),
 				_vecbuf_buffer(std::move(rhs._vecbuf_buffer)) {
-				setp(
-					pbase() ? _vecbuf_buffer.data() : nullptr,
-					pptr() ? _vecbuf_buffer.data() + (pptr() - pbase()) : nullptr,
-					epptr() ? _vecbuf_buffer.data() + (epptr() - pbase()) : nullptr
+				StreambufType::setp(
+					StreambufType::pbase() ? _vecbuf_buffer.data() : nullptr,
+					StreambufType::pptr() ? _vecbuf_buffer.data() + (StreambufType::pptr() - StreambufType::pbase()) : nullptr,
+					StreambufType::epptr() ? _vecbuf_buffer.data() + (StreambufType::epptr() - StreambufType::pbase()) : nullptr
 				);
 			}
 			virtual ~ConvertedOstreamBuf() override {
-				if (_streambuf_wrapped) pubsync();
+				if (_streambuf_wrapped) StreambufType::pubsync();
 			}
 			ConvertedOstreamBuf& operator=(const ConvertedOstreamBuf& rhs) {
 				static_cast<StreambufType&>(*this) = static_cast<const StreambufType&>(rhs);
 				_streambuf_wrapped = rhs._streambuf_wrapped;
 				_mbstate = rhs._mbstate;
 				_vecbuf_buffer = rhs._vecbuf_buffer;
-				setp(
-					pbase() ? _vecbuf_buffer.data() : nullptr,
-					pptr() ? _vecbuf_buffer.data() + (pptr() - pbase()) : nullptr,
-					epptr() ? _vecbuf_buffer.data() + (epptr() - pbase()) : nullptr
+				StreambufType::setp(
+					StreambufType::pbase() ? _vecbuf_buffer.data() : nullptr,
+					StreambufType::pptr() ? _vecbuf_buffer.data() + (StreambufType::pptr() - StreambufType::pbase()) : nullptr,
+					StreambufType::epptr() ? _vecbuf_buffer.data() + (StreambufType::epptr() - StreambufType::pbase()) : nullptr
 				);
 				return *this;
 			}
@@ -398,10 +398,10 @@ namespace TCLAP {
 				_streambuf_wrapped = std::move(rhs._streambuf_wrapped);
 				_mbstate = std::move(rhs._mbstate);
 				_vecbuf_buffer = std::move(rhs._vecbuf_buffer);
-				setp(
-					pbase() ? _vecbuf_buffer.data() : nullptr,
-					pptr() ? _vecbuf_buffer.data() + (pptr() - pbase()) : nullptr,
-					epptr() ? _vecbuf_buffer.data() + (epptr() - pbase()) : nullptr
+				StreambufType::setp(
+					StreambufType::pbase() ? _vecbuf_buffer.data() : nullptr,
+					StreambufType::pptr() ? _vecbuf_buffer.data() + (StreambufType::pptr() - StreambufType::pbase()) : nullptr,
+					StreambufType::epptr() ? _vecbuf_buffer.data() + (StreambufType::epptr() - StreambufType::pbase()) : nullptr
 				);
 				return *this;
 			}
@@ -412,8 +412,8 @@ namespace TCLAP {
 			virtual int_type overflow(int_type int_ch = traits_type::eof()) override {
 				assert(_streambuf_wrapped);
 				std::string mbstr;
-				if (pptr() != pbase()) {
-					mbstr = toMBStringRestartable<std::allocator<char>>(StringViewType(pbase(), pptr()), _mbstate);
+				if (StreambufType::pptr() != StreambufType::pbase()) {
+					mbstr = toMBStringRestartable<std::allocator<char>>(StringViewType(StreambufType::pbase(), StreambufType::pptr()), _mbstate);
 				}
 				if (!traits_type::eq_int_type(int_ch, traits_type::eof())) {
 					char_type ch = traits_type::to_char_type(int_ch);
@@ -422,10 +422,10 @@ namespace TCLAP {
 				assert(mbstr.size() <= std::numeric_limits<std::streamsize>::max());
 				std::streamsize size_put = _streambuf_wrapped->sputn(mbstr.data(), static_cast<std::streamsize>(mbstr.size()));
 				if (size_put == mbstr.size()) {
-					setp(pbase(), epptr());
+					StreambufType::setp(StreambufType::pbase(), StreambufType::epptr());
 					return traits_type::not_eof(traits_type::eof());
 				} else {
-					setp(nullptr, nullptr);
+					StreambufType::setp(nullptr, nullptr);
 					return traits_type::eof();
 				}
 			}
@@ -433,17 +433,17 @@ namespace TCLAP {
 				const char_type* ptr_temp = ptr;
 				std::streamsize size_put_remaining = size_put;
 				while (size_put_remaining > 0) {
-					std::streamsize size_copy = std::min(size_put_remaining, epptr() - pptr());
+					std::streamsize size_copy = std::min(size_put_remaining, StreambufType::epptr() - StreambufType::pptr());
 					assert(size_copy >= 0);
 					if (size_copy > 0) {
 						assert(ptr);
-						std::copy(ptr_temp, ptr_temp + size_copy, pptr());
-						setp(pbase(), pptr() + size_copy, epptr());
+						std::copy(ptr_temp, ptr_temp + size_copy, StreambufType::pptr());
+						StreambufType::setp(StreambufType::pbase(), StreambufType::pptr() + size_copy, StreambufType::epptr());
 						ptr_temp += size_copy;
 						size_put_remaining -= size_copy;
 					}
 					if (traits_type::eq_int_type(overflow(), traits_type::eof())) break;
-					assert(pptr() && pptr() != epptr());
+					assert(StreambufType::pptr() && StreambufType::pptr() != StreambufType::epptr());
 				}
 				assert(size_put_remaining >= 0);
 				return size_put - size_put_remaining;
