@@ -8,4 +8,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 add_library(${PROJECT_NAME} INTERFACE)
 target_include_directories(${PROJECT_NAME} INTERFACE "${PROJECT_SOURCE_DIR}/include")
 
-add_subdirectory(examples)
+if(TCLAP_BUILD_EXAMPLES)
+	add_subdirectory(examples)
+endif()
