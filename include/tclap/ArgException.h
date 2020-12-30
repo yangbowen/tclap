@@ -108,7 +108,7 @@ namespace TCLAP {
 		 */
 		ArgException(const StringType& text, const StringType& id, const StringType& td)
 			: UseAllocatorBase<T_Alloc>(text.get_allocator()),
-			std::exception(StringConvertType::template toMBString<T_Alloc>(id + StringConvertType::fromConstBasicCharString(" -- ") + text).c_str()),
+			std::exception(StringConvertType::template toMBString<std::allocator<char>>(id + StringConvertType::fromConstBasicCharString(" -- ") + text).c_str()),
 			_errorText(text),
 			_argId(id),
 			_typeDescription(td) {

@@ -140,7 +140,7 @@ namespace TCLAP {
 		}
 		static std::size_t toMBCharRestartable(char(&mbch)[MB_LEN_MAX], const CharType& ch, std::mbstate_t& mbstate);
 		static std::size_t fromMBCharRestartable(CharType& ch, const char* p_mbs, std::size_t size_mbs, std::mbstate_t& mbstate);
-		template<typename T_Alloc = std::allocator<T_Char>>
+		template<typename T_Alloc = std::allocator<char>>
 		static std::basic_string<char, std::char_traits<char>, T_Alloc> toMBStringRestartable(const StringViewType& strview, std::mbstate_t& mbstate) {
 			std::basic_string<char, std::char_traits<char>, T_Alloc> str;
 			char mbch[MB_LEN_MAX]{};
