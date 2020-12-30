@@ -49,9 +49,12 @@ namespace TCLAP {
 	class StringConvert;
 
 	template<typename T_Char>
+	struct CharMapping {};
+
+	template<typename T_Char>
 	inline consteval std::array<T_Char, std::numeric_limits<unsigned char>::max() + 1> getMappingFromBasicChar();
 
-#define TCLAP_MAKE_GET_MAPPING_FROM_BASIC_CHAR(type_to, prefix_to) \
+#define TCLAP_MAKE_CHAR_MAPPINGS(type_to, prefix_to) \
 	template<>\
 	inline consteval std::array<type_to, std::numeric_limits<unsigned char>::max() + 1> getMappingFromBasicChar<type_to>() {\
 		std::array<type_to, std::numeric_limits<unsigned char>::max() + 1> arr_mapping;\
@@ -72,17 +75,24 @@ namespace TCLAP {
 		for (std::size_t i = 0; i < arr_mapping.size(); ++i) arr_mapping[i] = type_to{};\
 		for (std::size_t i = 0; i < sizeof(arr_basic_from) / sizeof(char); ++i) arr_mapping[static_cast<unsigned char>(arr_basic_from[i])] = arr_basic_to[i];\
 		return arr_mapping;\
-	}
+	}\
+\
+	template<>\
+	struct CharMapping<type_to> {\
+		using CharType = type_to;\
+		static constexpr CharType arrInvalidChar[] = prefix_to##"\ufffd";\
+		static_assert(sizeof(arrInvalidChar) / sizeof(CharType) >= 1, "The invalid character array is too short.");\
+	};
 
-	TCLAP_MAKE_GET_MAPPING_FROM_BASIC_CHAR(char, );
-	TCLAP_MAKE_GET_MAPPING_FROM_BASIC_CHAR(wchar_t, L);
+	TCLAP_MAKE_CHAR_MAPPINGS(char, );
+	TCLAP_MAKE_CHAR_MAPPINGS(wchar_t, L);
 #if defined(__cpp_char8_t) && __cpp_char8_t >= 201811L
-	TCLAP_MAKE_GET_MAPPING_FROM_BASIC_CHAR(char8_t, u8);
+	TCLAP_MAKE_CHAR_MAPPINGS(char8_t, u8);
 #endif
-	TCLAP_MAKE_GET_MAPPING_FROM_BASIC_CHAR(char16_t, u);
-	TCLAP_MAKE_GET_MAPPING_FROM_BASIC_CHAR(char32_t, U);
+	TCLAP_MAKE_CHAR_MAPPINGS(char16_t, u);
+	TCLAP_MAKE_CHAR_MAPPINGS(char32_t, U);
 
-#undef TCLAP_MAKE_GET_MAPPING_FROM_BASIC_CHAR
+#undef TCLAP_MAKE_CHAR_MAPPINGS
 
 	template<typename T_Char>
 	inline constexpr std::array<T_Char, std::numeric_limits<unsigned char>::max() + 1> mappingFromBasicChar = getMappingFromBasicChar<T_Char>();
@@ -139,11 +149,14 @@ namespace TCLAP {
 				result_mbconv = toMBCharRestartable(mbch, ch, &mbstate);
 				if (result_mbconv == static_cast<std::size_t>(-1)) {
 					mbstate = mbstate_t{};
-					result_mbconv = std::c16rtomb(mbch, u'\ufffd', &mbstate);
-					mbstate = mbstate_t{};
+					str.append(
+						CharMapping<char>::arrInvalidChar,
+						CharMapping<char>::arrInvalidChar + (sizeof(CharMapping<char>::arrInvalidChar) / sizeof(CharMapping<char>::CharType) - 1)
+					);
+				} else {
+					assert(result_mbconv <= MB_LEN_MAX);
+					str.append(mbch, result_mbconv);
 				}
-				assert(result_mbconv <= MB_LEN_MAX);
-				str.append(mbch, result_mbconv);
 			}
 			return str;
 		}
@@ -163,8 +176,10 @@ namespace TCLAP {
 					switch (result_mbconv) {
 						case -1:
 							mbstate = mbstate_t{};
-							// TODO
-							mbstate = mbstate_t{};
+							str.append(
+								CharMapping<T_Char>::arrInvalidChar,
+								CharMapping<T_Char>::arrInvalidChar + (sizeof(CharMapping<T_Char>::arrInvalidChar) / sizeof(CharMapping<T_Char>::CharType) - 1)
+							);
 							result_mbconv = 1;
 							break;
 						case -2:
@@ -188,18 +203,21 @@ namespace TCLAP {
 		static std::basic_string<char, std::char_traits<char>, T_Alloc> toMBString(const StringViewType& strview) {
 			std::mbstate_t mbstate{};
 			std::basic_string<char, std::char_traits<char>, T_Alloc> str = toMBStringRestartable(strview, mbstate);
-			char mbch[MB_LEN_MAX]{};
-			std::size_t result_mbconv = 0;
 			{
-				result_mbconv = toMBCharRestartable(mbch, CharType{}, &mbstate);
+				char mbch[MB_LEN_MAX]{};
+				std::size_t result_mbconv = toMBCharRestartable(mbch, CharType{}, mbstate);
 				if (result_mbconv == static_cast<std::size_t>(-1)) {
 					mbstate = mbstate_t{};
-					result_mbconv = std::c16rtomb(mbch, u'\ufffd', &mbstate);
-					mbstate = mbstate_t{};
+					str.append(
+						CharMapping<char>::arrInvalidChar,
+						CharMapping<char>::arrInvalidChar + (sizeof(CharMapping<char>::arrInvalidChar) / sizeof(CharMapping<char>::CharType) - 1)
+					);
+				} else {
+					assert(result_mbconv <= MB_LEN_MAX);
+					assert(result_mbconv > 0);
+					assert(CharTraitsType::eq(mbch[result_mbconv - 1], char{}));
+					str.append(mbch, result_mbconv - 1);
 				}
-				assert(result_mbconv <= MB_LEN_MAX);
-				assert(result_mbconv > 0);
-				str.append(mbch, result_mbconv - 1);
 			}
 			return str;
 		}
@@ -207,9 +225,45 @@ namespace TCLAP {
 		static StringTypeTmpl<T_Alloc> fromMBString(const std::basic_string_view<char, std::char_traits<char>>& strview) {
 			std::mbstate_t mbstate{};
 			StringTypeTmpl<T_Alloc> str = fromMBStringRestartable(strview, mbstate);
-			CharType ch{};
-			std::size_t result_mbconv = 0;
-			// TODO
+			{
+				CharType ch{};
+				const char mbch_null{};
+				while (true) {
+					std::size_t result_mbconv = fromMBCharRestartable(ch, &mbch_null, 1, mbstate);
+					bool is_pending_append_ch = false;
+					if (result_mbconv <= 1) {
+						is_pending_append_ch = true;
+					} else {
+						switch (result_mbconv) {
+							case -1:
+								mbstate = mbstate_t{};
+								str.append(
+									CharMapping<T_Char>::arrInvalidChar,
+									CharMapping<T_Char>::arrInvalidChar + (sizeof(CharMapping<T_Char>::arrInvalidChar) / sizeof(CharMapping<T_Char>::CharType) - 1)
+								);
+								ch = CharType{};
+								is_pending_append_ch = true;
+								break;
+							case -2:
+								// Written none, read all.
+								is_pending_append_ch = false;
+								break;
+							case -3:
+								// Written one, read none.
+								is_pending_append_ch = true;
+								break;
+							default:
+								assert(false);abort();
+						}
+					}
+					if (is_pending_append_ch) {
+						if (CharTraitsType::eq(ch, CharType{})) {
+							break;
+						}
+						str.push_back(ch);
+					}
+				}
+			}
 			return str;
 		}
 		static std::unique_ptr<IstreamType> makeConvertedStream_cin();
@@ -315,7 +369,7 @@ namespace TCLAP {
 				int_type int_ch = underflow();
 				if (!traits_type::eq_int_type(int_ch, traits_type::eof())) {
 					assert(StreambufType::gptr() && StreambufType::gptr() != StreambufType::egptr());
-					gbump(1);
+					StreambufType::gbump(1);
 				}
 				return int_ch;
 			}
