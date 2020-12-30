@@ -146,7 +146,7 @@ namespace TCLAP {
 			char mbch[MB_LEN_MAX]{};
 			std::size_t result_mbconv = 0;
 			for (const CharType& ch : strview) {
-				result_mbconv = toMBCharRestartable(mbch, ch, &mbstate);
+				result_mbconv = toMBCharRestartable(mbch, ch, mbstate);
 				if (result_mbconv == static_cast<std::size_t>(-1)) {
 					mbstate = mbstate_t{};
 					str.append(
@@ -167,7 +167,7 @@ namespace TCLAP {
 			CharType ch{};
 			std::size_t result_mbconv = 0;
 			for (; !strview_temp.empty(); strview_temp.remove_prefix(result_mbconv)) {
-				result_mbconv = std::mbrtoc16(&ch, strview_temp.data(), strview_temp.size(), &mbstate);
+				result_mbconv = fromMBCharRestartable(ch, strview_temp.data(), strview_temp.size(), mbstate);
 				if (result_mbconv <= strview_temp.size()) {
 					if (!result_mbconv) result_mbconv = 1;
 					// Written one, read some.
