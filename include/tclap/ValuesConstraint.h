@@ -55,6 +55,7 @@ namespace TCLAP {
 		using typename Constraint<T, T_Char, T_CharTraits, T_Alloc>::CharType;
 		using typename Constraint<T, T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
 		using typename Constraint<T, T_Char, T_CharTraits, T_Alloc>::StringConvertType;
+		using typename Constraint<T, T_Char, T_CharTraits, T_Alloc>::StringViewType;
 		using typename Constraint<T, T_Char, T_CharTraits, T_Alloc>::StringType;
 		using typename Constraint<T, T_Char, T_CharTraits, T_Alloc>::StringVectorType;
 		using container_type = std::vector<T, typename std::allocator_traits<AllocatorType>::template rebind_alloc<T>>;

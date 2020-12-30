@@ -53,6 +53,7 @@ namespace TCLAP {
 		using CharType = T_Char;
 		using CharTraitsType = T_CharTraits;
 		using StringConvertType = StringConvert<T_Char, T_CharTraits>;
+		using StringViewType = std::basic_string_view<T_Char, T_CharTraits>;
 		using StringType = std::basic_string<T_Char, T_CharTraits, T_Alloc>;
 
 		/**
@@ -143,6 +144,7 @@ namespace TCLAP {
 		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::CharType;
 		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
 		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::StringConvertType;
+		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::StringViewType;
 		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::StringType;
 
 		/**
@@ -168,6 +170,7 @@ namespace TCLAP {
 		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::CharType;
 		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
 		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::StringConvertType;
+		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::StringViewType;
 		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::StringType;
 
 		/**
@@ -193,6 +196,7 @@ namespace TCLAP {
 		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::CharType;
 		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
 		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::StringConvertType;
+		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::StringViewType;
 		using typename ArgException<T_Char, T_CharTraits, T_Alloc>::StringType;
 
 		/**

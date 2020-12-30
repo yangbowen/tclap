@@ -54,6 +54,7 @@ namespace TCLAP {
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringConvertType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringViewType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgType;

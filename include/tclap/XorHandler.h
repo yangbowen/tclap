@@ -53,6 +53,7 @@ namespace TCLAP {
 		using CharType = T_Char;
 		using CharTraitsType = T_CharTraits;
 		using StringConvertType = StringConvert<T_Char, T_CharTraits>;
+		using StringViewType = std::basic_string_view<T_Char, T_CharTraits>;
 		using StringType = std::basic_string<T_Char, T_CharTraits, T_Alloc>;
 		using StringVectorType = std::vector<StringType, typename std::allocator_traits<AllocatorType>::template rebind_alloc<StringType>>;
 		using OstreamType = std::basic_ostream<T_Char, T_CharTraits>;

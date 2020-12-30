@@ -64,6 +64,7 @@ namespace TCLAP {
 		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::CharType;
 		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
 		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::StringConvertType;
+		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::StringViewType;
 		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::StringType;
 		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
 		using typename CmdLineInterface<T_Char, T_CharTraits, T_Alloc>::ArgType;

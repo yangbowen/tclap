@@ -50,6 +50,7 @@ namespace TCLAP {
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringConvertType;
+		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringViewType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
 		using typename Arg<T_Char, T_CharTraits, T_Alloc>::ArgType;
@@ -240,13 +241,12 @@ namespace TCLAP {
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 	inline bool SwitchArg<T_Char, T_CharTraits, T_Alloc>::combinedSwitchesMatch(StringType& combinedSwitches) {
 		// make sure this is actually a combined switch
-		if (combinedSwitches.length() > 0 &&
-			combinedSwitches[0] != Arg<T_Char, T_CharTraits, T_Alloc>::flagStartString()[0])
+		if (!combinedSwitches.empty() &&
+			combinedSwitches.front() != Arg<T_Char, T_CharTraits, T_Alloc>::flagStartString().front())
 			return false;
 
 		// make sure it isn't a long name 
-		if (combinedSwitches.substr(0, Arg<T_Char, T_CharTraits, T_Alloc>::nameStartString().length()) ==
-			Arg<T_Char, T_CharTraits, T_Alloc>::nameStartString())
+		if (combinedSwitches.starts_with(Arg<T_Char, T_CharTraits, T_Alloc>::nameStartString()))
 			return false;
 
 		// make sure the delimiter isn't in the string 

@@ -266,11 +266,6 @@ namespace TCLAP {
 			}
 			return str;
 		}
-		static std::unique_ptr<IstreamType> makeConvertedStream_cin();
-		static std::unique_ptr<OstreamType> makeConvertedStream_cout();
-		static std::unique_ptr<OstreamType> makeConvertedStream_cerr();
-		static std::unique_ptr<OstreamType> makeConvertedStream_clog();
-	protected:
 		class ConvertedIstreamBuf final : public StreambufType {
 		public:
 			using char_type = T_Char;
@@ -280,7 +275,10 @@ namespace TCLAP {
 			using off_type = typename T_CharTraits::off_type;
 			explicit ConvertedIstreamBuf(StreambufType* streambuf_wrapped)
 				: StreambufType(),
-				_streambuf_wrapped(streambuf_wrapped) {
+				_streambuf_wrapped(streambuf_wrapped),
+				_vecbuf_buffer(_size_buffer, char_type{}) {
+				assert(_streambuf_wrapped);
+				StreambufType::setg(nullptr, nullptr, nullptr);
 			}
 			ConvertedIstreamBuf(const ConvertedIstreamBuf& rhs)
 				: StreambufType(static_cast<const StreambufType&>(rhs)),
@@ -396,6 +394,7 @@ namespace TCLAP {
 				return 0;
 			}
 		private:
+			static constexpr std::size_t _size_buffer = 0x100;
 			static constexpr std::streamsize _count_mbchar_get_max = 0x100;
 		};
 		class ConvertedOstreamBuf final : public StreambufType {
@@ -405,10 +404,12 @@ namespace TCLAP {
 			using int_type = typename T_CharTraits::int_type;
 			using pos_type = typename T_CharTraits::pos_type;
 			using off_type = typename T_CharTraits::off_type;
-			ConvertedOstreamBuf(StreambufType* streambuf_wrapped)
+			explicit ConvertedOstreamBuf(StreambufType* streambuf_wrapped)
 				: StreambufType(),
 				_streambuf_wrapped(streambuf_wrapped),
 				_vecbuf_buffer(_size_buffer, char_type{}) {
+				assert(_streambuf_wrapped);
+				StreambufType::setp(_vecbuf_buffer.data(), _vecbuf_buffer.data(), _vecbuf_buffer.data() + _vecbuf_buffer.size());
 			}
 			ConvertedOstreamBuf(const ConvertedOstreamBuf& rhs)
 				: StreambufType(static_cast<const StreambufType&>(rhs)),
@@ -518,11 +519,12 @@ namespace TCLAP {
 			using int_type = typename T_CharTraits::int_type;
 			using pos_type = typename T_CharTraits::pos_type;
 			using off_type = typename T_CharTraits::off_type;
-			ConvertedIstream()
-				: IstreamType(nullptr) {
+			explicit ConvertedIstream(StreambufType* streambuf_wrapped)
+				: IstreamType(nullptr),
+				_streambuf(streambuf_wrapped) {
 				basic_ios<T_Char, T_CharTraits>::set_rdbuf(&_streambuf);
 			}
-			ConvertedIstream(const ConvertedIstream& rhs) = delete;
+			ConvertedIstream(const ConvertedIstream&) = delete;
 			ConvertedIstream(ConvertedIstream&& rhs)
 				: IstreamType(std::move(static_cast<IstreamType&>(rhs))),
 				_streambuf(std::move(rhs._streambuf)) {
@@ -530,7 +532,7 @@ namespace TCLAP {
 				rhs.basic_ios<T_Char, T_CharTraits>::set_rdbuf(&rhs._streambuf);
 			}
 			virtual ~ConvertedIstream() override = default;
-			ConvertedIstream& operator=(const ConvertedIstream& rhs) = delete;
+			ConvertedIstream& operator=(const ConvertedIstream&) = delete;
 			ConvertedIstream& operator=(ConvertedIstream&& rhs) {
 				static_cast<IstreamType&>(*this) = std::move(static_cast<IstreamType&>(rhs));
 				_streambuf = std::move(rhs._streambuf);
@@ -538,7 +540,7 @@ namespace TCLAP {
 				rhs.basic_ios<T_Char, T_CharTraits>::set_rdbuf(&rhs._streambuf);
 				return *this;
 			}
-			ConvertedIstreamBuf* rdbuf() const { return _streambuf; }
+			ConvertedIstreamBuf* rdbuf() const { return &_streambuf; }
 		protected:
 			ConvertedIstreamBuf _streambuf;
 		};
@@ -549,11 +551,12 @@ namespace TCLAP {
 			using int_type = typename T_CharTraits::int_type;
 			using pos_type = typename T_CharTraits::pos_type;
 			using off_type = typename T_CharTraits::off_type;
-			ConvertedOstream()
-				: OstreamType(nullptr) {
+			explicit ConvertedOstream(StreambufType* streambuf_wrapped)
+				: OstreamType(nullptr),
+				_streambuf(streambuf_wrapped) {
 				basic_ios<T_Char, T_CharTraits>::set_rdbuf(&_streambuf);
 			}
-			ConvertedOstream(const ConvertedOstream& rhs) = delete;
+			ConvertedOstream(const ConvertedOstream&) = delete;
 			ConvertedOstream(ConvertedOstream&& rhs)
 				: OstreamType(std::move(static_cast<OstreamType&>(rhs))),
 				_streambuf(std::move(rhs._streambuf)) {
@@ -561,7 +564,7 @@ namespace TCLAP {
 				rhs.basic_ios<T_Char, T_CharTraits>::set_rdbuf(&rhs._streambuf);
 			}
 			virtual ~ConvertedOstream() override = default;
-			ConvertedOstream& operator=(const ConvertedOstream& rhs) = delete;
+			ConvertedOstream& operator=(const ConvertedOstream&) = delete;
 			ConvertedOstream& operator=(ConvertedOstream&& rhs) {
 				static_cast<OstreamType&>(*this) = std::move(static_cast<OstreamType&>(rhs));
 				_streambuf = std::move(rhs._streambuf);
@@ -569,7 +572,7 @@ namespace TCLAP {
 				rhs.basic_ios<T_Char, T_CharTraits>::set_rdbuf(&rhs._streambuf);
 				return *this;
 			}
-			ConvertedOstreamBuf* rdbuf() const { return _streambuf; }
+			ConvertedOstreamBuf* rdbuf() const { return &_streambuf; }
 		protected:
 			ConvertedOstreamBuf _streambuf;
 		};
@@ -647,36 +650,136 @@ namespace TCLAP {
 			mbstate_t mbstate{};
 			return fromMBStringRestartable(strview, mbstate);
 		}
-		static std::unique_ptr<IstreamType> makeConvertedStream_cin();
-		static std::unique_ptr<OstreamType> makeConvertedStream_cout();
-		static std::unique_ptr<OstreamType> makeConvertedStream_cerr();
-		static std::unique_ptr<OstreamType> makeConvertedStream_clog();
+		class ConvertedIstream final : public IstreamType {
+		public:
+			using char_type = char;
+			using traits_type = std::char_traits<char>;
+			using int_type = typename std::char_traits<char>::int_type;
+			using pos_type = typename std::char_traits<char>::pos_type;
+			using off_type = typename std::char_traits<char>::off_type;
+			explicit ConvertedIstream(StreambufType* streambuf_wrapped) : IstreamType(streambuf_wrapped) {}
+			ConvertedIstream(const ConvertedIstream&) = delete;
+			ConvertedIstream(ConvertedIstream&& rhs) : IstreamType(std::move(static_cast<IstreamType&>(rhs))) {
+				rdbuf(rhs.rdbuf());
+			}
+			virtual ~ConvertedIstream() override = default;
+			ConvertedIstream& operator=(const ConvertedIstream&) = delete;
+			ConvertedIstream& operator=(ConvertedIstream&& rhs) {
+				std::basic_ios<char_type, traits_type>::move(std::move(static_cast<std::basic_ios<char_type, traits_type>&>(rhs)));
+				rdbuf(rhs.rdbuf());
+				return *this;
+			}
+		};
+		class ConvertedOstream final : public OstreamType {
+		public:
+			using char_type = char;
+			using traits_type = std::char_traits<char>;
+			using int_type = typename std::char_traits<char>::int_type;
+			using pos_type = typename std::char_traits<char>::pos_type;
+			using off_type = typename std::char_traits<char>::off_type;
+			explicit ConvertedOstream(StreambufType* streambuf_wrapped) : OstreamType(streambuf_wrapped) {}
+			ConvertedOstream(const ConvertedOstream&) = delete;
+			ConvertedOstream(ConvertedOstream&& rhs) : OstreamType(std::move(static_cast<OstreamType&>(rhs))) {
+				rdbuf(rhs.rdbuf());
+			}
+			virtual ~ConvertedOstream() override = default;
+			ConvertedOstream& operator=(const ConvertedOstream&) = delete;
+			ConvertedOstream& operator=(ConvertedOstream&& rhs) {
+				std::basic_ios<char_type, traits_type>::move(std::move(static_cast<std::basic_ios<char_type, traits_type>&>(rhs)));
+				rdbuf(rhs.rdbuf());
+				return *this;
+			}
+		};
 	};
 
-	template<typename T_Char, typename T_CharTraits>
-	inline auto StringConvert<T_Char, T_CharTraits>::makeConvertedStream_cin() -> std::unique_ptr<IstreamType> {
-		std::unique_ptr<IstreamType> stream = std::make_unique<ConvertedIstream>(std::cin.rdbuf());
-		stream->tie(&std::cout);
-		return stream;
-	}
+	template<typename T_Char = char, typename T_CharTraits = std::char_traits<T_Char>>
+	class ConvertedStdioStreams {
+	public:
+		using CharType = T_Char;
+		using CharTraitsType = T_CharTraits;
+		using StringConvertType = StringConvert<T_Char, T_CharTraits>;
+		using StringViewType = std::basic_string_view<T_Char, T_CharTraits>;
+		using StringType = std::basic_string<T_Char, T_CharTraits, std::allocator<T_Char>>;
+		using StreambufType = std::basic_streambuf<T_Char, T_CharTraits>;
+		using IstreamType = std::basic_istream<T_Char, T_CharTraits>;
+		using OstreamType = std::basic_ostream<T_Char, T_CharTraits>;
+		ConvertedStdioStreams()
+			: _init_stdios(),
+			convertedCin(std::cin.rdbuf()),
+			convertedCout(std::cout.rdbuf()),
+			convertedCerr(std::cerr.rdbuf()),
+			convertedClog(std::clog.rdbuf()) {
+			convertedCin.tie(&convertedCout);
+			convertedCerr.setf(std::ios_base::unitbuf, std::ios_base::unitbuf);
+			convertedCerr.tie(&convertedCout);
+		}
+		ConvertedStdioStreams(const ConvertedStdioStreams&) = delete;
+		ConvertedStdioStreams(ConvertedStdioStreams&& rhs)
+			: _init_stdios(),
+			convertedCin(std::move(rhs.convertedCin)),
+			convertedCout(std::move(rhs.convertedCout)),
+			convertedCerr(std::move(rhs.convertedCerr)),
+			convertedClog(std::move(rhs.convertedClog)) {
+			convertedCin.tie(&convertedCout);
+			convertedCerr.setf(std::ios_base::unitbuf, std::ios_base::unitbuf);
+			convertedCerr.tie(&convertedCout);
+		}
+		virtual ~ConvertedStdioStreams() = default;
+		ConvertedStdioStreams& operator=(const ConvertedStdioStreams&) = delete;
+		ConvertedStdioStreams& operator=(ConvertedStdioStreams&& rhs) {
+			convertedCin = std::move(rhs.convertedCin);
+			convertedCout = std::move(rhs.convertedCout);
+			convertedCerr = std::move(rhs.convertedCerr);
+			convertedClog = std::move(rhs.convertedClog);
+			convertedCin.tie(&convertedCout);
+			convertedCerr.setf(std::ios_base::unitbuf, std::ios_base::unitbuf);
+			convertedCerr.tie(&convertedCout);
+			return *this;
+		}
+		const IstreamType& getCin() const { return convertedCin; }
+		IstreamType& getCin() { return convertedCin; }
+		const OstreamType& getCout() const { return convertedCout; }
+		OstreamType& getCout() { return convertedCout; }
+		const OstreamType& getCerr() const { return convertedCerr; }
+		OstreamType& getCerr() { return convertedCerr; }
+		const OstreamType& getClog() const { return convertedClog; }
+		OstreamType& getClog() { return convertedClog; }
+	protected:
+		std::ios_base::Init _init_stdios;
+		typename StringConvertType::ConvertedIstream convertedCin;
+		typename StringConvertType::ConvertedOstream convertedCout;
+		typename StringConvertType::ConvertedOstream convertedCerr;
+		typename StringConvertType::ConvertedOstream convertedClog;
+	};
 
-	template<typename T_Char, typename T_CharTraits>
-	inline auto StringConvert<T_Char, T_CharTraits>::makeConvertedStream_cout() -> std::unique_ptr<OstreamType> {
-		return std::make_unique<ConvertedOstream>(std::cout.rdbuf());
-	}
-
-	template<typename T_Char, typename T_CharTraits>
-	inline auto StringConvert<T_Char, T_CharTraits>::makeConvertedStream_cerr() -> std::unique_ptr<OstreamType> {
-		std::unique_ptr<OstreamType> stream = std::make_unique<ConvertedOstream>(std::cerr.rdbuf());
-		stream->setf(std::ios_base::unitbuf, std::ios_base::unitbuf);
-		stream->tie(&std::cout);
-		return stream;
-	}
-
-	template<typename T_Char, typename T_CharTraits>
-	inline auto StringConvert<T_Char, T_CharTraits>::makeConvertedStream_clog() -> std::unique_ptr<OstreamType> {
-		return std::make_unique<ConvertedOstream>(std::clog.rdbuf());
-	}
+	template<>
+	class ConvertedStdioStreams<wchar_t, std::char_traits<wchar_t>> {
+	public:
+		using CharType = wchar_t;
+		using CharTraitsType = std::char_traits<wchar_t>;
+		using StringConvertType = StringConvert<wchar_t, std::char_traits<wchar_t>>;
+		using StringViewType = std::basic_string_view<wchar_t, std::char_traits<wchar_t>>;
+		using StringType = std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>>;
+		using StreambufType = std::basic_streambuf<wchar_t, std::char_traits<wchar_t>>;
+		using IstreamType = std::basic_istream<wchar_t, std::char_traits<wchar_t>>;
+		using OstreamType = std::basic_ostream<wchar_t, std::char_traits<wchar_t>>;
+		ConvertedStdioStreams() = default;
+		ConvertedStdioStreams(const ConvertedStdioStreams&) = delete;
+		ConvertedStdioStreams(ConvertedStdioStreams&&) = default;
+		virtual ~ConvertedStdioStreams() = default;
+		ConvertedStdioStreams& operator=(const ConvertedStdioStreams&) = delete;
+		ConvertedStdioStreams& operator=(ConvertedStdioStreams&&) = default;
+		const IstreamType& getCin() const { return std::wcin; }
+		IstreamType& getCin() { return std::wcin; }
+		const OstreamType& getCout() const { return std::wcout; }
+		OstreamType& getCout() { return std::wcout; }
+		const OstreamType& getCerr() const { return std::wcerr; }
+		OstreamType& getCerr() { return std::wcerr; }
+		const OstreamType& getClog() const { return std::wclog; }
+		OstreamType& getClog() { return std::wclog; }
+	protected:
+		std::ios_base::Init _init_stdios;
+	};
 
 	template<>
 	inline std::size_t StringConvert<wchar_t, std::char_traits<wchar_t>>::toMBCharRestartable(char(&mbch)[MB_LEN_MAX], const CharType& ch, std::mbstate_t& mbstate) {
@@ -690,31 +793,6 @@ namespace TCLAP {
 	inline std::size_t StringConvert<wchar_t, std::char_traits<wchar_t>>::fromMBCharRestartable(CharType& ch, const char* p_mbs, std::size_t size_mbs, std::mbstate_t& mbstate) {
 		assert(p_mbs && size_mbs);
 		return mbrtowc(&ch, p_mbs, size_mbs, &mbstate);
-	}
-
-	template<>
-	inline auto StringConvert<wchar_t, std::char_traits<wchar_t>>::makeConvertedStream_cin() -> std::unique_ptr<IstreamType> {
-		std::unique_ptr<IstreamType> stream = std::make_unique<IstreamType>(std::wcin.rdbuf());
-		stream->tie(&std::wcout);
-		return stream;
-	}
-
-	template<>
-	inline auto StringConvert<wchar_t, std::char_traits<wchar_t>>::makeConvertedStream_cout() -> std::unique_ptr<OstreamType> {
-		return std::make_unique<OstreamType>(std::wcout.rdbuf());
-	}
-
-	template<>
-	inline auto StringConvert<wchar_t, std::char_traits<wchar_t>>::makeConvertedStream_cerr() -> std::unique_ptr<OstreamType> {
-		std::unique_ptr<OstreamType> stream = std::make_unique<OstreamType>(std::wcerr.rdbuf());
-		stream->setf(std::ios_base::unitbuf, std::ios_base::unitbuf);
-		stream->tie(&std::wcout);
-		return stream;
-	}
-
-	template<>
-	inline auto StringConvert<wchar_t, std::char_traits<wchar_t>>::makeConvertedStream_clog() -> std::unique_ptr<OstreamType> {
-		return std::make_unique<OstreamType>(std::wclog.rdbuf());
 	}
 
 #if \

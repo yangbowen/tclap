@@ -40,6 +40,7 @@ class OptionalUnlabeledTracker
 		using CharTraitsType = T_CharTraits;
 		using AllocatorType = T_Alloc;
 		using StringConvertType = StringConvert<T_Char, T_CharTraits>;
+		using StringViewType = std::basic_string_view<T_Char, T_CharTraits>;
 		using StringType = std::basic_string<T_Char, T_CharTraits, T_Alloc>;
 		using OptionalUnlabeledTrackerType = OptionalUnlabeledTracker<T_Char, T_CharTraits, T_Alloc>;
 		static void check( bool req, const StringType& argName );

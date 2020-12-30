@@ -68,6 +68,7 @@ namespace TCLAP {
 		using CharType = T_Char;
 		using CharTraitsType = T_CharTraits;
 		using StringConvertType = StringConvert<T_Char, T_CharTraits>;
+		using StringViewType = std::basic_string_view<T_Char, T_CharTraits>;
 		using StringType = std::basic_string<T_Char, T_CharTraits, T_Alloc>;
 		using StringVectorType = std::vector<StringType, typename std::allocator_traits<AllocatorType>::template rebind_alloc<StringType>>;
 		using ArgType = Arg<T_Char, T_CharTraits, T_Alloc>;
@@ -488,7 +489,7 @@ namespace TCLAP {
 		_ignoreable(true),
 		_xorSet(false),
 		_acceptsMultipleValues(false) {
-		if (_flag.length() > 1) throw(SpecificationException<T_Char, T_CharTraits, T_Alloc>(StringConvertType::fromConstBasicCharString("Argument flag can only be one character long"), toString()));
+		if (_flag.size() > 1) throw(SpecificationException<T_Char, T_CharTraits, T_Alloc>(StringConvertType::fromConstBasicCharString("Argument flag can only be one character long"), toString()));
 
 		if (_name != ignoreNameString() &&
 			(_flag == Arg::flagStartString() ||
@@ -501,8 +502,9 @@ namespace TCLAP {
 				toString()
 				));
 
-		if ((_name.substr(0, Arg::flagStartString().length()) == Arg::flagStartString()) ||
-			(_name.substr(0, Arg::nameStartString().length()) == Arg::nameStartString()) ||
+		if (
+			_name.starts_with(Arg::flagStartString()) ||
+			_name.starts_with(Arg::nameStartString()) ||
 			(_name.find(StringConvertType::fromConstBasicCharString(" "), 0) != StringType::npos))
 			throw(SpecificationException<T_Char, T_CharTraits, T_Alloc>(
 				StringConvertType::fromConstBasicCharString("Argument name begin with either '") +
@@ -638,7 +640,7 @@ namespace TCLAP {
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 	inline void Arg<T_Char, T_CharTraits, T_Alloc>::trimFlag(StringType& flag, StringType& value) const {
 		std::size_t stop = 0;
-		for (std::size_t i = 0; i < flag.length(); i++) if (flag[i] == Arg::delimiter()) {
+		for (std::size_t i = 0; i < flag.size(); i++) if (flag[i] == Arg::delimiter()) {
 			stop = i;
 			break;
 		}

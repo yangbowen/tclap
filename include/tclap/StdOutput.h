@@ -54,8 +54,10 @@ namespace TCLAP {
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CharType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringConvertType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringViewType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::OstreamType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgListType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgVectorType;
@@ -65,11 +67,10 @@ namespace TCLAP {
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CmdLineInterfaceType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CmdLineOutputType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::XorHandlerType;
-		using OstreamType = std::basic_ostream<T_Char, T_CharTraits>;
 		using UseAllocatorBase<T_Alloc>::getAlloc;
 		using UseAllocatorBase<T_Alloc>::rebindAlloc;
 
-		explicit StdOutput(OstreamType* os = nullptr, const AllocatorType& alloc = AllocatorType()) noexcept;
+		explicit StdOutput(OstreamType* _os = nullptr, const AllocatorType& alloc = AllocatorType()) noexcept;
 
 		/**
 		 * Prints the usage to stdout.  Can be overridden to
@@ -94,28 +95,27 @@ namespace TCLAP {
 		virtual void failure(CmdLineInterfaceType& c, ArgException<T_Char, T_CharTraits, T_Alloc>& e) override;
 
 	protected:
-		OstreamType* _os = nullptr;
+		OstreamType* os = nullptr;
+
+		std::unique_ptr<ConvertedStdioStreams<T_Char, T_CharTraits>> convertedStdioStreams;
 
 		/**
 		 * Writes a brief usage message with short args.
 		 * \param c - The CmdLine object the output is generated for.
-		 * \param os - The stream to write the message to.
 		 */
-		void _shortUsage(CmdLineInterfaceType& c, OstreamType& os) const;
+		void _shortUsage(CmdLineInterfaceType& c) const;
 
 		/**
 		 * Writes a longer usage message with long and short args,
 		 * provides descriptions and prints message.
 		 * \param c - The CmdLine object the output is generated for.
-		 * \param os - The stream to write the message to.
 		 */
-		void _longUsage(CmdLineInterfaceType& c, OstreamType& os) const;
+		void _longUsage(CmdLineInterfaceType& c) const;
 
 		/**
 		 * This function inserts line breaks and indents long strings
 		 * according to the params input. It will only break lines at spaces,
 		 * commas and pipes.
-		 * \param os - The stream to be printed to.
 		 * \param s - The string to be printed.
 		 * \param maxWidth - The maxWidth allowed for the output line.
 		 * \param indentSpaces - The number of spaces to indent the first line.
@@ -123,49 +123,49 @@ namespace TCLAP {
 		 * and all subsequent lines in addition to indentSpaces.
 		 */
 		void spacePrint(
-			OstreamType& os,
 			const StringType& s,
-			int maxWidth,
-			int indentSpaces,
-			int secondLineOffset
+			std::size_t maxWidth,
+			std::size_t indentSpaces,
+			std::size_t secondLineOffset
 		) const;
 	};
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-	StdOutput<T_Char, T_CharTraits, T_Alloc>::StdOutput(OstreamType* os, const AllocatorType& alloc) noexcept
+	StdOutput<T_Char, T_CharTraits, T_Alloc>::StdOutput(OstreamType* _os, const AllocatorType& alloc) noexcept
 		: CmdLineOutput<T_Char, T_CharTraits, T_Alloc>(alloc),
-		_os(os) {
-		if (!_os) {
-			// TODO
+		os(_os) {
+		if (!os) {
+			convertedStdioStreams = std::make_unique<ConvertedStdioStreams<T_Char, T_CharTraits>>();
+			os = &convertedStdioStreams->getCerr();
 		}
 	}
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 	inline void StdOutput<T_Char, T_CharTraits, T_Alloc>::version(CmdLineInterfaceType& _cmd) {
-		assert(_os);
-		*_os << std::endl << _cmd.getProgramName() << StringConvertType::fromConstBasicCharString("  version: ") << _cmd.getVersion() << std::endl << std::endl;
+		assert(os);
+		*os << _cmd.getVersion() << std::endl;
 	}
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 	inline void StdOutput<T_Char, T_CharTraits, T_Alloc>::usage(CmdLineInterfaceType& _cmd) {
-		assert(_os);
-		*_os << std::endl << StringConvertType::fromConstBasicCharString("USAGE: ") << std::endl << std::endl;
-		_shortUsage(_cmd, *_os);
-		*_os << std::endl << std::endl << StringConvertType::fromConstBasicCharString("Where: ") << std::endl << std::endl;
-		_longUsage(_cmd, *_os);
-		*_os << std::endl;
+		assert(os);
+		*os << std::endl << StringConvertType::fromConstBasicCharString("USAGE: ") << std::endl << std::endl;
+		_shortUsage(_cmd);
+		*os << std::endl << std::endl << StringConvertType::fromConstBasicCharString("Where: ") << std::endl << std::endl;
+		_longUsage(_cmd);
+		*os << std::endl;
 	}
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 	inline void StdOutput<T_Char, T_CharTraits, T_Alloc>::failure(CmdLineInterfaceType& _cmd, ArgException<T_Char, T_CharTraits, T_Alloc>& e) {
-		assert(_os);
-		*_os
+		assert(os);
+		*os
 			<< StringConvertType::fromConstBasicCharString("PARSE ERROR: ") << e.argId() << std::endl
 			<< StringConvertType::fromConstBasicCharString("             ") << e.error() << std::endl << std::endl;
 		if (_cmd.hasHelpAndVersion()) {
-			*_os << StringConvertType::fromConstBasicCharString("Brief USAGE: ") << std::endl;
-			_shortUsage(_cmd, *_os);
-			*_os << std::endl << StringConvertType::fromConstBasicCharString("For complete USAGE and HELP type: ")
+			*os << StringConvertType::fromConstBasicCharString("Brief USAGE: ") << std::endl;
+			_shortUsage(_cmd);
+			*os << std::endl << StringConvertType::fromConstBasicCharString("For complete USAGE and HELP type: ")
 				<< std::endl << StringConvertType::fromConstBasicCharString("   ") << _cmd.getProgramName() << StringConvertType::fromConstBasicCharString(" ")
 				<< ArgType::nameStartString() << "help"
 				<< std::endl << std::endl;
@@ -175,7 +175,7 @@ namespace TCLAP {
 	}
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-	inline void StdOutput<T_Char, T_CharTraits, T_Alloc>::_shortUsage(CmdLineInterfaceType& _cmd, OstreamType& os) const {
+	inline void StdOutput<T_Char, T_CharTraits, T_Alloc>::_shortUsage(CmdLineInterfaceType& _cmd) const {
 		ArgListType argList = _cmd.getArgList();
 		StringType progName = _cmd.getProgramName();
 		XorHandlerType xorHandler = _cmd.getXorHandler();
@@ -197,15 +197,16 @@ namespace TCLAP {
 				s += StringConvertType::fromConstBasicCharString(" ") + arg->shortID();
 
 		// if the program name is too long, then adjust the second line offset 
-		int secondLineOffset = static_cast<int>(progName.length()) + 2;
+		std::size_t secondLineOffset = progName.size() + 2;
 		if (secondLineOffset > 75 / 2)
-			secondLineOffset = static_cast<int>(75 / 2);
+			secondLineOffset = 75 / 2;
 
-		spacePrint(os, s, 75, 3, secondLineOffset);
+		spacePrint(s, 75, 3, secondLineOffset);
 	}
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
-	inline void StdOutput<T_Char, T_CharTraits, T_Alloc>::_longUsage(CmdLineInterfaceType& _cmd, OstreamType& os) const {
+	inline void StdOutput<T_Char, T_CharTraits, T_Alloc>::_longUsage(CmdLineInterfaceType& _cmd) const {
+		assert(os);
 		ArgListType argList = _cmd.getArgList();
 		StringType message = _cmd.getMessage();
 		XorHandlerType xorHandler = _cmd.getXorHandler();
@@ -218,87 +219,86 @@ namespace TCLAP {
 				if (is_first_arg)
 					is_first_arg = false;
 				else
-					spacePrint(os, StringConvertType::fromConstBasicCharString("-- OR --"), 75, 9, 0);
-				spacePrint(os, arg->longID(), 75, 3, 3);
-				spacePrint(os, arg->getDescription(), 75, 5, 0);
+					spacePrint(StringConvertType::fromConstBasicCharString("-- OR --"), 75, 9, 0);
+				spacePrint(arg->longID(), 75, 3, 3);
+				spacePrint(arg->getDescription(), 75, 5, 0);
 			}
-			os << std::endl << std::endl;
+			*os << std::endl << std::endl;
 		}
 
 		// then the rest
 		for (const ArgType* const& arg : argList) if (!xorHandler.contains(arg)) {
-			spacePrint(os, arg->longID(), 75, 3, 3);
-			spacePrint(os, arg->getDescription(), 75, 5, 0);
-			os << std::endl;
+			spacePrint(arg->longID(), 75, 3, 3);
+			spacePrint(arg->getDescription(), 75, 5, 0);
+			*os << std::endl;
 		}
 
-		os << std::endl;
+		*os << std::endl;
 
-		spacePrint(os, message, 75, 3, 0);
+		spacePrint(message, 75, 3, 0);
 	}
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 	inline void StdOutput<T_Char, T_CharTraits, T_Alloc>::spacePrint(
-		OstreamType& os,
 		const StringType& s,
-		int maxWidth,
-		int indentSpaces,
-		int secondLineOffset
+		std::size_t maxWidth,
+		std::size_t indentSpaces,
+		std::size_t secondLineOffset
 	) const {
-		int len = static_cast<int>(s.length());
+		assert(os);
+		StringViewType strview_remaining = s;
 
-		if ((len + indentSpaces > maxWidth) && maxWidth > 0) {
-			int allowedLen = maxWidth - indentSpaces;
-			int start = 0;
-			while (start < len) {
+		assert(strview_remaining.size() <= std::numeric_limits<std::size_t>::max() - indentSpaces);
+		if (maxWidth > 0 && strview_remaining.size() + indentSpaces > maxWidth) {
+			bool is_first_line = true;
+			assert(maxWidth > indentSpaces);
+			std::size_t allowedLen = maxWidth - indentSpaces;// allowedLen > 0			
+			while (!strview_remaining.empty()) {
 				// find the substring length
-				// int stringLen = std::min<int>( len - start, allowedLen );
-				// doing it this way to support a VisualC++ 2005 bug 
-				using namespace std;
-				int stringLen = min<int>(len - start, allowedLen);
+				std::size_t stringLen = std::min(strview_remaining.size(), allowedLen);// stringLen > 0
 
 				// trim the length so it doesn't end in middle of a word
-				if (stringLen == allowedLen)
-					while (stringLen >= 0 &&
-						s[stringLen + start] != StringConvertType::fromConstBasicChar(' ') &&
-						s[stringLen + start] != StringConvertType::fromConstBasicChar(',') &&
-						s[stringLen + start] != StringConvertType::fromConstBasicChar('|'))
-						stringLen--;
-
-				// ok, the word is longer than the line, so just split 
-				// wherever the line ends
-				if (stringLen <= 0)
-					stringLen = allowedLen;
-
-				// check for newlines
-				for (int i = 0; i < stringLen; i++)
-					if (s[start + i] == StringConvertType::fromConstBasicChar('\n'))
-						stringLen = i + 1;
-
-				// print the indent	
-				for (int i = 0; i < indentSpaces; i++)
-					os << StringConvertType::fromConstBasicCharString(" ");
-
-				if (start == 0) {
-					// handle second line offsets
-					indentSpaces += secondLineOffset;
-
-					// adjust allowed len
-					allowedLen -= secondLineOffset;
+				if (stringLen < strview_remaining.size()) {
+					static const std::array arr_wordbreak = StringConvertType::fromConstBasicCharArray(" ,|");
+					StringViewType strview_wordbreak(arr_wordbreak.cbegin(), arr_wordbreak.cend());
+					std::size_t result_find = strview_remaining.substr(0, stringLen).find_last_of(strview_wordbreak);
+					// otherwise, the word is longer than the line, so just split wherever the line ends
+					if (result_find != StringViewType::npos) stringLen = result_find + 1;
 				}
 
-				os << s.substr(start, stringLen) << std::endl;
+				// check for newlines
+				{
+					std::size_t result_find = strview_remaining.substr(0, stringLen).find_first_of(StringConvertType::fromConstBasicChar('\n'));
+					if (result_find != StringViewType::npos) stringLen = result_find + 1;
+				}
 
+				// print the indent
+				*os << StringType(indentSpaces, StringConvertType::fromConstBasicChar(' '));
+
+				if (is_first_line) {
+					assert(allowedLen > secondLineOffset);
+					// handle second line offsets
+					indentSpaces += secondLineOffset;
+					// adjust allowed len
+					allowedLen -= secondLineOffset;// allowedLen > 0
+					is_first_line = false;
+				}
+
+				*os << strview_remaining.substr(0, stringLen) << std::endl;
+
+				strview_remaining.remove_prefix(stringLen);
 				// so we don't start a line with a space
-				while (s[stringLen + start] == StringConvertType::fromConstBasicChar(' ') && start < len)
-					start++;
-
-				start += stringLen;
+				{
+					std::size_t result_find = strview_remaining.find_first_not_of(StringConvertType::fromConstBasicChar(' '));
+					if (result_find == StringViewType::npos) {
+						result_find = strview_remaining.size();
+					}
+					strview_remaining.remove_prefix(result_find);
+				}
 			}
 		} else {
-			for (int i = 0; i < indentSpaces; i++)
-				os << StringConvertType::fromConstBasicCharString(" ");
-			os << s << std::endl;
+			*os << StringType(indentSpaces, StringConvertType::fromConstBasicChar(' '));
+			*os << strview_remaining << std::endl;
 		}
 	}
 

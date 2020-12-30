@@ -58,8 +58,10 @@ namespace TCLAP {
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CharType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::CharTraitsType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringConvertType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringViewType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::StringVectorType;
+		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::OstreamType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgListType;
 		using typename CmdLineOutput<T_Char, T_CharTraits, T_Alloc>::ArgVectorType;
@@ -107,6 +109,7 @@ namespace TCLAP {
 
 		std::map<StringType, StringType> common;
 		CharType theDelimiter;
+		ConvertedStdioStreams<T_Char, T_CharTraits> convertedStdioStreams;
 	};
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
@@ -127,18 +130,20 @@ namespace TCLAP {
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 	inline void ZshCompletionOutput<T_Char, T_CharTraits, T_Alloc>::version(CmdLineInterfaceType& _cmd) {
-		std::cout << _cmd.getVersion() << std::endl;
+		OstreamType& os = convertedStdioStreams.getCout();
+		os << _cmd.getVersion() << std::endl;
 	}
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 	inline void ZshCompletionOutput<T_Char, T_CharTraits, T_Alloc>::usage(CmdLineInterfaceType& _cmd) {
+		OstreamType& os = convertedStdioStreams.getCout();
 		ArgListType argList = _cmd.getArgList();
 		StringType progName = _cmd.getProgramName();
 		StringType xversion = _cmd.getVersion();
 		theDelimiter = _cmd.getDelimiter();
 		basename(progName);
 
-		std::cout << StringConvertType::fromConstBasicCharString("#compdef ") << progName << std::endl << std::endl <<
+		os << StringConvertType::fromConstBasicCharString("#compdef ") << progName << std::endl << std::endl <<
 			StringConvertType::fromConstBasicCharString("# ") << progName << StringConvertType::fromConstBasicCharString(" version ") << _cmd.getVersion() << std::endl << std::endl <<
 			StringConvertType::fromConstBasicCharString("_arguments -s -S");
 
@@ -149,13 +154,13 @@ namespace TCLAP {
 				printOption(arg, getMutexList(_cmd, arg));
 		}
 
-		std::cout << std::endl;
+		os << std::endl;
 	}
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 	inline void ZshCompletionOutput<T_Char, T_CharTraits, T_Alloc>::failure(CmdLineInterfaceType& _cmd, ArgException<T_Char, T_CharTraits, T_Alloc>& e) {
 		static_cast<void>(_cmd); // unused
-		std::cout << e.what() << std::endl;
+		convertedStdioStreams.getCerr() << e.what() << std::endl;
 	}
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
@@ -185,29 +190,31 @@ namespace TCLAP {
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 	inline void ZshCompletionOutput<T_Char, T_CharTraits, T_Alloc>::printArg(const ArgType* a) {
+		OstreamType& os = convertedStdioStreams.getCout();
 		static std::size_t count = 1;
 
-		std::cout << StringConvertType::fromConstBasicCharString(" \\") << std::endl << StringConvertType::fromConstBasicCharString("  \'");
+		os << StringConvertType::fromConstBasicCharString(" \\") << std::endl << StringConvertType::fromConstBasicCharString("  \'");
 		if (a->acceptsMultipleValues())
-			std::cout << StringConvertType::fromConstBasicChar('*');
+			os << StringConvertType::fromConstBasicChar('*');
 		else
-			std::cout << count++;
-		std::cout << StringConvertType::fromConstBasicChar(':');
+			os << count++;
+		os << StringConvertType::fromConstBasicChar(':');
 		if (!a->isRequired())
-			std::cout << StringConvertType::fromConstBasicChar(':');
+			os << StringConvertType::fromConstBasicChar(':');
 
-		std::cout << a->getName() << StringConvertType::fromConstBasicChar(':');
+		os << a->getName() << StringConvertType::fromConstBasicChar(':');
 		typename std::map<StringType, StringType>::iterator compArg = common.find(a->getName());
 		if (compArg != common.end()) {
-			std::cout << compArg->second;
+			os << compArg->second;
 		} else {
-			std::cout << StringConvertType::fromConstBasicCharString("_guard \"^-*\" ") << a->getName();
+			os << StringConvertType::fromConstBasicCharString("_guard \"^-*\" ") << a->getName();
 		}
-		std::cout << StringConvertType::fromConstBasicChar('\'');
+		os << StringConvertType::fromConstBasicChar('\'');
 	}
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
 	inline void ZshCompletionOutput<T_Char, T_CharTraits, T_Alloc>::printOption(const ArgType* a, StringType mutex) {
+		OstreamType& os = convertedStdioStreams.getCout();
 		StringType flag = a->flagStartChar() + a->getFlag();
 		StringType name = a->nameStartString() + a->getName();
 		StringType desc = a->getDescription();
@@ -220,7 +227,7 @@ namespace TCLAP {
 		if (!desc.compare(0, 15, StringConvertType::fromConstBasicCharString("(OR required)  "))) {
 			desc.erase(0, 15);
 		}
-		size_t len = desc.length();
+		size_t len = desc.size();
 		if (len && desc.at(--len) == StringConvertType::fromConstBasicChar('.')) {
 			desc.erase(len);
 		}
@@ -228,17 +235,17 @@ namespace TCLAP {
 			desc.replace(0, 1, 1, tolower(desc.at(0)));
 		}
 
-		std::cout << StringConvertType::fromConstBasicCharString(" \\") << std::endl << StringConvertType::fromConstBasicCharString("  \'") << mutex;
+		os << StringConvertType::fromConstBasicCharString(" \\") << std::endl << StringConvertType::fromConstBasicCharString("  \'") << mutex;
 
 		if (a->getFlag().empty()) {
-			std::cout << name;
+			os << name;
 		} else {
-			std::cout << StringConvertType::fromConstBasicCharString("\'{") << flag << StringConvertType::fromConstBasicChar(',') << name << StringConvertType::fromConstBasicCharString("}\'");
+			os << StringConvertType::fromConstBasicCharString("\'{") << flag << StringConvertType::fromConstBasicChar(',') << name << StringConvertType::fromConstBasicCharString("}\'");
 		}
 		if (theDelimiter == StringConvertType::fromConstBasicChar('=') && a->isValueRequired())
-			std::cout << StringConvertType::fromConstBasicCharString("=-");
+			os << StringConvertType::fromConstBasicCharString("=-");
 		quoteSpecialChars(desc);
-		std::cout << StringConvertType::fromConstBasicChar('[') << desc << StringConvertType::fromConstBasicChar(']');
+		os << StringConvertType::fromConstBasicChar('[') << desc << StringConvertType::fromConstBasicChar(']');
 
 		if (a->isValueRequired()) {
 			StringType arg = a->shortID();
@@ -250,13 +257,10 @@ namespace TCLAP {
 			}
 
 			arg.erase(0, arg.find_last_of(theDelimiter) + 1);
-			if (arg.at(arg.length() - 1) == StringConvertType::fromConstBasicChar(']'))
-				arg.erase(arg.length() - 1);
-			if (arg.at(arg.length() - 1) == StringConvertType::fromConstBasicChar(']')) {
-				arg.erase(arg.length() - 1);
-			}
-			if (arg.at(0) == StringConvertType::fromConstBasicChar('<')) {
-				arg.erase(arg.length() - 1);
+			if (arg.ends_with(StringConvertType::fromConstBasicChar(']'))) arg.pop_back();
+			if (arg.ends_with(StringConvertType::fromConstBasicChar(']'))) arg.pop_back();
+			if (arg.starts_with(StringConvertType::fromConstBasicChar('<'))) {
+				arg.pop_back();
 				arg.erase(0, 1);
 			}
 			size_t p = arg.find(StringConvertType::fromConstBasicChar('|'));
@@ -265,17 +269,17 @@ namespace TCLAP {
 					arg.replace(p, 1, 1, StringConvertType::fromConstBasicChar(' '));
 				} while ((p = arg.find_first_of(StringConvertType::fromConstBasicChar('|'), p)) != StringType::npos);
 				quoteSpecialChars(arg);
-				std::cout << StringConvertType::fromConstBasicCharString(": :(") << arg << StringConvertType::fromConstBasicChar(')');
+				os << StringConvertType::fromConstBasicCharString(": :(") << arg << StringConvertType::fromConstBasicChar(')');
 			} else {
-				std::cout << StringConvertType::fromConstBasicChar(':') << arg;
+				os << StringConvertType::fromConstBasicChar(':') << arg;
 				typename std::map<StringType, StringType>::iterator compArg = common.find(arg);
 				if (compArg != common.end()) {
-					std::cout << StringConvertType::fromConstBasicChar(':') << compArg->second;
+					os << StringConvertType::fromConstBasicChar(':') << compArg->second;
 				}
 			}
 		}
 
-		std::cout << StringConvertType::fromConstBasicChar('\'');
+		os << StringConvertType::fromConstBasicChar('\'');
 	}
 
 	template<typename T_Char, typename T_CharTraits, typename T_Alloc>
